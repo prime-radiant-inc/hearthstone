@@ -18,6 +18,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@simplewebauthn/server": "^13.3.0",
     "better-sqlite3": "^12.8.0",
     "google-auth-library": "^10.6.2",
     "googleapis": "^171.4.0",
