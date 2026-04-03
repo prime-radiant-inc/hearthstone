@@ -47,9 +47,14 @@ struct MessageBubble: View {
             )
     }
 
+    private var uniqueSources: [ChatSource] {
+        var seen = Set<String>()
+        return message.sources.filter { seen.insert($0.documentId).inserted }
+    }
+
     private var sourcePills: some View {
         VStack(alignment: .leading, spacing: 4) {
-            ForEach(message.sources) { source in
+            ForEach(uniqueSources) { source in
                 Button {
                     onSourceTap(source)
                 } label: {

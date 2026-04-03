@@ -60,7 +60,9 @@ struct SourceDocumentView: View {
         isLoading = true
         error = nil
         do {
-            let doc = try await APIClient.shared.getDocumentContent(id: documentId, auth: .guest)
+            // Try owner auth first (for preview mode), fall back to guest auth
+            let auth: APIAuth = KeychainService.shared.ownerToken != nil ? .owner : .guest
+            let doc = try await APIClient.shared.getDocumentContent(id: documentId, auth: auth)
             content = doc.markdown
         } catch {
             self.error = "Unable to load document. Please try again."
