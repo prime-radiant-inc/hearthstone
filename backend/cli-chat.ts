@@ -50,8 +50,8 @@ const modeArg = args.find(a => a.startsWith("--mode="))?.split("=")[1]
   ?? args[args.indexOf("--mode") + 1]
   ?? "both";
 
-if (!["rag", "full", "mrag", "hyde", "both", "all"].includes(modeArg)) {
-  console.error("Usage: npx tsx cli-chat.ts --mode [rag|full|mrag|hyde|both|all]");
+if (!["rag", "full", "mrag", "mfrag", "hyde", "both", "all"].includes(modeArg)) {
+  console.error("Usage: npx tsx cli-chat.ts --mode [rag|full|mrag|mfrag|hyde|both|all]");
   process.exit(1);
 }
 
@@ -85,8 +85,14 @@ function loadAllChunks(): DocChunk[] {
   }));
 }
 
-function loadAllDocMarkdown(): Array<{ title: string; markdown: string }> {
-  return db.prepare("SELECT title, markdown FROM documents ORDER BY title").all() as any[];
+interface Doc {
+  id: string;
+  title: string;
+  markdown: string;
+}
+
+function loadAllDocMarkdown(): Doc[] {
+  return db.prepare("SELECT id, title, markdown FROM documents ORDER BY title").all() as any[];
 }
 
 // --- Embedding + Search ---
@@ -264,6 +270,7 @@ async function main() {
 
   const ragHistory: Message[] = [];
   const mragHistory: Message[] = [];
+  const mfragHistory: Message[] = [];
   const hydeHistory: Message[] = [];
   const fullHistory: Message[] = [];
 
@@ -282,6 +289,7 @@ async function main() {
     if (query === "/clear") {
       ragHistory.length = 0;
       mragHistory.length = 0;
+      mfragHistory.length = 0;
       hydeHistory.length = 0;
       fullHistory.length = 0;
       console.log("History cleared.");
@@ -378,6 +386,50 @@ async function main() {
         console.log(`\x1b[2m  Retrieved ${topResults.length} chunks from: ${uniqueDocs.map(d => d.documentTitle).join(", ")}\x1b[0m`);
 
         mragHistory.push({ role: "assistant", content: mragResponse });
+      }
+
+      // --- mFRAG mode: expand query → find documents → full doc context ---
+      if (modeArg === "mfrag" || modeArg === "all") {
+        // Step 1: Expand the query
+        const expandedQueries = await expandQuery(query, mfragHistory);
+        console.log(`\n\x1b[2m  ┌ mFRAG expanding: ${expandedQueries.map(q => `"${q}"`).join(", ")}\x1b[0m`);
+
+        // Step 2: Search with each expanded query, collect which documents match
+        const docHits = new Map<string, number>(); // documentId → hit count
+
+        for (const q of expandedQueries) {
+          const qEmb = await embedText(q);
+          const results = searchChunks(new Float32Array(qEmb), 3);
+          for (const r of results) {
+            docHits.set(r.documentId, (docHits.get(r.documentId) || 0) + 1);
+          }
+        }
+
+        // Step 3: Rank documents by hit count, load full text
+        const rankedDocIds = [...docHits.entries()]
+          .sort((a, b) => b[1] - a[1])
+          .map(([id]) => id);
+
+        const selectedDocs = rankedDocIds
+          .map(id => allDocs.find(d => d.id === id))
+          .filter((d): d is Doc => d !== null);
+
+        console.log(`\x1b[2m  ┌ Selected ${selectedDocs.length} docs: ${selectedDocs.map(d => d.title).join(", ")}\x1b[0m`);
+
+        // Step 4: Build full-doc context
+        const context = selectedDocs
+          .map(d => `--- Document: "${d.title}" ---\n\n${d.markdown}`)
+          .join("\n\n" + "=".repeat(40) + "\n\n");
+
+        mfragHistory.push({ role: "user", content: query });
+
+        const mfragMessages: Message[] = [
+          { role: "system", content: FULL_SYSTEM + context },
+          ...mfragHistory,
+        ];
+
+        const mfragResponse = await chatStream(mfragMessages, "mFRAG");
+        mfragHistory.push({ role: "assistant", content: mfragResponse });
       }
 
       // --- HyDE mode ---
