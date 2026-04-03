@@ -18,7 +18,7 @@ export async function* chat(messages: ChatMessage[]): AsyncGenerator<string> {
 async function* chatOpenAI(messages: ChatMessage[]): AsyncGenerator<string> {
   const client = new OpenAI({ apiKey: config.openaiApiKey });
   const stream = await client.chat.completions.create({
-    model: "gpt-4o",
+    model: "gpt-5.4",
     messages,
     stream: true,
   });
@@ -33,7 +33,7 @@ export async function chatComplete(messages: ChatMessage[]): Promise<string> {
   if (config.chatProvider === "openai") {
     const client = new OpenAI({ apiKey: config.openaiApiKey });
     const response = await client.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-5.4",
       messages,
     });
     return response.choices[0]?.message?.content || "";

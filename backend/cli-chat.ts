@@ -130,7 +130,7 @@ async function expandQuery(query: string, history: Message[]): Promise<string[]>
     : "";
 
   const resp = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
+    model: "gpt-5.4-mini",
     messages: [{
       role: "system",
       content: `You expand search queries for a household knowledge base (home info, pet care, childcare, emergency contacts, schedules).
@@ -195,7 +195,7 @@ Household documents:
 
 async function chatStream(messages: Message[], label: string): Promise<string> {
   process.stdout.write(`\n\x1b[1;33m[${label}]\x1b[0m `);
-  const stream = await openai.chat.completions.create({ model: "gpt-4o", messages, stream: true });
+  const stream = await openai.chat.completions.create({ model: "gpt-5.4", messages, stream: true });
   let full = "";
   for await (const chunk of stream) {
     const delta = chunk.choices[0]?.delta?.content;
