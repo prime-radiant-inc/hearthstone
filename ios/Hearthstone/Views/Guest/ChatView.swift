@@ -20,7 +20,7 @@ struct ChatView: View {
         }
         .background(Theme.cream)
         .sheet(item: $selectedSource) { source in
-            SourceDocumentView(documentId: source.documentId, documentTitle: source.title)
+            SourceDocumentView(documentId: source.documentId, documentTitle: source.title, chunkIndex: source.chunkIndex)
         }
         .task {
             await viewModel.loadSuggestions()

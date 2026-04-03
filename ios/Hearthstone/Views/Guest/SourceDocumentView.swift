@@ -1,8 +1,5 @@
 // SourceDocumentView.swift
 // Hearthstone
-//
-// Modal sheet showing the full cached Markdown of a source document.
-// Ichor (ec8ae649)
 
 import SwiftUI
 import WebKit
@@ -10,6 +7,7 @@ import WebKit
 struct SourceDocumentView: View {
     let documentId: String
     let documentTitle: String
+    var chunkIndex: Int?
 
     @Environment(\.dismiss) private var dismiss
     @State private var htmlContent: String?
@@ -34,7 +32,7 @@ struct SourceDocumentView: View {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if let htmlContent = htmlContent {
-                    WebView(html: htmlContent)
+                    WebView(html: htmlContent, scrollToChunk: chunkIndex)
                 }
             }
             .background(Theme.cream)
@@ -55,7 +53,6 @@ struct SourceDocumentView: View {
         isLoading = true
         error = nil
         do {
-            // Try owner auth first (for preview mode), fall back to guest auth
             let auth: APIAuth = KeychainService.shared.ownerToken != nil ? .owner : .guest
             let doc = try await APIClient.shared.getDocumentContent(id: documentId, auth: auth)
             htmlContent = doc.html
@@ -68,6 +65,7 @@ struct SourceDocumentView: View {
 
 struct WebView: UIViewRepresentable {
     let html: String
+    var scrollToChunk: Int?
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -78,20 +76,29 @@ struct WebView: UIViewRepresentable {
         webView.backgroundColor = .clear
         webView.scrollView.backgroundColor = .clear
         webView.navigationDelegate = context.coordinator
+        context.coordinator.scrollToChunk = scrollToChunk
         return webView
     }
 
     func updateUIView(_ webView: WKWebView, context: Context) {
+        context.coordinator.scrollToChunk = scrollToChunk
         webView.loadHTMLString(html, baseURL: nil)
     }
 
     class Coordinator: NSObject, WKNavigationDelegate {
-        // Block all navigation — this is a read-only document viewer
+        var scrollToChunk: Int?
+
         func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction) async -> WKNavigationActionPolicy {
             if navigationAction.navigationType == .other {
-                return .allow // Allow initial HTML load
+                return .allow
             }
-            return .cancel // Block link taps
+            return .cancel
+        }
+
+        // After the page finishes loading, scroll to the target chunk
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            guard let index = scrollToChunk else { return }
+            webView.evaluateJavaScript("scrollToChunk(\(index))") { _, _ in }
         }
     }
 }

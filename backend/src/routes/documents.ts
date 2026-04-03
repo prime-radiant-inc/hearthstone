@@ -130,7 +130,12 @@ export function handleGetContent(
 
   if (!doc) return { status: 404, body: { message: "Document not found" } };
 
-  const html = renderStyledHtml(doc.title, doc.markdown);
+  // Get chunks for this document so we can wrap each in an anchorable section
+  const chunks = db
+    .prepare("SELECT chunk_index, text FROM chunks WHERE document_id = ? ORDER BY chunk_index")
+    .all(documentId) as any[];
+
+  const html = renderStyledHtml(doc.markdown, chunks);
 
   return {
     status: 200,
@@ -138,8 +143,25 @@ export function handleGetContent(
   };
 }
 
-function renderStyledHtml(title: string, markdown: string): string {
-  const bodyHtml = marked(markdown);
+function renderStyledHtml(markdown: string, chunks: Array<{ chunk_index: number; text: string }>): string {
+  let bodyHtml: string;
+
+  if (chunks.length > 0) {
+    // Render each chunk as a section with an anchor ID
+    bodyHtml = chunks.map((chunk) => {
+      // Strip the breadcrumb line (starts with "> ") from display
+      let text = chunk.text;
+      if (text.startsWith("> ")) {
+        const newlineIdx = text.indexOf("\n");
+        text = newlineIdx !== -1 ? text.slice(newlineIdx + 1).trimStart() : text;
+      }
+      const chunkHtml = marked(text);
+      return `<section id="chunk-${chunk.chunk_index}" class="chunk">${chunkHtml}</section>`;
+    }).join("\n");
+  } else {
+    bodyHtml = marked(markdown);
+  }
+
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -191,9 +213,35 @@ function renderStyledHtml(title: string, markdown: string): string {
   pre { background: #F5EDE0; padding: 16px; border-radius: 8px; overflow-x: auto; margin: 12px 0; }
   pre code { background: none; padding: 0; }
   hr { border: none; border-top: 1px solid #EDE3D1; margin: 24px 0; }
+  .chunk { padding: 4px 0; }
+  .chunk.highlighted {
+    background: rgba(181, 113, 45, 0.08);
+    border-left: 3px solid #B5712D;
+    margin-left: -12px;
+    padding-left: 12px;
+    border-radius: 0 4px 4px 0;
+  }
+  @keyframes fade-highlight {
+    0% { background: rgba(181, 113, 45, 0.15); }
+    100% { background: rgba(181, 113, 45, 0.06); }
+  }
+  .chunk.highlighted {
+    animation: fade-highlight 2s ease-out forwards;
+  }
 </style>
 </head>
-<body>${bodyHtml}</body>
+<body>${bodyHtml}
+<script>
+function scrollToChunk(index) {
+  const el = document.getElementById('chunk-' + index);
+  if (!el) return;
+  el.classList.add('highlighted');
+  setTimeout(() => {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 100);
+}
+</script>
+</body>
 </html>`;
 }
 
