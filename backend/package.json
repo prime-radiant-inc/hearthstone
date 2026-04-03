@@ -8,7 +8,9 @@
     "test": "vitest run",
     "chat:rag": "npx tsx cli-chat.ts --mode rag",
     "chat:full": "npx tsx cli-chat.ts --mode full",
-    "chat:both": "npx tsx cli-chat.ts --mode both"
+    "chat:both": "npx tsx cli-chat.ts --mode both",
+    "chat:mrag": "npx tsx cli-chat.ts --mode mrag",
+    "chat:all": "npx tsx cli-chat.ts --mode all"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",

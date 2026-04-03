@@ -50,8 +50,8 @@ const modeArg = args.find(a => a.startsWith("--mode="))?.split("=")[1]
   ?? args[args.indexOf("--mode") + 1]
   ?? "both";
 
-if (!["rag", "full", "both"].includes(modeArg)) {
-  console.error("Usage: npx tsx cli/chat.ts --mode [rag|full|both]");
+if (!["rag", "full", "mrag", "both", "all"].includes(modeArg)) {
+  console.error("Usage: npx tsx cli-chat.ts --mode [rag|full|mrag|both|all]");
   process.exit(1);
 }
 
@@ -119,6 +119,41 @@ function searchChunks(queryEmbedding: Float32Array, limit: number = 5): DocChunk
       return chunkMap.get(key) ?? null;
     })
     .filter((c): c is DocChunk => c !== null);
+}
+
+// --- Query Expansion (for mRAG) ---
+
+async function expandQuery(query: string, history: Message[]): Promise<string[]> {
+  const historyContext = history.length > 0
+    ? `\nRecent conversation:\n${history.slice(-4).map(m => `${m.role}: ${m.content}`).join("\n")}\n`
+    : "";
+
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [{
+      role: "system",
+      content: `You help expand search queries for a household knowledge base containing documents about home info, pet care, childcare, emergency contacts, schedules, etc.
+
+Given the user's question (and recent conversation for context), generate 3-5 diverse search queries that would help find the relevant information. Think about:
+- Synonyms and related terms (doctor → pediatrician, physician, medical)
+- What section of a household document might contain this info
+- Implicit context (baby's doctor → pediatrician, medical contacts)
+
+Return ONLY a JSON array of strings. No explanation.`
+    }, {
+      role: "user",
+      content: `${historyContext}Question: "${query}"`
+    }],
+    temperature: 0.3,
+  });
+
+  try {
+    const text = response.choices[0]?.message?.content || "[]";
+    const queries = JSON.parse(text.match(/\[[\s\S]*\]/)?.[0] || "[]") as string[];
+    return [query, ...queries]; // always include the original
+  } catch {
+    return [query];
+  }
 }
 
 // --- Chat ---
@@ -189,6 +224,7 @@ async function main() {
     .join("\n\n" + "=".repeat(60) + "\n\n");
 
   const ragHistory: Message[] = [];
+  const mragHistory: Message[] = [];
   const fullHistory: Message[] = [];
 
   const rl = readline.createInterface({
@@ -205,6 +241,7 @@ async function main() {
 
     if (query === "/clear") {
       ragHistory.length = 0;
+      mragHistory.length = 0;
       fullHistory.length = 0;
       console.log("History cleared.");
       rl.prompt();
@@ -224,7 +261,7 @@ async function main() {
 
     try {
       // --- RAG mode ---
-      if (modeArg === "rag" || modeArg === "both") {
+      if (modeArg === "rag" || modeArg === "both" || modeArg === "all") {
         const queryEmb = await embedText(query);
         const results = searchChunks(new Float32Array(queryEmb), 5);
 
@@ -253,8 +290,57 @@ async function main() {
         ragHistory.push({ role: "assistant", content: ragResponse });
       }
 
+      // --- Multi-query RAG mode ---
+      if (modeArg === "mrag" || modeArg === "all") {
+        // Step 1: Expand the query
+        const expandedQueries = await expandQuery(query, mragHistory);
+        console.log(`\x1b[2m  Expanded queries: ${expandedQueries.map(q => `"${q}"`).join(", ")}\x1b[0m`);
+
+        // Step 2: Search with each expanded query, union results
+        const seenChunkKeys = new Set<string>();
+        const allResults: DocChunk[] = [];
+
+        for (const q of expandedQueries) {
+          const qEmb = await embedText(q);
+          const results = searchChunks(new Float32Array(qEmb), 3);
+          for (const r of results) {
+            const key = `${r.documentId}-${r.chunkIndex}`;
+            if (!seenChunkKeys.has(key)) {
+              seenChunkKeys.add(key);
+              allResults.push(r);
+            }
+          }
+        }
+
+        // Cap at 10 chunks
+        const topResults = allResults.slice(0, 10);
+
+        const context = topResults
+          .map((r, i) => `[${i + 1}] (from "${r.documentTitle}")\n${r.text}`)
+          .join("\n\n---\n\n");
+
+        mragHistory.push({ role: "user", content: query });
+
+        const mragMessages: Message[] = [
+          { role: "system", content: RAG_SYSTEM + context },
+          ...mragHistory,
+        ];
+
+        const mragResponse = await chatStream(mragMessages, "mRAG");
+
+        const seen = new Set<string>();
+        const uniqueDocs = topResults.filter(r => {
+          if (seen.has(r.documentTitle)) return false;
+          seen.add(r.documentTitle);
+          return true;
+        });
+        console.log(`\x1b[2m  Retrieved ${topResults.length} chunks from: ${uniqueDocs.map(d => d.documentTitle).join(", ")}\x1b[0m`);
+
+        mragHistory.push({ role: "assistant", content: mragResponse });
+      }
+
       // --- Full context mode ---
-      if (modeArg === "full" || modeArg === "both") {
+      if (modeArg === "full" || modeArg === "both" || modeArg === "all") {
         fullHistory.push({ role: "user", content: query });
 
         const fullMessages: Message[] = [
@@ -266,7 +352,7 @@ async function main() {
         fullHistory.push({ role: "assistant", content: fullResponse });
       }
 
-      if (modeArg === "both") {
+      if (["both", "all"].includes(modeArg)) {
         console.log("\x1b[2m" + "─".repeat(60) + "\x1b[0m");
       }
     } catch (err: any) {
