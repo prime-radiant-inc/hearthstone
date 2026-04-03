@@ -1,12 +1,8 @@
-// OwnerPreviewView.swift
-// Hearthstone
-//
-// Wraps the chat interface with a persistent dark banner for owner preview mode.
-// Bob Vesper (ec8ae649)
-
 import SwiftUI
 
 struct OwnerPreviewView: View {
+    var householdName: String = ""
+
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = ChatViewModel(isPreview: true)
 
@@ -41,8 +37,7 @@ struct OwnerPreviewView: View {
                 )
             )
 
-            // Chat view (from Task 10 — may not exist yet at commit time)
-            ChatView(viewModel: viewModel, householdName: "Your Household")
+            ChatView(viewModel: viewModel, householdName: householdName)
         }
     }
 }

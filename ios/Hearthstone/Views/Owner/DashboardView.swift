@@ -7,6 +7,7 @@ struct DashboardView: View {
     let ownerName: String
 
     @StateObject private var viewModel = DashboardViewModel()
+    @State private var showDocuments = false
     @State private var showGuestList = false
     @State private var showOwnerPreview = false
 
@@ -20,9 +21,7 @@ struct DashboardView: View {
 
                 StatRow(
                     documentCount: viewModel.documentCount,
-                    guestCount: viewModel.activeGuestCount + viewModel.pendingGuestCount,
-                    onDocumentsTap: { /* navigate to documents */ },
-                    onGuestsTap: { showGuestList = true }
+                    guestCount: viewModel.activeGuestCount + viewModel.pendingGuestCount
                 )
                 .padding(.top, -16)
                 .padding(.horizontal, 24)
@@ -39,9 +38,9 @@ struct DashboardView: View {
                 }
 
                 ManageSection(
-                    documentCount: viewModel.documentCount,
-                    guestCount: viewModel.activeGuestCount + viewModel.pendingGuestCount,
-                    onDocumentsTap: { /* navigate to documents */ },
+                    documentSubtitle: documentSubtitle,
+                    guestSubtitle: guestSubtitle,
+                    onDocumentsTap: { showDocuments = true },
                     onGuestsTap: { showGuestList = true },
                     onPreviewTap: { showOwnerPreview = true }
                 )
@@ -50,14 +49,43 @@ struct DashboardView: View {
         }
         .background(Theme.cream.ignoresSafeArea())
         .task { await viewModel.load() }
+        .sheet(isPresented: $showDocuments) {
+            ConnectDocsView()
+        }
         .sheet(isPresented: $showGuestList) {
-            Text("Guest List")
-                .presentationDetents([.large])
+            GuestListView()
         }
         .sheet(isPresented: $showOwnerPreview) {
-            Text("Owner Preview as Guest")
-                .presentationDetents([.large])
+            OwnerPreviewView(householdName: householdName)
         }
+        .onChange(of: showDocuments) { _, isShowing in
+            if !isShowing { Task { await viewModel.load() } }
+        }
+        .onChange(of: showGuestList) { _, isShowing in
+            if !isShowing { Task { await viewModel.load() } }
+        }
+    }
+
+    private var documentSubtitle: String {
+        switch viewModel.documentCount {
+        case 0: return "No docs connected yet"
+        case 1: return "1 doc connected"
+        default: return "\(viewModel.documentCount) docs connected"
+        }
+    }
+
+    private var guestSubtitle: String {
+        if viewModel.activeGuestCount == 0 && viewModel.pendingGuestCount == 0 {
+            return "No guests yet"
+        }
+        var parts: [String] = []
+        if viewModel.activeGuestCount > 0 {
+            parts.append("\(viewModel.activeGuestCount) active")
+        }
+        if viewModel.pendingGuestCount > 0 {
+            parts.append("\(viewModel.pendingGuestCount) pending")
+        }
+        return parts.joined(separator: " · ")
     }
 }
 
@@ -105,36 +133,23 @@ private struct HeroHeader: View {
     }
 }
 
-// MARK: - StatRow
+// MARK: - StatRow (display only, no tap targets)
 
 private struct StatRow: View {
     let documentCount: Int
     let guestCount: Int
-    let onDocumentsTap: () -> Void
-    let onGuestsTap: () -> Void
 
     var body: some View {
         HStack(spacing: 12) {
-            StatCard(
-                number: documentCount,
-                label: "Documents",
-                onManageTap: onDocumentsTap
-            )
-            StatCard(
-                number: guestCount,
-                label: "Guests",
-                onManageTap: onGuestsTap
-            )
+            StatCard(number: documentCount, label: "Documents")
+            StatCard(number: guestCount, label: "Guests")
         }
     }
 }
 
-// MARK: - StatCard
-
 private struct StatCard: View {
     let number: Int
     let label: String
-    let onManageTap: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -147,13 +162,6 @@ private struct StatCard: View {
             Text(label)
                 .font(.system(size: 13))
                 .foregroundColor(Theme.stone)
-
-            Button(action: onManageTap) {
-                Text("Manage →")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(Theme.hearth)
-            }
-            .padding(.top, 8)
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -182,28 +190,11 @@ private struct OnboardingChecklist: View {
             }
             .padding(.bottom, 14)
 
-            ChecklistRow(
-                label: "Create your household",
-                isDone: true
-            )
-
-            Divider()
-                .background(Theme.goldBadge)
-                .padding(.vertical, 2)
-
-            ChecklistRow(
-                label: "Connect your documents",
-                isDone: hasDocuments || hasConnections
-            )
-
-            Divider()
-                .background(Theme.goldBadge)
-                .padding(.vertical, 2)
-
-            ChecklistRow(
-                label: "Invite your first guest",
-                isDone: hasGuests
-            )
+            ChecklistRow(label: "Create your household", isDone: true)
+            Divider().background(Theme.goldBadge).padding(.vertical, 2)
+            ChecklistRow(label: "Connect your documents", isDone: hasDocuments || hasConnections)
+            Divider().background(Theme.goldBadge).padding(.vertical, 2)
+            ChecklistRow(label: "Invite your first guest", isDone: hasGuests)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 18)
@@ -224,8 +215,6 @@ private struct OnboardingChecklist: View {
         .clipShape(RoundedRectangle(cornerRadius: Theme.radiusLarge))
     }
 }
-
-// MARK: - ChecklistRow
 
 private struct ChecklistRow: View {
     let label: String
@@ -263,8 +252,8 @@ private struct ChecklistRow: View {
 // MARK: - ManageSection
 
 private struct ManageSection: View {
-    let documentCount: Int
-    let guestCount: Int
+    let documentSubtitle: String
+    let guestSubtitle: String
     let onDocumentsTap: () -> Void
     let onGuestsTap: () -> Void
     let onPreviewTap: () -> Void
@@ -281,7 +270,7 @@ private struct ManageSection: View {
                 icon: "📄",
                 iconBackground: Color(red: 1.0, green: 0.953, blue: 0.863),
                 title: "Documents",
-                subtitle: documentCount == 1 ? "1 document connected" : "\(documentCount) documents connected",
+                subtitle: documentSubtitle,
                 onTap: onDocumentsTap
             )
 
@@ -289,7 +278,7 @@ private struct ManageSection: View {
                 icon: "👥",
                 iconBackground: Theme.sageLight,
                 title: "Guests",
-                subtitle: guestCount == 1 ? "1 guest" : "\(guestCount) guests",
+                subtitle: guestSubtitle,
                 onTap: onGuestsTap
             )
 
@@ -297,7 +286,7 @@ private struct ManageSection: View {
                 icon: "💬",
                 iconBackground: Color(red: 0.910, green: 0.890, blue: 0.941),
                 title: "Preview as Guest",
-                subtitle: "See the experience your guests have",
+                subtitle: "See what your guests see",
                 onTap: onPreviewTap
             )
         }
@@ -305,8 +294,6 @@ private struct ManageSection: View {
         .padding(.bottom, 32)
     }
 }
-
-// MARK: - ManageRow
 
 private struct ManageRow: View {
     let icon: String
@@ -349,15 +336,4 @@ private struct ManageRow: View {
         }
         .padding(.bottom, 10)
     }
-}
-
-// MARK: - Preview
-
-#Preview("Setup incomplete") {
-    DashboardView(householdName: "The Miller Home", ownerName: "Sarah")
-}
-
-#Preview("Ready state") {
-    let vm = DashboardViewModel()
-    return DashboardView(householdName: "The Miller Home", ownerName: "Sarah")
 }
