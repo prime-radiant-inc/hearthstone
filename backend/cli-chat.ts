@@ -322,7 +322,7 @@ async function main() {
       if (modeArg === "mrag" || modeArg === "all") {
         // Step 1: Expand the query
         const expandedQueries = await expandQuery(query, mragHistory);
-        console.log(`\x1b[2m  Expanded queries: ${expandedQueries.map(q => `"${q}"`).join(", ")}\x1b[0m`);
+        console.log(`\n\x1b[2m  ┌ mRAG expanding: ${expandedQueries.map(q => `"${q}"`).join(", ")}\x1b[0m`);
 
         // Step 2: Search with each expanded query, union results
         const seenChunkKeys = new Set<string>();
@@ -371,7 +371,7 @@ async function main() {
       if (modeArg === "hyde" || modeArg === "all") {
         // Step 1: Generate hypothetical answer
         const hypothesis = await generateHypothesis(query, hydeHistory);
-        console.log(`\x1b[2m  Hypothesis: "${hypothesis.slice(0, 120)}${hypothesis.length > 120 ? '...' : ''}"\x1b[0m`);
+        console.log(`\n\x1b[2m  ┌ HyDE hypothesis: "${hypothesis.slice(0, 120)}${hypothesis.length > 120 ? '...' : ''}"\x1b[0m`);
 
         // Step 2: Embed the hypothesis (not the original query)
         const hydeEmb = await embedText(hypothesis);
