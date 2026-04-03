@@ -108,6 +108,16 @@ async function handleRequest(req: Request): Promise<Response> {
         return json(result.body, result.status);
       }
 
+      // --- Me endpoint ---
+      if (method === "GET" && pathname === "/me") {
+        const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        const person = getDb().prepare("SELECT id, email FROM persons WHERE id = ?").get(owner.personId) as any;
+        const household = owner.householdId
+          ? getDb().prepare("SELECT id, name, created_at FROM households WHERE id = ?").get(owner.householdId) as any
+          : null;
+        return json({ person: { id: person.id, email: person.email }, household });
+      }
+
       // --- Owner routes ---
       if (method === "POST" && pathname === "/household") {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);

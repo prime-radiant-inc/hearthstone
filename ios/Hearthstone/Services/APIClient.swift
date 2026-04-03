@@ -200,6 +200,17 @@ final class APIClient {
                               body: Body(token: token))
     }
 
+    // MARK: - Me
+
+    struct MeResponse: Decodable {
+        let person: Person
+        let household: Household?
+    }
+
+    func getMe() async throws -> MeResponse {
+        try await call(method: "GET", path: "/me", auth: .owner)
+    }
+
     // MARK: - Household endpoints
 
     func createHousehold(name: String) async throws -> Household {

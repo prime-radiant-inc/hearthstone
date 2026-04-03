@@ -55,9 +55,22 @@ final class AppRouter: ObservableObject {
 
     func checkAuth() {
         if KeychainService.shared.ownerToken != nil {
-            // For now, use placeholder names — in a full implementation
-            // we'd decode the JWT or call an API to get user/household info
-            state = .ownerDashboard(householdName: "My Home", ownerName: "")
+            state = .loading
+            Task {
+                do {
+                    let me = try await APIClient.shared.getMe()
+                    if let household = me.household {
+                        state = .ownerDashboard(householdName: household.name, ownerName: me.person.email)
+                    } else {
+                        // Has account but no household — go to setup
+                        state = .welcome
+                    }
+                } catch {
+                    // Token invalid — clear and start fresh
+                    KeychainService.shared.ownerToken = nil
+                    state = .welcome
+                }
+            }
         } else if KeychainService.shared.guestToken != nil {
             state = .guestChat(householdName: "")
         } else {
