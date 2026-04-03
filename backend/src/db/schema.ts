@@ -2,7 +2,25 @@ export const SCHEMA_SQL = `
   CREATE TABLE IF NOT EXISTS persons (
     id TEXT PRIMARY KEY,
     email TEXT UNIQUE NOT NULL,
-    google_refresh_token TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS passkey_credentials (
+    id TEXT PRIMARY KEY,
+    person_id TEXT NOT NULL REFERENCES persons(id),
+    credential_id TEXT UNIQUE NOT NULL,
+    public_key TEXT NOT NULL,
+    counter INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS email_verifications (
+    id TEXT PRIMARY KEY,
+    email TEXT NOT NULL,
+    code TEXT NOT NULL,
+    purpose TEXT NOT NULL CHECK(purpose IN ('register', 'login')),
+    expires_at TEXT NOT NULL,
+    used_at TEXT,
     created_at TEXT NOT NULL
   );
 

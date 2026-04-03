@@ -17,8 +17,8 @@ describe("indexer", () => {
         embedding float[1536]
       );
     `);
-    db.prepare("INSERT INTO persons (id, email, google_refresh_token, created_at) VALUES (?, ?, ?, ?)").run(
-      "p1", "owner@test.com", "refresh_tok", new Date().toISOString()
+    db.prepare("INSERT INTO persons (id, email, created_at) VALUES (?, ?, ?)").run(
+      "p1", "owner@test.com", new Date().toISOString()
     );
     db.prepare("INSERT INTO households (id, owner_id, name, created_at) VALUES (?, ?, ?, ?)").run(
       "h1", "p1", "Test Home", new Date().toISOString()

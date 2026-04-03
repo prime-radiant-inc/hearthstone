@@ -5,8 +5,8 @@ import { runMigrations } from "../../src/db/migrations";
 import { searchChunks } from "../../src/services/search";
 
 function seedWithChunks(db: Database.Database) {
-  db.prepare("INSERT INTO persons (id, email, google_refresh_token, created_at) VALUES (?, ?, ?, ?)").run(
-    "p1", "owner@test.com", "refresh", new Date().toISOString()
+  db.prepare("INSERT INTO persons (id, email, created_at) VALUES (?, ?, ?)").run(
+    "p1", "owner@test.com", new Date().toISOString()
   );
   db.prepare("INSERT INTO households (id, owner_id, name, created_at) VALUES (?, ?, ?, ?)").run(
     "h1", "p1", "Test Home", new Date().toISOString()
@@ -56,8 +56,8 @@ describe("searchChunks", () => {
   });
 
   it("only returns chunks from the specified household", () => {
-    db.prepare("INSERT INTO persons (id, email, google_refresh_token, created_at) VALUES (?, ?, ?, ?)").run(
-      "p2", "other@test.com", "refresh2", new Date().toISOString()
+    db.prepare("INSERT INTO persons (id, email, created_at) VALUES (?, ?, ?)").run(
+      "p2", "other@test.com", new Date().toISOString()
     );
     db.prepare("INSERT INTO households (id, owner_id, name, created_at) VALUES (?, ?, ?, ?)").run(
       "h2", "p2", "Other Home", new Date().toISOString()

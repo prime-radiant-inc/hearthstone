@@ -19,6 +19,8 @@ describe("database schema", () => {
     expect(tables).toContain("session_tokens");
     expect(tables).toContain("documents");
     expect(tables).toContain("chunks");
+    expect(tables).toContain("passkey_credentials");
+    expect(tables).toContain("email_verifications");
   });
 
   it("enforces household_id foreign key on guests", () => {
@@ -38,8 +40,8 @@ describe("database schema", () => {
     db.pragma("foreign_keys = ON");
     runMigrations(db);
 
-    db.prepare("INSERT INTO persons (id, email, google_refresh_token, created_at) VALUES (?, ?, ?, ?)").run(
-      "p1", "owner@test.com", "refresh_tok", new Date().toISOString()
+    db.prepare("INSERT INTO persons (id, email, created_at) VALUES (?, ?, ?)").run(
+      "p1", "owner@test.com", new Date().toISOString()
     );
     db.prepare("INSERT INTO households (id, owner_id, name, created_at) VALUES (?, ?, ?, ?)").run(
       "h1", "p1", "Test Home", new Date().toISOString()

@@ -10,8 +10,9 @@ function optional(name: string, fallback: string): string {
 
 export const config = {
   databaseUrl: optional("DATABASE_URL", "./hearthstone.db"),
-  googleClientId: required("GOOGLE_CLIENT_ID"),
-  googleClientSecret: required("GOOGLE_CLIENT_SECRET"),
+  googleClientId: optional("GOOGLE_CLIENT_ID", ""),
+  googleClientSecret: optional("GOOGLE_CLIENT_SECRET", ""),
+  webauthnRpId: optional("WEBAUTHN_RP_ID", "localhost"),
   openaiApiKey: required("OPENAI_API_KEY"),
   embeddingProvider: optional("EMBEDDING_PROVIDER", "openai"),
   chatProvider: optional("CHAT_PROVIDER", "openai"),
