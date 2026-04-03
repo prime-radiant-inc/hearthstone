@@ -315,6 +315,42 @@ final class APIClient {
         try await callVoid(method: "DELETE", path: "/documents/\(id)", auth: .owner)
     }
 
+    func uploadDocument(title: String, docxData: Data) async throws -> Document {
+        var req = URLRequest(url: URL(string: baseURL + "/documents/upload")!)
+        req.httpMethod = "POST"
+
+        let boundary = UUID().uuidString
+        req.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+
+        if let token = KeychainService.shared.ownerToken {
+            req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+
+        var body = Data()
+        // Title field
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"title\"\r\n\r\n".data(using: .utf8)!)
+        body.append("\(title)\r\n".data(using: .utf8)!)
+        // File field
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"document.docx\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document\r\n\r\n".data(using: .utf8)!)
+        body.append(docxData)
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+
+        req.httpBody = body
+
+        let (data, response) = try await session.data(for: req)
+        let httpResponse = response as! HTTPURLResponse
+        guard (200...299).contains(httpResponse.statusCode) else {
+            if let err = try? decoder.decode(ServerError.self, from: data) {
+                throw APIError.server(httpResponse.statusCode, err.message)
+            }
+            throw APIError.http(httpResponse.statusCode)
+        }
+        return try decoder.decode(Document.self, from: data)
+    }
+
     func getDocumentContent(id: String, auth: APIAuth) async throws -> DocumentContent {
         return try await call(method: "GET", path: "/documents/\(id)/content", auth: auth)
     }

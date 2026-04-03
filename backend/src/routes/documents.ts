@@ -4,6 +4,7 @@ import { fetchDocAsMarkdown } from "../services/google-drive";
 import { indexDocument, refreshDocument } from "../services/indexer";
 import { embedBatch } from "../services/embeddings";
 import { generateSuggestions } from "../services/suggestions";
+import { docxToMarkdown } from "../services/pandoc";
 import { generateId } from "../utils";
 
 export function handleListDocuments(
@@ -132,4 +133,46 @@ export function handleGetContent(
     status: 200,
     body: { id: doc.id, title: doc.title, markdown: doc.markdown },
   };
+}
+
+export async function handleUploadDocument(
+  db: Database.Database,
+  householdId: string,
+  title: string,
+  docxBuffer: Buffer
+): Promise<{ status: number; body: any }> {
+  if (!title?.trim()) {
+    return { status: 422, body: { message: "Title is required" } };
+  }
+  if (!docxBuffer || docxBuffer.length === 0) {
+    return { status: 422, body: { message: "File is required" } };
+  }
+
+  const documentId = generateId();
+
+  try {
+    const markdown = await docxToMarkdown(docxBuffer);
+
+    await indexDocument(db, {
+      documentId,
+      householdId,
+      driveFileId: `upload:${documentId}`,
+      title: title.trim(),
+      markdown,
+      embedBatch,
+    });
+
+    // Regenerate suggestion chips
+    generateSuggestions(db, householdId).catch(() => {});
+
+    const doc = db
+      .prepare("SELECT id, title, status, chunk_count FROM documents WHERE id = ?")
+      .get(documentId) as any;
+    return {
+      status: 200,
+      body: { id: doc.id, title: doc.title, status: doc.status, chunk_count: doc.chunk_count },
+    };
+  } catch (err: any) {
+    return { status: 500, body: { message: `Document conversion failed: ${err.message}` } };
+  }
 }

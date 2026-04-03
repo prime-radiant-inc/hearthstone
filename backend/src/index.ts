@@ -21,6 +21,7 @@ import {
   handleRefreshDocument,
   handleDeleteDocument,
   handleGetContent,
+  handleUploadDocument,
 } from "./routes/documents";
 import {
   handleListConnections,
@@ -49,6 +50,44 @@ function parsePathParams(pattern: string, pathname: string): Record<string, stri
     }
   }
   return params;
+}
+
+function parseMultipart(body: Buffer, boundary: string): { title: string; file: Buffer } {
+  const boundaryBuf = Buffer.from(`--${boundary}`);
+  const parts: Buffer[] = [];
+  let start = 0;
+
+  while (true) {
+    const idx = body.indexOf(boundaryBuf, start);
+    if (idx === -1) break;
+    if (start > 0) parts.push(body.subarray(start, idx));
+    start = idx + boundaryBuf.length;
+    // Skip \r\n after boundary
+    if (body[start] === 0x0d && body[start + 1] === 0x0a) start += 2;
+  }
+
+  let title = "";
+  let file = Buffer.alloc(0);
+
+  for (const part of parts) {
+    const headerEnd = part.indexOf("\r\n\r\n");
+    if (headerEnd === -1) continue;
+    const headers = part.subarray(0, headerEnd).toString();
+    const content = part.subarray(headerEnd + 4);
+    // Trim trailing \r\n
+    const trimmed = content.subarray(
+      0,
+      content.length >= 2 && content[content.length - 2] === 0x0d ? content.length - 2 : content.length
+    );
+
+    if (headers.includes('name="title"')) {
+      title = trimmed.toString().trim();
+    } else if (headers.includes('name="file"')) {
+      file = Buffer.from(trimmed);
+    }
+  }
+
+  return { title, file };
 }
 
 import { createServer } from "node:http";
@@ -188,6 +227,20 @@ async function handleRequest(req: Request): Promise<Response> {
       }
 
       // --- Document routes ---
+      if (method === "POST" && pathname === "/documents/upload") {
+        const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+
+        const contentType = req.headers.get("content-type") || "";
+        const boundary = contentType.split("boundary=")[1];
+        if (!boundary) return json({ message: "Expected multipart/form-data" }, 400);
+
+        const body = Buffer.from(await req.arrayBuffer());
+        const { title, file } = parseMultipart(body, boundary);
+
+        const result = await handleUploadDocument(getDb(), owner.householdId, title, file);
+        return json(result.body, result.status);
+      }
+
       if (method === "GET" && pathname === "/documents") {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         const result = handleListDocuments(getDb(), owner.householdId);
@@ -269,16 +322,16 @@ async function handleRequest(req: Request): Promise<Response> {
 // Node HTTP server adapter — converts between Node streams and Web API Request/Response
 const server = createServer(async (nodeReq, nodeRes) => {
   const url = `http://localhost:${config.port}${nodeReq.url}`;
-  const body = await new Promise<string>((resolve) => {
-    let data = "";
-    nodeReq.on("data", (chunk: Buffer) => (data += chunk.toString()));
-    nodeReq.on("end", () => resolve(data));
+  const body = await new Promise<Buffer>((resolve) => {
+    const chunks: Buffer[] = [];
+    nodeReq.on("data", (chunk: Buffer) => chunks.push(chunk));
+    nodeReq.on("end", () => resolve(Buffer.concat(chunks)));
   });
 
   const webReq = new Request(url, {
     method: nodeReq.method,
     headers: nodeReq.headers as Record<string, string>,
-    body: ["GET", "HEAD"].includes(nodeReq.method!) ? undefined : body || undefined,
+    body: ["GET", "HEAD"].includes(nodeReq.method!) ? undefined : body.length > 0 ? body : undefined,
   });
 
   const webRes = await handleRequest(webReq);
