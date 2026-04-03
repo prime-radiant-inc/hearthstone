@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "npx tsx --watch src/index.ts",
     "test": "vitest run",
-    "test:bun": "bun test"
+    "chat:rag": "npx tsx cli-chat.ts --mode rag",
+    "chat:full": "npx tsx cli-chat.ts --mode full",
+    "chat:both": "npx tsx cli-chat.ts --mode both"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
