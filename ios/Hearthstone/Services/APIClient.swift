@@ -231,7 +231,19 @@ final class APIClient {
         return try await call(method: "GET", path: "/guests", auth: .owner)
     }
 
-    func createGuest(name: String, email: String?, phone: String?) async throws -> Guest {
+    struct CreateGuestResponse: Decodable {
+        let guest: Guest
+        let magicLink: String
+        let inviteToken: String
+
+        enum CodingKeys: String, CodingKey {
+            case guest
+            case magicLink = "magic_link"
+            case inviteToken = "invite_token"
+        }
+    }
+
+    func createGuest(name: String, email: String?, phone: String?) async throws -> CreateGuestResponse {
         struct Body: Encodable { let name: String; let email: String?; let phone: String? }
         return try await call(method: "POST", path: "/guests", auth: .owner,
                               body: Body(name: name, email: email, phone: phone))
