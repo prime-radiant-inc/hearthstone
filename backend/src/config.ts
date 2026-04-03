@@ -1,0 +1,22 @@
+function required(name: string): string {
+  const val = process.env[name];
+  if (!val) throw new Error(`Missing required env var: ${name}`);
+  return val;
+}
+
+function optional(name: string, fallback: string): string {
+  return process.env[name] || fallback;
+}
+
+export const config = {
+  databaseUrl: optional("DATABASE_URL", "./hearthstone.db"),
+  googleClientId: required("GOOGLE_CLIENT_ID"),
+  googleClientSecret: required("GOOGLE_CLIENT_SECRET"),
+  openaiApiKey: required("OPENAI_API_KEY"),
+  embeddingProvider: optional("EMBEDDING_PROVIDER", "openai"),
+  chatProvider: optional("CHAT_PROVIDER", "openai"),
+  resendApiKey: required("RESEND_API_KEY"),
+  jwtSecret: required("JWT_SECRET"),
+  appBaseUrl: optional("APP_BASE_URL", "https://hearthstone.app"),
+  port: parseInt(optional("PORT", "3000"), 10),
+};
