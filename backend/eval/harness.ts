@@ -182,6 +182,7 @@ Household documents:
 async function chatComplete(systemContent: string, question: string): Promise<string> {
   const resp = await openai.chat.completions.create({
     model: CHAT_MODEL,
+    temperature: 0,
     messages: [
       { role: "system", content: systemContent },
       { role: "user", content: question },
