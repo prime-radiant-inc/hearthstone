@@ -111,11 +111,14 @@ function searchChunks(queryEmbedding: Float32Array, limit: number = 5): DocChunk
   const chunks = loadAllChunks();
   const chunkMap = new Map(chunks.map(c => [`${c.documentId}-${c.chunkIndex}`, c]));
 
-  return rows.map(r => {
-    const chunk = db.prepare("SELECT document_id, chunk_index FROM chunks WHERE id = ?").get(r.chunk_id) as any;
-    const key = `${chunk.document_id}-${chunk.chunk_index}`;
-    return chunkMap.get(key)!;
-  }).filter(Boolean);
+  return rows
+    .map(r => {
+      const chunk = db.prepare("SELECT document_id, chunk_index FROM chunks WHERE id = ?").get(r.chunk_id) as any;
+      if (!chunk) return null; // orphaned embedding from deleted doc
+      const key = `${chunk.document_id}-${chunk.chunk_index}`;
+      return chunkMap.get(key) ?? null;
+    })
+    .filter((c): c is DocChunk => c !== null);
 }
 
 // --- Chat ---
