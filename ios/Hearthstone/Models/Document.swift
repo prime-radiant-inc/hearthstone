@@ -24,4 +24,5 @@ struct DocumentContent: Codable {
     let id: String
     let title: String
     let markdown: String
+    let html: String
 }

@@ -1,5 +1,6 @@
 // src/routes/documents.ts
 import type Database from "better-sqlite3";
+import { marked } from "marked";
 import { fetchDocAsMarkdown } from "../services/google-drive";
 import { indexDocument, refreshDocument } from "../services/indexer";
 import { embedBatch } from "../services/embeddings";
@@ -129,10 +130,71 @@ export function handleGetContent(
 
   if (!doc) return { status: 404, body: { message: "Document not found" } };
 
+  const html = renderStyledHtml(doc.title, doc.markdown);
+
   return {
     status: 200,
-    body: { id: doc.id, title: doc.title, markdown: doc.markdown },
+    body: { id: doc.id, title: doc.title, markdown: doc.markdown, html },
   };
+}
+
+function renderStyledHtml(title: string, markdown: string): string {
+  const bodyHtml = marked(markdown);
+  return `<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    color: #2C2520;
+    padding: 20px;
+    background: #FBF7F0;
+  }
+  h1, h2, h3, h4 {
+    font-family: Georgia, serif;
+    font-weight: 600;
+    color: #2C2520;
+    margin-top: 24px;
+    margin-bottom: 8px;
+  }
+  h1 { font-size: 24px; }
+  h2 { font-size: 20px; border-bottom: 1px solid #EDE3D1; padding-bottom: 6px; }
+  h3 { font-size: 17px; }
+  p { margin-bottom: 12px; }
+  strong { font-weight: 600; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 15px;
+  }
+  th, td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid #EDE3D1;
+  }
+  th {
+    font-weight: 600;
+    color: #5C524A;
+    background: #F5EDE0;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  ul, ol { margin: 12px 0; padding-left: 24px; }
+  li { margin-bottom: 6px; }
+  code { background: #F5EDE0; padding: 2px 6px; border-radius: 4px; font-size: 14px; }
+  pre { background: #F5EDE0; padding: 16px; border-radius: 8px; overflow-x: auto; margin: 12px 0; }
+  pre code { background: none; padding: 0; }
+  hr { border: none; border-top: 1px solid #EDE3D1; margin: 24px 0; }
+</style>
+</head>
+<body>${bodyHtml}</body>
+</html>`;
 }
 
 export async function handleUploadDocument(

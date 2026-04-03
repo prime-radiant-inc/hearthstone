@@ -2,16 +2,17 @@
 // Hearthstone
 //
 // Modal sheet showing the full cached Markdown of a source document.
-// Bob Vesper (ec8ae649)
+// Ichor (ec8ae649)
 
 import SwiftUI
+import WebKit
 
 struct SourceDocumentView: View {
     let documentId: String
     let documentTitle: String
 
     @Environment(\.dismiss) private var dismiss
-    @State private var content: String?
+    @State private var htmlContent: String?
     @State private var isLoading = true
     @State private var error: String?
 
@@ -32,14 +33,8 @@ struct SourceDocumentView: View {
                             .fontWeight(.semibold)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if let content = content {
-                    ScrollView {
-                        Text(markdownAttributedString(content))
-                            .font(.system(size: 15))
-                            .lineSpacing(5)
-                            .padding(20)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
+                } else if let htmlContent = htmlContent {
+                    WebView(html: htmlContent)
                 }
             }
             .background(Theme.cream)
@@ -63,14 +58,26 @@ struct SourceDocumentView: View {
             // Try owner auth first (for preview mode), fall back to guest auth
             let auth: APIAuth = KeychainService.shared.ownerToken != nil ? .owner : .guest
             let doc = try await APIClient.shared.getDocumentContent(id: documentId, auth: auth)
-            content = doc.markdown
+            htmlContent = doc.html
         } catch {
             self.error = "Unable to load document. Please try again."
         }
         isLoading = false
     }
+}
 
-    private func markdownAttributedString(_ markdown: String) -> AttributedString {
-        (try? AttributedString(markdown: markdown, options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace))) ?? AttributedString(markdown)
+struct WebView: UIViewRepresentable {
+    let html: String
+
+    func makeUIView(context: Context) -> WKWebView {
+        let webView = WKWebView()
+        webView.isOpaque = false
+        webView.backgroundColor = .clear
+        webView.scrollView.backgroundColor = .clear
+        return webView
+    }
+
+    func updateUIView(_ webView: WKWebView, context: Context) {
+        webView.loadHTMLString(html, baseURL: nil)
     }
 }

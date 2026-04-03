@@ -6,6 +6,8 @@ import { getSuggestions } from "../services/suggestions";
 
 const SYSTEM_PROMPT = `You are a helpful household assistant. Answer questions using ONLY the provided document excerpts below. If the answer is not present in the excerpts, say exactly: "I don't have that information in the household docs." Do not make up information or use knowledge outside these documents.
 
+When you use information from a document, naturally mention which document it came from in your response.
+
 Document excerpts:
 `;
 
@@ -46,11 +48,17 @@ export async function handleChat(
   const stream = new ReadableStream({
     async start(controller) {
       const encoder = new TextEncoder();
+      let fullResponse = "";
       try {
         for await (const delta of chat(messages)) {
+          fullResponse += delta;
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ delta })}\n\n`));
         }
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ sources })}\n\n`));
+        const responseLower = fullResponse.toLowerCase();
+        const citedSources = sources.filter((s) =>
+          responseLower.includes(s.title.toLowerCase())
+        );
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ sources: citedSources })}\n\n`));
         controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
       } catch (err) {
         controller.enqueue(
