@@ -9,45 +9,77 @@ export function chunkMarkdown(markdown: string): string[] {
   const chunks: string[] = [];
 
   for (const section of sections) {
-    if (estimateChars(section) <= MAX_CHARS) {
-      chunks.push(section);
+    if (estimateChars(section.body) <= MAX_CHARS) {
+      chunks.push(formatChunk(section.breadcrumb, section.body));
     } else {
-      chunks.push(...splitLargeSection(section));
+      chunks.push(...splitLargeSection(section.breadcrumb, section.body));
     }
   }
 
   return chunks;
 }
 
-function splitOnHeadings(markdown: string): string[] {
-  const lines = markdown.split("\n");
-  const sections: string[] = [];
-  let current: string[] = [];
+interface Section {
+  breadcrumb: string; // e.g. "House Manual > Kids & Family > Bedtime Routines"
+  body: string;       // content without the heading line
+}
 
-  for (const line of lines) {
-    if (/^#{1,6}\s/.test(line) && current.length > 0) {
-      const text = current.join("\n").trim();
-      if (text) sections.push(text);
-      current = [line];
-    } else {
-      current.push(line);
+function buildBreadcrumb(stack: string[]): string {
+  return stack.join(" > ");
+}
+
+function formatChunk(breadcrumb: string, body: string): string {
+  if (!breadcrumb) return body;
+  return `> ${breadcrumb}\n\n${body}`;
+}
+
+function splitOnHeadings(markdown: string): Section[] {
+  const lines = markdown.split("\n");
+  const sections: Section[] = [];
+
+  // heading stack: each entry is { level, text }
+  const headingStack: { level: number; text: string }[] = [];
+  let currentBreadcrumb = "";
+  let currentBody: string[] = [];
+  let inSection = false;
+
+  function flush() {
+    const body = currentBody.join("\n").trim();
+    if (body) {
+      sections.push({ breadcrumb: currentBreadcrumb, body });
     }
   }
 
-  const text = current.join("\n").trim();
-  if (text) sections.push(text);
+  for (const line of lines) {
+    const headingMatch = line.match(/^(#{1,6})\s+(.*)/);
+    if (headingMatch) {
+      flush();
+      currentBody = [];
+
+      const level = headingMatch[1].length;
+      const text = headingMatch[2].trim();
+
+      // Pop anything at this level or deeper
+      while (headingStack.length > 0 && headingStack[headingStack.length - 1].level >= level) {
+        headingStack.pop();
+      }
+      headingStack.push({ level, text });
+
+      currentBreadcrumb = buildBreadcrumb(headingStack.map((h) => h.text));
+      inSection = true;
+    } else {
+      currentBody.push(line);
+    }
+  }
+
+  flush();
 
   return sections;
 }
 
-function splitLargeSection(section: string): string[] {
-  const lines = section.split("\n");
-  const headingMatch = lines[0].match(/^#{1,6}\s.*/);
-  const heading = headingMatch ? lines[0] : "";
-  const body = heading ? lines.slice(1).join("\n").trim() : section;
-
+function splitLargeSection(breadcrumb: string, body: string): string[] {
   if (containsTable(body)) {
-    return [section];
+    return [formatChunk(breadcrumb, body)];
   }
 
   const paragraphs = body.split(/\n\n+/).filter((p) => p.trim());
@@ -59,8 +91,7 @@ function splitLargeSection(section: string): string[] {
     const paraChars = estimateChars(para);
 
     if (currentChars + paraChars > MAX_CHARS && current.length > 0) {
-      const chunkBody = current.join("\n\n");
-      chunks.push(heading ? `${heading}\n\n${chunkBody}` : chunkBody);
+      chunks.push(formatChunk(breadcrumb, current.join("\n\n")));
       current = [para];
       currentChars = paraChars;
     } else {
@@ -70,8 +101,7 @@ function splitLargeSection(section: string): string[] {
   }
 
   if (current.length > 0) {
-    const chunkBody = current.join("\n\n");
-    chunks.push(heading ? `${heading}\n\n${chunkBody}` : chunkBody);
+    chunks.push(formatChunk(breadcrumb, current.join("\n\n")));
   }
 
   return chunks;
