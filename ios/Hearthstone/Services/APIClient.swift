@@ -232,9 +232,15 @@ final class APIClient {
     }
 
     struct CreateGuestResponse: Decodable {
-        let guest: Guest
+        let guest: CreatedGuest
         let magicLink: String
         let inviteToken: String
+
+        struct CreatedGuest: Decodable {
+            let id: String
+            let name: String
+            let status: GuestStatus
+        }
 
         enum CodingKeys: String, CodingKey {
             case guest
