@@ -11,7 +11,9 @@
     "chat:both": "npx tsx cli-chat.ts --mode both",
     "chat:mrag": "npx tsx cli-chat.ts --mode mrag",
     "chat:mfrag": "npx tsx cli-chat.ts --mode mfrag",
-    "chat:all": "npx tsx cli-chat.ts --mode all"
+    "chat:all": "npx tsx cli-chat.ts --mode all",
+    "eval": "npx tsx eval/run.ts",
+    "eval:dry": "npx tsx eval/run.ts --dry-run"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
