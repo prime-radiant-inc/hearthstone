@@ -20,7 +20,7 @@ final class ConnectionsViewModel: ObservableObject {
             let response = try await APIClient.shared.connectGoogleDrive()
             // Open the OAuth URL in Safari
             if let url = URL(string: response.authUrl) {
-                UIApplication.shared.open(url)
+                await UIApplication.shared.open(url)
             }
         } catch {
             self.error = error.localizedDescription

@@ -158,6 +158,7 @@ final class APIClient {
 
     struct VerifyResponse: Decodable {
         let token: String
+        let household: String?
     }
 
     func registerVerify(email: String, code: String) async throws -> VerifyResponse {

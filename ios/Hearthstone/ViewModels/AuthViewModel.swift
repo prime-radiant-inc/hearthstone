@@ -9,7 +9,7 @@ final class AuthViewModel: ObservableObject {
     @Published var error: String?
     @Published var step: AuthStep = .welcome
 
-    enum AuthStep {
+    enum AuthStep: Equatable {
         case welcome, verifyCode, setupHousehold, done
     }
 
