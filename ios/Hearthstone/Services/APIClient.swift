@@ -146,8 +146,8 @@ final class APIClient {
     // MARK: - Auth endpoints
 
     struct RegisterResponse: Decodable {
-        /// Raw WebAuthn registration options from the server — untyped JSON.
-        let options: AnyCodable
+        let message: String
+        let email: String
     }
 
     func register(email: String) async throws -> RegisterResponse {
@@ -156,30 +156,55 @@ final class APIClient {
                               body: Body(email: email))
     }
 
-    struct VerifyResponse: Decodable {
-        let token: String
-        let household: String?
+    struct RegisterVerifyResponse: Decodable {
+        let personId: String
+        let registrationOptions: AnyCodable
+
+        enum CodingKeys: String, CodingKey {
+            case personId = "person_id"
+            case registrationOptions = "registration_options"
+        }
     }
 
-    func registerVerify(email: String, code: String) async throws -> VerifyResponse {
+    func registerVerify(email: String, code: String) async throws -> RegisterVerifyResponse {
         struct Body: Encodable { let email: String; let code: String }
         return try await call(method: "POST", path: "/auth/register/verify",
                               body: Body(email: email, code: code))
     }
 
-    func loginEmail(email: String) async throws {
-        struct Body: Encodable { let email: String }
-        try await callVoid(method: "POST", path: "/auth/login/email",
-                           body: Body(email: email))
+    struct LoginEmailResponse: Decodable {
+        let message: String
     }
 
-    func loginEmailVerify(email: String, code: String) async throws -> VerifyResponse {
+    func loginEmail(email: String) async throws -> LoginEmailResponse {
+        struct Body: Encodable { let email: String }
+        return try await call(method: "POST", path: "/auth/login/email",
+                              body: Body(email: email))
+    }
+
+    struct AuthResponse: Decodable {
+        let token: String
+        let person: Person
+        let household: Household?
+    }
+
+    func loginEmailVerify(email: String, code: String) async throws -> AuthResponse {
         struct Body: Encodable { let email: String; let code: String }
         return try await call(method: "POST", path: "/auth/login/email/verify",
                               body: Body(email: email, code: code))
     }
 
-    func redeemInvite(token: String) async throws -> VerifyResponse {
+    struct InviteRedeemResponse: Decodable {
+        let sessionToken: String
+        let guest: Guest
+
+        enum CodingKeys: String, CodingKey {
+            case sessionToken = "session_token"
+            case guest
+        }
+    }
+
+    func redeemInvite(token: String) async throws -> InviteRedeemResponse {
         struct Body: Encodable { let token: String }
         return try await call(method: "POST", path: "/auth/invite/redeem",
                               body: Body(token: token))

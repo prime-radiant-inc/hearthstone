@@ -79,7 +79,7 @@ final class AppRouter: ObservableObject {
         Task {
             do {
                 let response = try await APIClient.shared.redeemInvite(token: token)
-                KeychainService.shared.guestToken = response.token
+                KeychainService.shared.guestToken = response.sessionToken
                 state = .guestChat(householdName: "")
             } catch let error as APIError {
                 if case .server(410, let message) = error {
