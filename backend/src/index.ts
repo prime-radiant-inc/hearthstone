@@ -22,6 +22,12 @@ import {
   handleDeleteDocument,
   handleGetContent,
 } from "./routes/documents";
+import {
+  handleListConnections,
+  handleConnectGoogleDrive,
+  handleGoogleDriveCallback,
+  handleDeleteConnection,
+} from "./routes/connections";
 import { handleChat, handleGetSuggestions, handleChatPreview } from "./routes/chat";
 
 function json(body: any, status: number = 200): Response {
@@ -145,6 +151,33 @@ const server = Bun.serve({
         return json(result.body, result.status);
       }
 
+      // --- Connection routes ---
+      if (method === "GET" && pathname === "/connections") {
+        const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        const result = handleListConnections(getDb(), owner.householdId);
+        return json(result.body, result.status);
+      }
+
+      if (method === "POST" && pathname === "/connections/google-drive") {
+        const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        const result = handleConnectGoogleDrive(getDb(), owner.householdId);
+        return json(result.body, result.status);
+      }
+
+      if (method === "GET" && pathname === "/connections/google-drive/callback") {
+        const code = url.searchParams.get("code") || "";
+        const state = url.searchParams.get("state") || "";
+        const result = await handleGoogleDriveCallback(getDb(), code, state);
+        return json(result.body, result.status);
+      }
+
+      const deleteConnParams = parsePathParams("/connections/:id", pathname);
+      if (method === "DELETE" && deleteConnParams) {
+        const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        const result = handleDeleteConnection(getDb(), owner.householdId, deleteConnParams.id);
+        return json(result.body, result.status);
+      }
+
       // --- Document routes ---
       if (method === "GET" && pathname === "/documents") {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
@@ -155,14 +188,14 @@ const server = Bun.serve({
       if (method === "POST" && pathname === "/documents") {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         const body = await req.json();
-        const result = await handleConnectDocument(getDb(), owner.householdId, owner.personId, body);
+        const result = await handleConnectDocument(getDb(), owner.householdId, body);
         return json(result.body, result.status);
       }
 
       const refreshDocParams = parsePathParams("/documents/:id/refresh", pathname);
       if (method === "POST" && refreshDocParams) {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
-        const result = await handleRefreshDocument(getDb(), owner.householdId, owner.personId, refreshDocParams.id);
+        const result = await handleRefreshDocument(getDb(), owner.householdId, refreshDocParams.id);
         return json(result.body, result.status);
       }
 

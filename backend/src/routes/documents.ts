@@ -26,18 +26,24 @@ export function handleListDocuments(
 export async function handleConnectDocument(
   db: Database.Database,
   householdId: string,
-  personId: string,
   body: { drive_file_id: string; title?: string }
 ): Promise<{ status: number; body: any }> {
   if (!body.drive_file_id) {
     return { status: 422, body: { message: "Missing drive_file_id" } };
   }
 
-  const person = db.prepare("SELECT google_refresh_token FROM persons WHERE id = ?").get(personId) as any;
+  const connection = db.prepare(
+    "SELECT refresh_token FROM connections WHERE household_id = ? AND provider = 'google_drive' LIMIT 1"
+  ).get(householdId) as any;
+
+  if (!connection) {
+    return { status: 422, body: { message: "No Google Drive connected" } };
+  }
+
   const documentId = generateId();
 
   try {
-    const { title, markdown } = await fetchDocAsMarkdown(person.google_refresh_token, body.drive_file_id);
+    const { title, markdown } = await fetchDocAsMarkdown(connection.refresh_token, body.drive_file_id);
 
     await indexDocument(db, {
       documentId,
@@ -60,7 +66,6 @@ export async function handleConnectDocument(
 export async function handleRefreshDocument(
   db: Database.Database,
   householdId: string,
-  personId: string,
   documentId: string
 ): Promise<{ status: number; body: any }> {
   const doc = db
@@ -69,10 +74,16 @@ export async function handleRefreshDocument(
 
   if (!doc) return { status: 404, body: { message: "Document not found" } };
 
-  const person = db.prepare("SELECT google_refresh_token FROM persons WHERE id = ?").get(personId) as any;
+  const connection = db.prepare(
+    "SELECT refresh_token FROM connections WHERE household_id = ? AND provider = 'google_drive' LIMIT 1"
+  ).get(householdId) as any;
+
+  if (!connection) {
+    return { status: 422, body: { message: "No Google Drive connected" } };
+  }
 
   try {
-    const { markdown } = await fetchDocAsMarkdown(person.google_refresh_token, doc.drive_file_id);
+    const { markdown } = await fetchDocAsMarkdown(connection.refresh_token, doc.drive_file_id);
 
     await refreshDocument(db, {
       documentId,
