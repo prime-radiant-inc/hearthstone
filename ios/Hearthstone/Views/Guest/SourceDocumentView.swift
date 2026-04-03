@@ -69,15 +69,29 @@ struct SourceDocumentView: View {
 struct WebView: UIViewRepresentable {
     let html: String
 
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
     func makeUIView(context: Context) -> WKWebView {
-        let webView = WKWebView()
+        let config = WKWebViewConfiguration()
+        let webView = WKWebView(frame: .zero, configuration: config)
         webView.isOpaque = false
         webView.backgroundColor = .clear
         webView.scrollView.backgroundColor = .clear
+        webView.navigationDelegate = context.coordinator
         return webView
     }
 
     func updateUIView(_ webView: WKWebView, context: Context) {
         webView.loadHTMLString(html, baseURL: nil)
+    }
+
+    class Coordinator: NSObject, WKNavigationDelegate {
+        // Block all navigation — this is a read-only document viewer
+        func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction) async -> WKNavigationActionPolicy {
+            if navigationAction.navigationType == .other {
+                return .allow // Allow initial HTML load
+            }
+            return .cancel // Block link taps
+        }
     }
 }
