@@ -1,22 +1,30 @@
 const MAX_TOKENS_APPROX = 500;
 const CHARS_PER_TOKEN = 4;
 const MAX_CHARS = MAX_TOKENS_APPROX * CHARS_PER_TOKEN;
+const MIN_CHARS = 200;
 
-export function chunkMarkdown(markdown: string): string[] {
+export function chunkMarkdown(markdown: string, documentTitle?: string): string[] {
   if (!markdown.trim()) return [];
 
   const sections = splitOnHeadings(markdown);
-  const chunks: string[] = [];
+  const rawChunks: string[] = [];
 
   for (const section of sections) {
     if (estimateChars(section.body) <= MAX_CHARS) {
-      chunks.push(formatChunk(section.breadcrumb, section.body));
+      rawChunks.push(formatChunk(section.breadcrumb, section.body));
     } else {
-      chunks.push(...splitLargeSection(section.breadcrumb, section.body));
+      rawChunks.push(...splitLargeSection(section.breadcrumb, section.body));
     }
   }
 
-  return chunks;
+  // Merge tiny chunks into their neighbors
+  const merged = mergeSmallChunks(rawChunks);
+
+  // Prepend document title for embedding context
+  if (documentTitle) {
+    return merged.map(c => `[${documentTitle}]\n\n${c}`);
+  }
+  return merged;
 }
 
 interface Section {
@@ -113,4 +121,26 @@ function containsTable(text: string): boolean {
 
 function estimateChars(text: string): number {
   return text.length;
+}
+
+function mergeSmallChunks(chunks: string[]): string[] {
+  if (chunks.length <= 1) return chunks;
+
+  const result: string[] = [];
+  let i = 0;
+
+  while (i < chunks.length) {
+    if (estimateChars(chunks[i]) < MIN_CHARS && result.length > 0) {
+      // Merge into previous chunk
+      result[result.length - 1] += "\n\n" + chunks[i];
+    } else if (estimateChars(chunks[i]) < MIN_CHARS && i + 1 < chunks.length) {
+      // Merge into next chunk
+      chunks[i + 1] = chunks[i] + "\n\n" + chunks[i + 1];
+    } else {
+      result.push(chunks[i]);
+    }
+    i++;
+  }
+
+  return result;
 }

@@ -27,7 +27,7 @@ export async function indexDocument(db: Database.Database, params: IndexParams):
   ).run(documentId, householdId, driveFileId, title, markdown, now);
 
   try {
-    await storeChunks(db, documentId, householdId, markdown, embedBatch);
+    await storeChunks(db, documentId, householdId, markdown, embedBatch, title);
     const chunkCount = db.prepare("SELECT COUNT(*) as count FROM chunks WHERE document_id = ?").get(documentId) as any;
     db.prepare("UPDATE documents SET status = 'ready', chunk_count = ?, last_synced = ? WHERE id = ?").run(
       chunkCount.count, now, documentId
@@ -42,6 +42,7 @@ export async function refreshDocument(db: Database.Database, params: RefreshPara
   const { documentId, householdId, markdown, embedBatch } = params;
   const now = new Date().toISOString();
 
+  const doc = db.prepare("SELECT title FROM documents WHERE id = ?").get(documentId) as any;
   db.prepare("UPDATE documents SET status = 'indexing', markdown = ? WHERE id = ?").run(markdown, documentId);
 
   try {
@@ -51,7 +52,7 @@ export async function refreshDocument(db: Database.Database, params: RefreshPara
     }
     db.prepare("DELETE FROM chunks WHERE document_id = ?").run(documentId);
 
-    await storeChunks(db, documentId, householdId, markdown, embedBatch);
+    await storeChunks(db, documentId, householdId, markdown, embedBatch, doc?.title);
     const chunkCount = db.prepare("SELECT COUNT(*) as count FROM chunks WHERE document_id = ?").get(documentId) as any;
     db.prepare("UPDATE documents SET status = 'ready', chunk_count = ?, last_synced = ? WHERE id = ?").run(
       chunkCount.count, now, documentId
@@ -67,9 +68,10 @@ async function storeChunks(
   documentId: string,
   householdId: string,
   markdown: string,
-  embedBatch: (texts: string[]) => Promise<number[][]>
+  embedBatch: (texts: string[]) => Promise<number[][]>,
+  title?: string,
 ): Promise<void> {
-  const texts = chunkMarkdown(markdown);
+  const texts = chunkMarkdown(markdown, title);
   if (texts.length === 0) return;
 
   const embeddings = await embedBatch(texts);
