@@ -6,7 +6,8 @@ import { getSuggestions } from "../services/suggestions";
 
 const SYSTEM_PROMPT = `You are a helpful household assistant. Answer questions using ONLY the provided document excerpts below. If the answer is not present in the excerpts, say exactly: "I don't have that information in the household docs." Do not make up information or use knowledge outside these documents.
 
-When you use information from a document, naturally mention which document it came from in your response.
+After your answer, on a new line, list which sources you used in the format: Sources: [1], [3]
+Only list sources you actually used. If you didn't use any sources (e.g. the answer wasn't in the docs), don't include a Sources line.
 
 Document excerpts:
 `;
@@ -27,7 +28,7 @@ export async function handleChat(
   const results = searchChunks(db, householdId, queryVec, 5);
 
   const chunkContext = results
-    .map((r, i) => `[${i + 1}] (${r.documentTitle}, section ${r.chunkIndex})\n${r.text}`)
+    .map((r, i) => `[${i + 1}] (from "${r.documentTitle}")\n${r.text}`)
     .join("\n\n---\n\n");
 
   const messages: ChatMessage[] = [
@@ -39,7 +40,9 @@ export async function handleChat(
     { role: "user", content: body.message },
   ];
 
-  const sources = results.map((r) => ({
+  // Map source index to source metadata
+  const allSources = results.map((r, i) => ({
+    index: i + 1,
     document_id: r.documentId,
     title: r.documentTitle,
     chunk_index: r.chunkIndex,
@@ -54,10 +57,28 @@ export async function handleChat(
           fullResponse += delta;
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ delta })}\n\n`));
         }
-        const responseLower = fullResponse.toLowerCase();
-        const citedSources = sources.filter((s) =>
-          responseLower.includes(s.title.toLowerCase())
-        );
+
+        // Parse which sources the model cited
+        const citedIndices = new Set<number>();
+        const sourceLineMatch = fullResponse.match(/Sources?:\s*(.+)/i);
+        if (sourceLineMatch) {
+          const refs = sourceLineMatch[1].matchAll(/\[(\d+)\]/g);
+          for (const ref of refs) {
+            citedIndices.add(parseInt(ref[1]));
+          }
+        }
+
+        // Filter to only cited sources, deduplicated by document_id
+        const seenDocs = new Set<string>();
+        const citedSources = allSources
+          .filter((s) => citedIndices.has(s.index))
+          .filter((s) => {
+            if (seenDocs.has(s.document_id)) return false;
+            seenDocs.add(s.document_id);
+            return true;
+          })
+          .map(({ document_id, title, chunk_index }) => ({ document_id, title, chunk_index }));
+
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ sources: citedSources })}\n\n`));
         controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
       } catch (err) {

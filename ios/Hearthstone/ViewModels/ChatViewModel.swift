@@ -50,6 +50,9 @@ final class ChatViewModel: ObservableObject {
                     assistantMessage.sources = sources
                     if let lastIndex = messages.indices.last {
                         messages[lastIndex].sources = sources
+                        // Strip the "Sources: [1], [2]" line from displayed text
+                        messages[lastIndex].content = stripSourcesLine(messages[lastIndex].content)
+                        assistantMessage.content = messages[lastIndex].content
                     }
                 }
             }
@@ -57,5 +60,11 @@ final class ChatViewModel: ObservableObject {
             self.error = "Something went wrong. Please try again."
         }
         isStreaming = false
+    }
+
+    private func stripSourcesLine(_ text: String) -> String {
+        // Remove trailing "Sources: [1], [2]" or "Source: [1]" line
+        text.replacingOccurrences(of: #"\n*\s*Sources?:\s*\[[\d\],\s\[]*\]\s*$"#, with: "", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
