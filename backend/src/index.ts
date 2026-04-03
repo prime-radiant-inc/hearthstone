@@ -4,6 +4,7 @@ import { authenticateOwner } from "./middleware/owner-auth";
 import { authenticateGuest } from "./middleware/guest-auth";
 import { handleGoogleAuthStart, handleGoogleCallback, handleInviteRedeem } from "./routes/auth";
 import { handleUpdateHousehold } from "./routes/household";
+import { handleCreateHousehold } from "./routes/household-create";
 import { handleListGuests, handleCreateGuest, handleRevokeGuest, handleDeleteGuest } from "./routes/guests";
 import {
   handleListDocuments,
@@ -64,6 +65,13 @@ const server = Bun.serve({
       }
 
       // --- Owner routes ---
+      if (method === "POST" && pathname === "/household") {
+        const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        const body = await req.json();
+        const result = handleCreateHousehold(getDb(), owner.personId, body);
+        return json(result.body, result.status);
+      }
+
       if (method === "PATCH" && pathname === "/household") {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         const body = await req.json();
