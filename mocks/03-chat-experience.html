@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hearthstone — Chat Experience</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --hearth: #B5712D;
+    --hearth-dark: #8B5A1E;
+    --hearth-light: #D4943A;
+    --ember: #E8A849;
+    --cream: #FBF7F0;
+    --cream-warm: #F5EDE0;
+    --cream-deep: #EDE3D1;
+    --charcoal: #2C2520;
+    --charcoal-soft: #5C524A;
+    --stone: #9B8E82;
+    --sage: #7A8B6F;
+    --sage-light: #E8EDE4;
+    --rose: #C46B5A;
+    --rose-light: #F2E0DC;
+    --gold-badge: #F0E5C8;
+    --gold-badge-text: #8B6914;
+    --shadow-sm: 0 1px 3px rgba(44, 37, 32, 0.06);
+    --shadow-md: 0 4px 12px rgba(44, 37, 32, 0.08);
+    --shadow-lg: 0 8px 30px rgba(44, 37, 32, 0.12);
+    --radius: 16px;
+    --radius-sm: 10px;
+    --radius-xs: 6px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #E8E0D6;
+    color: var(--charcoal);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    gap: 32px;
+  }
+
+  h1, h2, h3 { font-family: 'Fraunces', serif; font-weight: 500; }
+
+  .page-header { text-align: center; max-width: 600px; }
+  .page-header h1 { font-size: 28px; color: var(--hearth-dark); margin-bottom: 6px; }
+  .page-header p { color: var(--stone); font-size: 14px; }
+
+  .cluster { display: flex; flex-wrap: wrap; gap: 32px; justify-content: center; max-width: 1400px; }
+
+  .phone {
+    width: 375px;
+    height: 812px;
+    background: var(--cream);
+    border-radius: 40px;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg), 0 0 0 1px rgba(44, 37, 32, 0.06);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .phone-label {
+    text-align: center;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--charcoal-soft);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .screen-wrapper { display: flex; flex-direction: column; align-items: center; }
+
+  .status-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 28px 8px; font-size: 15px; font-weight: 600; flex-shrink: 0;
+  }
+  .status-bar .icons { display: flex; gap: 5px; font-size: 13px; }
+
+  /* ========================= */
+  /* CHAT HEADER                */
+  /* ========================= */
+  .chat-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 20px 14px;
+    border-bottom: 1px solid var(--cream-deep);
+    flex-shrink: 0;
+  }
+  .chat-avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--hearth);
+    display: flex; align-items: center; justify-content: center;
+    color: white;
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .chat-header-text .household-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--charcoal);
+  }
+  .chat-header-text .household-sub {
+    font-size: 13px;
+    color: var(--stone);
+  }
+
+  /* ========================= */
+  /* CHAT BODY                  */
+  /* ========================= */
+  .chat-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    background: var(--cream-warm);
+  }
+
+  /* Empty state */
+  .chat-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px 20px;
+  }
+  .chat-empty .icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+  }
+  .chat-empty h3 {
+    font-size: 20px;
+    margin-bottom: 8px;
+    color: var(--charcoal);
+  }
+  .chat-empty .hint {
+    font-size: 14px;
+    color: var(--stone);
+    line-height: 1.5;
+    max-width: 260px;
+  }
+
+  /* Suggestion chips */
+  .chips-area {
+    padding: 0 20px 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    flex-shrink: 0;
+    background: var(--cream-warm);
+  }
+  .chip {
+    padding: 10px 16px;
+    border: 1.5px solid var(--cream-deep);
+    border-radius: 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--charcoal-soft);
+    background: white;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .chip:hover {
+    border-color: var(--hearth);
+    color: var(--hearth);
+  }
+
+  /* Messages */
+  .message {
+    margin-bottom: 16px;
+    max-width: 88%;
+  }
+  .message.user {
+    align-self: flex-end;
+  }
+  .message.assistant {
+    align-self: flex-start;
+  }
+
+  .message-bubble {
+    padding: 14px 18px;
+    border-radius: 20px;
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  .message.user .message-bubble {
+    background: var(--hearth);
+    color: white;
+    border-bottom-right-radius: 6px;
+  }
+  .message.assistant .message-bubble {
+    background: white;
+    color: var(--charcoal);
+    border-bottom-left-radius: 6px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* Source citation */
+  .source-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--hearth);
+    background: rgba(181, 113, 45, 0.08);
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+  .source-link:hover {
+    background: rgba(181, 113, 45, 0.14);
+  }
+  .source-link .doc-icon {
+    font-size: 14px;
+  }
+
+  /* ========================= */
+  /* INPUT BAR                  */
+  /* ========================= */
+  .input-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px 34px;
+    background: var(--cream);
+    border-top: 1px solid var(--cream-deep);
+    flex-shrink: 0;
+  }
+  .input-field {
+    flex: 1;
+    padding: 12px 18px;
+    border: 1.5px solid var(--cream-deep);
+    border-radius: 24px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    background: var(--cream-warm);
+    color: var(--charcoal);
+    outline: none;
+  }
+  .input-field::placeholder { color: var(--stone); }
+  .input-field:focus { border-color: var(--hearth); background: white; }
+
+  .send-btn {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    background: var(--hearth);
+    border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(181, 113, 45, 0.3);
+  }
+  .send-btn svg { fill: white; width: 18px; height: 18px; }
+  .send-btn.disabled {
+    background: var(--cream-deep);
+    box-shadow: none;
+    cursor: default;
+  }
+
+  /* ========================= */
+  /* OWNER PREVIEW BANNER       */
+  /* ========================= */
+  .preview-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #5C524A 0%, #3D3530 100%);
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .preview-banner .label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .preview-banner .close-btn {
+    padding: 4px 12px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.3);
+    background: transparent;
+    color: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  /* ========================= */
+  /* SOURCE DOCUMENT MODAL      */
+  /* ========================= */
+  .modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(44, 37, 32, 0.4);
+    z-index: 10;
+    display: flex;
+    align-items: flex-end;
+  }
+  .modal-sheet {
+    width: 100%;
+    height: 85%;
+    background: var(--cream);
+    border-radius: 20px 20px 0 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .modal-handle {
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--cream-deep);
+    margin: 10px auto 0;
+    flex-shrink: 0;
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--cream-deep);
+    flex-shrink: 0;
+  }
+  .modal-header h3 {
+    font-size: 18px;
+  }
+  .modal-close {
+    font-size: 14px;
+    color: var(--hearth);
+    font-weight: 600;
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .modal-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--charcoal);
+  }
+  .modal-content h2 {
+    font-size: 20px;
+    margin: 20px 0 10px;
+    color: var(--charcoal);
+  }
+  .modal-content h2:first-child { margin-top: 0; }
+  .modal-content p { margin-bottom: 12px; }
+  .modal-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 14px;
+  }
+  .modal-content th, .modal-content td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--cream-deep);
+  }
+  .modal-content th {
+    font-weight: 600;
+    color: var(--charcoal-soft);
+    background: var(--cream-warm);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .modal-content strong { font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Cluster 3: Chat Experience</h1>
+  <p>The guest's world — empty state, conversation, citations, source documents, and owner preview</p>
+</div>
+
+<div class="cluster">
+
+  <!-- CHAT: EMPTY STATE -->
+  <div class="screen-wrapper">
+    <div class="phone-label">Chat — Empty State</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">
+          <svg width="17" height="12" viewBox="0 0 17 12"><rect x="0" y="4" width="3" height="8" rx="1" fill="currentColor" opacity="0.4"/><rect x="4.5" y="2.5" width="3" height="9.5" rx="1" fill="currentColor" opacity="0.6"/><rect x="9" y="1" width="3" height="11" rx="1" fill="currentColor" opacity="0.8"/><rect x="13.5" y="0" width="3" height="12" rx="1" fill="currentColor"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 3.6c1.8 0 3.4.7 4.6 1.9l1.4-1.4C12.4 2.5 10.3 1.6 8 1.6S3.6 2.5 2 4.1l1.4 1.4C4.6 4.3 6.2 3.6 8 3.6zm0 4c.8 0 1.6.3 2.2.9L8 10.8 5.8 8.5c.6-.6 1.4-.9 2.2-.9z" fill="currentColor"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0" y="1" width="21" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="22" y="4" width="2" height="4" rx="0.5" fill="currentColor" opacity="0.4"/><rect x="1.5" y="2.5" width="16" height="7" rx="1" fill="currentColor"/></svg>
+        </span>
+      </div>
+
+      <div class="chat-header">
+        <div class="chat-avatar">H</div>
+        <div class="chat-header-text">
+          <div class="household-name">Anderson Household</div>
+          <div class="household-sub">Ask me anything about the house</div>
+        </div>
+      </div>
+
+      <div class="chat-body">
+        <div class="chat-empty">
+          <div class="icon">🏡</div>
+          <h3>What do you need to know?</h3>
+          <p class="hint">Ask about WiFi, home systems, kids routines, emergency contacts, and more.</p>
+        </div>
+      </div>
+
+      <div class="chips-area">
+        <div class="chip">WiFi password?</div>
+        <div class="chip">Kids bedtime?</div>
+        <div class="chip">Thermostat?</div>
+        <div class="chip">Emergency contacts</div>
+      </div>
+
+      <div class="input-bar">
+        <input type="text" class="input-field" placeholder="Ask about the house..." />
+        <button class="send-btn disabled">
+          <svg viewBox="0 0 24 24"><path d="M3.4 20.4l17.45-7.48a1 1 0 0 0 0-1.84L3.4 3.6a.993.993 0 0 0-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHAT: WITH RESPONSE -->
+  <div class="screen-wrapper">
+    <div class="phone-label">Chat — Response</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">
+          <svg width="17" height="12" viewBox="0 0 17 12"><rect x="0" y="4" width="3" height="8" rx="1" fill="currentColor" opacity="0.4"/><rect x="4.5" y="2.5" width="3" height="9.5" rx="1" fill="currentColor" opacity="0.6"/><rect x="9" y="1" width="3" height="11" rx="1" fill="currentColor" opacity="0.8"/><rect x="13.5" y="0" width="3" height="12" rx="1" fill="currentColor"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 3.6c1.8 0 3.4.7 4.6 1.9l1.4-1.4C12.4 2.5 10.3 1.6 8 1.6S3.6 2.5 2 4.1l1.4 1.4C4.6 4.3 6.2 3.6 8 3.6zm0 4c.8 0 1.6.3 2.2.9L8 10.8 5.8 8.5c.6-.6 1.4-.9 2.2-.9z" fill="currentColor"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0" y="1" width="21" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="22" y="4" width="2" height="4" rx="0.5" fill="currentColor" opacity="0.4"/><rect x="1.5" y="2.5" width="16" height="7" rx="1" fill="currentColor"/></svg>
+        </span>
+      </div>
+
+      <div class="chat-header">
+        <div class="chat-avatar">H</div>
+        <div class="chat-header-text">
+          <div class="household-name">Anderson Household</div>
+          <div class="household-sub">Ask me anything about the house</div>
+        </div>
+      </div>
+
+      <div class="chat-body">
+        <div class="message user">
+          <div class="message-bubble">What's the WiFi password?</div>
+        </div>
+        <div class="message assistant">
+          <div class="message-bubble">The guest WiFi network is <strong>Pantomime 5G</strong> and the password is <strong>passwordsarehard</strong>.</div>
+          <a href="#" class="source-link">
+            <span class="doc-icon">📄</span>
+            WiFi & Networks
+          </a>
+        </div>
+      </div>
+
+      <div class="input-bar">
+        <input type="text" class="input-field" placeholder="Ask about the house..." />
+        <button class="send-btn disabled">
+          <svg viewBox="0 0 24 24"><path d="M3.4 20.4l17.45-7.48a1 1 0 0 0 0-1.84L3.4 3.6a.993.993 0 0 0-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHAT: WITH CITATION -->
+  <div class="screen-wrapper">
+    <div class="phone-label">Chat — Multi-turn + Citation</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">
+          <svg width="17" height="12" viewBox="0 0 17 12"><rect x="0" y="4" width="3" height="8" rx="1" fill="currentColor" opacity="0.4"/><rect x="4.5" y="2.5" width="3" height="9.5" rx="1" fill="currentColor" opacity="0.6"/><rect x="9" y="1" width="3" height="11" rx="1" fill="currentColor" opacity="0.8"/><rect x="13.5" y="0" width="3" height="12" rx="1" fill="currentColor"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 3.6c1.8 0 3.4.7 4.6 1.9l1.4-1.4C12.4 2.5 10.3 1.6 8 1.6S3.6 2.5 2 4.1l1.4 1.4C4.6 4.3 6.2 3.6 8 3.6zm0 4c.8 0 1.6.3 2.2.9L8 10.8 5.8 8.5c.6-.6 1.4-.9 2.2-.9z" fill="currentColor"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0" y="1" width="21" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="22" y="4" width="2" height="4" rx="0.5" fill="currentColor" opacity="0.4"/><rect x="1.5" y="2.5" width="16" height="7" rx="1" fill="currentColor"/></svg>
+        </span>
+      </div>
+
+      <div class="chat-header">
+        <div class="chat-avatar">H</div>
+        <div class="chat-header-text">
+          <div class="household-name">Anderson Household</div>
+          <div class="household-sub">Ask me anything about the house</div>
+        </div>
+      </div>
+
+      <div class="chat-body">
+        <div class="message user">
+          <div class="message-bubble">What's the bedtime routine for the kids?</div>
+        </div>
+        <div class="message assistant">
+          <div class="message-bubble">
+            <strong>Emma (age 7):</strong> Bath at 7:30, one story of her choosing, lights out by 8:00. Her nightlight must stay on — it's the one plugged into the wall outlet.
+            <br/><br/>
+            <strong>Noah (age 5):</strong> Bath at 7:00, two stories, in bed by 7:45. He can't sleep without his stuffed elephant "Ellie" — it lives on his pillow.
+          </div>
+          <a href="#" class="source-link">
+            <span class="doc-icon">📄</span>
+            Kids Routines & Care
+          </a>
+        </div>
+
+        <div class="message user">
+          <div class="message-bubble">What about allergies?</div>
+        </div>
+        <div class="message assistant">
+          <div class="message-bubble">
+            <strong>Emma:</strong> No known allergies.<br/><br/>
+            <strong>Noah:</strong> Peanut allergy (carries an EpiPen in his blue backpack). Mild reaction to cats — Benadryl is in the upstairs bathroom cabinet if needed.
+          </div>
+          <a href="#" class="source-link">
+            <span class="doc-icon">📄</span>
+            Medical & Allergies
+          </a>
+        </div>
+      </div>
+
+      <div class="input-bar">
+        <input type="text" class="input-field" placeholder="Ask about the house..." />
+        <button class="send-btn disabled">
+          <svg viewBox="0 0 24 24"><path d="M3.4 20.4l17.45-7.48a1 1 0 0 0 0-1.84L3.4 3.6a.993.993 0 0 0-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SOURCE DOCUMENT MODAL -->
+  <div class="screen-wrapper">
+    <div class="phone-label">Source Document Modal</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">
+          <svg width="17" height="12" viewBox="0 0 17 12"><rect x="0" y="4" width="3" height="8" rx="1" fill="currentColor" opacity="0.4"/><rect x="4.5" y="2.5" width="3" height="9.5" rx="1" fill="currentColor" opacity="0.6"/><rect x="9" y="1" width="3" height="11" rx="1" fill="currentColor" opacity="0.8"/><rect x="13.5" y="0" width="3" height="12" rx="1" fill="currentColor"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 3.6c1.8 0 3.4.7 4.6 1.9l1.4-1.4C12.4 2.5 10.3 1.6 8 1.6S3.6 2.5 2 4.1l1.4 1.4C4.6 4.3 6.2 3.6 8 3.6zm0 4c.8 0 1.6.3 2.2.9L8 10.8 5.8 8.5c.6-.6 1.4-.9 2.2-.9z" fill="currentColor"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0" y="1" width="21" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="22" y="4" width="2" height="4" rx="0.5" fill="currentColor" opacity="0.4"/><rect x="1.5" y="2.5" width="16" height="7" rx="1" fill="currentColor"/></svg>
+        </span>
+      </div>
+
+      <!-- Chat visible behind modal (dimmed) -->
+      <div class="chat-header" style="opacity: 0.3;">
+        <div class="chat-avatar">H</div>
+        <div class="chat-header-text">
+          <div class="household-name">Anderson Household</div>
+          <div class="household-sub">Ask me anything about the house</div>
+        </div>
+      </div>
+
+      <!-- Modal overlay -->
+      <div class="modal-overlay">
+        <div class="modal-sheet">
+          <div class="modal-handle"></div>
+          <div class="modal-header">
+            <h3>Kids Routines & Care</h3>
+            <button class="modal-close">Done</button>
+          </div>
+          <div class="modal-content">
+            <h2>Bedtime Routines</h2>
+            <p><strong>Emma (age 7)</strong></p>
+            <p>Bath at 7:30, one story of her choosing, lights out by 8:00. Her nightlight must stay on — it's the one plugged into the wall outlet next to her bed. She'll ask for water; one small cup is fine.</p>
+
+            <p><strong>Noah (age 5)</strong></p>
+            <p>Bath at 7:00, two stories (his current favorites are on the shelf by his bed), in bed by 7:45. He can't sleep without his stuffed elephant "Ellie" — it lives on his pillow. If he gets up, walk him back calmly — no negotiation.</p>
+
+            <h2>Morning Routine</h2>
+            <p>Both kids are usually up by 7:00. Breakfast options are in the pantry — cereal, toast, or yogurt. Emma can get her own; Noah needs help with the milk.</p>
+
+            <h2>Emergency Contacts</h2>
+            <table>
+              <tr><th>Who</th><th>Phone</th></tr>
+              <tr><td>Fred (Dad)</td><td>555-0123</td></tr>
+              <tr><td>Sarah (Mom)</td><td>555-0124</td></tr>
+              <tr><td>Dr. Patel (Pediatrician)</td><td>555-0180</td></tr>
+              <tr><td>Poison Control</td><td>1-800-222-1222</td></tr>
+            </table>
+
+            <h2>Allergies & Medical</h2>
+            <p><strong>Emma:</strong> No known allergies. Takes no medications.</p>
+            <p><strong>Noah:</strong> Peanut allergy — carries an EpiPen in his blue backpack. Instructions are printed on the pen. If in doubt, call 911 first, then Fred. Mild reaction to cats — Benadryl is in the upstairs bathroom cabinet.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OWNER PREVIEW MODE -->
+  <div class="screen-wrapper">
+    <div class="phone-label">Owner Preview</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">
+          <svg width="17" height="12" viewBox="0 0 17 12"><rect x="0" y="4" width="3" height="8" rx="1" fill="currentColor" opacity="0.4"/><rect x="4.5" y="2.5" width="3" height="9.5" rx="1" fill="currentColor" opacity="0.6"/><rect x="9" y="1" width="3" height="11" rx="1" fill="currentColor" opacity="0.8"/><rect x="13.5" y="0" width="3" height="12" rx="1" fill="currentColor"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 3.6c1.8 0 3.4.7 4.6 1.9l1.4-1.4C12.4 2.5 10.3 1.6 8 1.6S3.6 2.5 2 4.1l1.4 1.4C4.6 4.3 6.2 3.6 8 3.6zm0 4c.8 0 1.6.3 2.2.9L8 10.8 5.8 8.5c.6-.6 1.4-.9 2.2-.9z" fill="currentColor"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0" y="1" width="21" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="22" y="4" width="2" height="4" rx="0.5" fill="currentColor" opacity="0.4"/><rect x="1.5" y="2.5" width="16" height="7" rx="1" fill="currentColor"/></svg>
+        </span>
+      </div>
+
+      <div class="preview-banner">
+        <div class="label">👁 Owner Preview</div>
+        <button class="close-btn">Exit Preview</button>
+      </div>
+
+      <div class="chat-header">
+        <div class="chat-avatar">H</div>
+        <div class="chat-header-text">
+          <div class="household-name">Anderson Household</div>
+          <div class="household-sub">Ask me anything about the house</div>
+        </div>
+      </div>
+
+      <div class="chat-body">
+        <div class="message user">
+          <div class="message-bubble">What are the house rules?</div>
+        </div>
+        <div class="message assistant">
+          <div class="message-bubble">
+            Here are the main house rules:<br/><br/>
+            <strong>1.</strong> No shoes indoors — shoe rack by the front door<br/>
+            <strong>2.</strong> Thermostat stays between 68-72°F<br/>
+            <strong>3.</strong> Quiet hours after 9pm (neighbors are close)<br/>
+            <strong>4.</strong> Recycling goes in the blue bin by the garage<br/>
+            <strong>5.</strong> Please don't feed the dog from the table
+          </div>
+          <a href="#" class="source-link">
+            <span class="doc-icon">📄</span>
+            House Manual
+          </a>
+        </div>
+      </div>
+
+      <div class="input-bar">
+        <input type="text" class="input-field" placeholder="Ask about the house..." />
+        <button class="send-btn">
+          <svg viewBox="0 0 24 24"><path d="M3.4 20.4l17.45-7.48a1 1 0 0 0 0-1.84L3.4 3.6a.993.993 0 0 0-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

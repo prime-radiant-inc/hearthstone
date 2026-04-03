@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hearthstone — Entry Points & Auth</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --hearth: #B5712D;
+    --hearth-dark: #8B5A1E;
+    --hearth-light: #D4943A;
+    --ember: #E8A849;
+    --cream: #FBF7F0;
+    --cream-warm: #F5EDE0;
+    --cream-deep: #EDE3D1;
+    --charcoal: #2C2520;
+    --charcoal-soft: #5C524A;
+    --stone: #9B8E82;
+    --sage: #7A8B6F;
+    --sage-light: #E8EDE4;
+    --rose: #C46B5A;
+    --rose-light: #F2E0DC;
+    --gold-badge: #F0E5C8;
+    --gold-badge-text: #8B6914;
+    --shadow-sm: 0 1px 3px rgba(44, 37, 32, 0.06);
+    --shadow-md: 0 4px 12px rgba(44, 37, 32, 0.08);
+    --shadow-lg: 0 8px 30px rgba(44, 37, 32, 0.12);
+    --radius: 16px;
+    --radius-sm: 10px;
+    --radius-xs: 6px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #E8E0D6;
+    color: var(--charcoal);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    gap: 32px;
+  }
+
+  h1, h2, h3 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+  }
+
+  /* Page header */
+  .page-header {
+    text-align: center;
+    max-width: 600px;
+  }
+  .page-header h1 {
+    font-size: 28px;
+    color: var(--hearth-dark);
+    margin-bottom: 6px;
+  }
+  .page-header p {
+    color: var(--stone);
+    font-size: 14px;
+  }
+
+  /* Screen cluster layout */
+  .cluster {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    justify-content: center;
+    max-width: 1200px;
+  }
+
+  /* Phone frame */
+  .phone {
+    width: 375px;
+    height: 812px;
+    background: var(--cream);
+    border-radius: 40px;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg), 0 0 0 1px rgba(44, 37, 32, 0.06);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .phone-label {
+    text-align: center;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--charcoal-soft);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .screen-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Status bar */
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 28px 8px;
+    font-size: 15px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .status-bar .time { }
+  .status-bar .icons {
+    display: flex;
+    gap: 5px;
+    font-size: 13px;
+  }
+
+  /* ==================== */
+  /* SCREEN 1: SIGN IN    */
+  /* ==================== */
+  .signin {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 32px;
+    text-align: center;
+    background: linear-gradient(180deg, var(--cream) 0%, var(--cream-warm) 100%);
+  }
+
+  .signin-logo {
+    width: 88px;
+    height: 88px;
+    border-radius: 24px;
+    background: linear-gradient(135deg, var(--hearth) 0%, var(--hearth-dark) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 44px;
+    margin-bottom: 28px;
+    box-shadow: 0 6px 20px rgba(181, 113, 45, 0.3);
+  }
+
+  .signin h2 {
+    font-size: 32px;
+    color: var(--charcoal);
+    margin-bottom: 10px;
+    line-height: 1.15;
+  }
+
+  .signin .tagline {
+    font-size: 16px;
+    color: var(--charcoal-soft);
+    line-height: 1.5;
+    margin-bottom: 48px;
+    max-width: 280px;
+  }
+
+  .google-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: white;
+    border: 1.5px solid #E0D9D0;
+    border-radius: 14px;
+    padding: 16px 28px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--charcoal);
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s;
+    margin-bottom: 20px;
+  }
+  .google-btn:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--stone);
+  }
+  .google-btn svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .signin .legal {
+    font-size: 12px;
+    color: var(--stone);
+    line-height: 1.5;
+    max-width: 260px;
+  }
+  .signin .legal a {
+    color: var(--hearth);
+    text-decoration: none;
+  }
+
+  .signin-footer {
+    position: absolute;
+    bottom: 44px;
+    left: 0;
+    right: 0;
+    text-align: center;
+  }
+  .signin-footer .illustration {
+    font-size: 32px;
+    opacity: 0.4;
+    letter-spacing: 8px;
+  }
+
+  /* ========================= */
+  /* SCREEN 2: HOUSEHOLD NAME  */
+  /* ========================= */
+  .household-setup {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 24px;
+    background: var(--cream);
+  }
+
+  .setup-progress {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 36px;
+  }
+  .setup-progress .dot {
+    height: 4px;
+    border-radius: 2px;
+    flex: 1;
+  }
+  .setup-progress .dot.active {
+    background: var(--hearth);
+  }
+  .setup-progress .dot.inactive {
+    background: var(--cream-deep);
+  }
+
+  .setup-greeting {
+    font-size: 15px;
+    color: var(--hearth);
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .household-setup h2 {
+    font-size: 28px;
+    line-height: 1.2;
+    margin-bottom: 10px;
+  }
+
+  .household-setup .subtitle {
+    font-size: 15px;
+    color: var(--charcoal-soft);
+    line-height: 1.5;
+    margin-bottom: 40px;
+  }
+
+  .input-group {
+    margin-bottom: 24px;
+  }
+  .input-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--charcoal-soft);
+    margin-bottom: 8px;
+  }
+  .input-group input {
+    width: 100%;
+    padding: 16px 18px;
+    border: 1.5px solid var(--cream-deep);
+    border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 17px;
+    background: white;
+    color: var(--charcoal);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .input-group input:focus {
+    border-color: var(--hearth);
+  }
+  .input-group input::placeholder {
+    color: var(--stone);
+  }
+  .input-group .hint {
+    font-size: 13px;
+    color: var(--stone);
+    margin-top: 8px;
+  }
+
+  .setup-illustration {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 64px;
+    opacity: 0.6;
+  }
+
+  .primary-btn {
+    display: block;
+    width: 100%;
+    padding: 18px;
+    background: linear-gradient(135deg, var(--hearth) 0%, var(--hearth-dark) 100%);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(181, 113, 45, 0.3);
+    margin-bottom: 34px;
+  }
+
+  /* ========================== */
+  /* SCREEN 3: INVITE ERRORS    */
+  /* ========================== */
+  .error-screen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 32px;
+    text-align: center;
+    background: linear-gradient(180deg, var(--cream) 0%, var(--cream-warm) 100%);
+  }
+
+  .error-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    margin-bottom: 24px;
+  }
+  .error-icon.expired {
+    background: var(--gold-badge);
+  }
+  .error-icon.used {
+    background: var(--rose-light);
+  }
+  .error-icon.revoked {
+    background: #F0EDED;
+  }
+
+  .error-screen h2 {
+    font-size: 24px;
+    margin-bottom: 12px;
+    line-height: 1.2;
+  }
+
+  .error-screen .detail {
+    font-size: 16px;
+    color: var(--charcoal-soft);
+    line-height: 1.5;
+    margin-bottom: 36px;
+    max-width: 280px;
+  }
+
+  .secondary-btn {
+    display: inline-block;
+    padding: 14px 32px;
+    border: 1.5px solid var(--cream-deep);
+    border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--charcoal-soft);
+    background: white;
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  /* ========================== */
+  /* SCREEN 4: ACCESS REVOKED   */
+  /* ========================== */
+  .revoked-screen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--cream);
+  }
+
+  .revoked-header {
+    background: linear-gradient(135deg, #8B7B6B 0%, #6B5D50 100%);
+    padding: 24px 24px 20px;
+    color: white;
+  }
+  .revoked-header .household-name {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 500;
+  }
+  .revoked-header .household-sub {
+    font-size: 13px;
+    opacity: 0.7;
+    margin-top: 2px;
+  }
+
+  .revoked-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 32px;
+    text-align: center;
+  }
+
+  .revoked-body .lock-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: #F0EDED;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    margin-bottom: 24px;
+  }
+
+  .revoked-body h2 {
+    font-size: 22px;
+    margin-bottom: 10px;
+  }
+
+  .revoked-body .detail {
+    font-size: 15px;
+    color: var(--charcoal-soft);
+    line-height: 1.5;
+    max-width: 260px;
+    margin-bottom: 36px;
+  }
+
+  .revoked-body .contact-hint {
+    font-size: 13px;
+    color: var(--stone);
+    line-height: 1.5;
+    max-width: 240px;
+    padding: 16px 20px;
+    background: var(--cream-warm);
+    border-radius: var(--radius-sm);
+  }
+
+  /* Annotations */
+  .annotation {
+    position: absolute;
+    font-size: 11px;
+    color: var(--hearth);
+    font-weight: 600;
+    background: var(--gold-badge);
+    padding: 3px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    z-index: 10;
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Cluster 1: Entry Points & Auth</h1>
+  <p>Sign in, onboarding, and error states — the first things people see</p>
+</div>
+
+<div class="cluster">
+
+  <!-- SIGN IN -->
+  <div class="screen-wrapper">
+    <div class="phone-label">Welcome / Sign In</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">
+          <svg width="17" height="12" viewBox="0 0 17 12"><rect x="0" y="4" width="3" height="8" rx="1" fill="currentColor" opacity="0.4"/><rect x="4.5" y="2.5" width="3" height="9.5" rx="1" fill="currentColor" opacity="0.6"/><rect x="9" y="1" width="3" height="11" rx="1" fill="currentColor" opacity="0.8"/><rect x="13.5" y="0" width="3" height="12" rx="1" fill="currentColor"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 3.6c1.8 0 3.4.7 4.6 1.9l1.4-1.4C12.4 2.5 10.3 1.6 8 1.6S3.6 2.5 2 4.1l1.4 1.4C4.6 4.3 6.2 3.6 8 3.6zm0 4c.8 0 1.6.3 2.2.9L8 10.8 5.8 8.5c.6-.6 1.4-.9 2.2-.9z" fill="currentColor"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0" y="1" width="21" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="22" y="4" width="2" height="4" rx="0.5" fill="currentColor" opacity="0.4"/><rect x="1.5" y="2.5" width="16" height="7" rx="1" fill="currentColor"/></svg>
+        </span>
+      </div>
+      <div class="signin">
+        <div class="signin-logo">
+          <span style="font-size: 44px;">🏠</span>
+        </div>
+        <h2>Hearthstone</h2>
+        <p class="tagline">Your household knowledge, always at hand for the people who need it.</p>
+
+        <div class="input-group" style="width: 100%; max-width: 300px; margin-bottom: 20px; text-align: left;">
+          <label style="display: block; font-size: 12px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; color: var(--charcoal-soft); margin-bottom: 8px;">Email</label>
+          <input type="email" placeholder="you@example.com" style="width: 100%; padding: 16px 18px; border: 1.5px solid var(--cream-deep); border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 17px; background: white; color: var(--charcoal); outline: none;" />
+        </div>
+
+        <button class="primary-btn" style="max-width: 300px; margin-bottom: 20px; display: block; width: 100%; padding: 18px; background: linear-gradient(135deg, var(--hearth) 0%, var(--hearth-dark) 100%); color: white; border: none; border-radius: 14px; font-family: 'DM Sans', sans-serif; font-size: 17px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 14px rgba(181, 113, 45, 0.3);">
+          Continue
+        </button>
+
+        <p class="legal">We'll send a verification code to your email.<br/>No password needed — ever.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- VERIFY CODE -->
+  <div class="screen-wrapper">
+    <div class="phone-label">Verify Email</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">
+          <svg width="17" height="12" viewBox="0 0 17 12"><rect x="0" y="4" width="3" height="8" rx="1" fill="currentColor" opacity="0.4"/><rect x="4.5" y="2.5" width="3" height="9.5" rx="1" fill="currentColor" opacity="0.6"/><rect x="9" y="1" width="3" height="11" rx="1" fill="currentColor" opacity="0.8"/><rect x="13.5" y="0" width="3" height="12" rx="1" fill="currentColor"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 3.6c1.8 0 3.4.7 4.6 1.9l1.4-1.4C12.4 2.5 10.3 1.6 8 1.6S3.6 2.5 2 4.1l1.4 1.4C4.6 4.3 6.2 3.6 8 3.6zm0 4c.8 0 1.6.3 2.2.9L8 10.8 5.8 8.5c.6-.6 1.4-.9 2.2-.9z" fill="currentColor"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0" y="1" width="21" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="22" y="4" width="2" height="4" rx="0.5" fill="currentColor" opacity="0.4"/><rect x="1.5" y="2.5" width="16" height="7" rx="1" fill="currentColor"/></svg>
+        </span>
+      </div>
+      <div class="household-setup" style="flex: 1; display: flex; flex-direction: column; padding: 20px 24px; background: var(--cream);">
+        <div class="setup-progress">
+          <div class="dot active"></div>
+          <div class="dot inactive"></div>
+          <div class="dot inactive"></div>
+        </div>
+        <p class="setup-greeting">Check your inbox</p>
+        <h2 style="font-family: 'Fraunces', serif; font-size: 28px; margin-bottom: 10px;">Enter your code</h2>
+        <p class="subtitle" style="font-size: 15px; color: var(--charcoal-soft); line-height: 1.5; margin-bottom: 32px;">We sent a 6-digit code to <strong>fred@example.com</strong></p>
+
+        <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 32px;">
+          <div style="width: 48px; height: 58px; border: 1.5px solid var(--hearth); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 600; background: white;">4</div>
+          <div style="width: 48px; height: 58px; border: 1.5px solid var(--hearth); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 600; background: white;">8</div>
+          <div style="width: 48px; height: 58px; border: 1.5px solid var(--hearth); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 600; background: white;">2</div>
+          <div style="width: 48px; height: 58px; border: 1.5px solid var(--cream-deep); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 600; background: white; color: var(--stone);">·</div>
+          <div style="width: 48px; height: 58px; border: 1.5px solid var(--cream-deep); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 600; background: white; color: var(--stone);">·</div>
+          <div style="width: 48px; height: 58px; border: 1.5px solid var(--cream-deep); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 600; background: white; color: var(--stone);">·</div>
+        </div>
+
+        <p style="text-align: center; font-size: 14px; color: var(--stone);">Didn't get it? <a href="#" style="color: var(--hearth); text-decoration: none; font-weight: 600;">Resend code</a></p>
+
+        <div style="flex: 1;"></div>
+
+        <p style="text-align: center; font-size: 13px; color: var(--stone); margin-bottom: 34px;">Code expires in 10 minutes</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOUSEHOLD NAME -->
+  <div class="screen-wrapper">
+    <div class="phone-label">Name Your Household</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">
+          <svg width="17" height="12" viewBox="0 0 17 12"><rect x="0" y="4" width="3" height="8" rx="1" fill="currentColor" opacity="0.4"/><rect x="4.5" y="2.5" width="3" height="9.5" rx="1" fill="currentColor" opacity="0.6"/><rect x="9" y="1" width="3" height="11" rx="1" fill="currentColor" opacity="0.8"/><rect x="13.5" y="0" width="3" height="12" rx="1" fill="currentColor"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 3.6c1.8 0 3.4.7 4.6 1.9l1.4-1.4C12.4 2.5 10.3 1.6 8 1.6S3.6 2.5 2 4.1l1.4 1.4C4.6 4.3 6.2 3.6 8 3.6zm0 4c.8 0 1.6.3 2.2.9L8 10.8 5.8 8.5c.6-.6 1.4-.9 2.2-.9z" fill="currentColor"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0" y="1" width="21" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="22" y="4" width="2" height="4" rx="0.5" fill="currentColor" opacity="0.4"/><rect x="1.5" y="2.5" width="16" height="7" rx="1" fill="currentColor"/></svg>
+        </span>
+      </div>
+      <div class="household-setup">
+        <div class="setup-progress">
+          <div class="dot active"></div>
+          <div class="dot active"></div>
+          <div class="dot inactive"></div>
+        </div>
+        <p class="setup-greeting">Welcome, Fred</p>
+        <h2>Name your household</h2>
+        <p class="subtitle">This is what your guests will see when they open the app. You can change it anytime.</p>
+
+        <div class="input-group">
+          <label>Household Name</label>
+          <input type="text" value="The Anderson Home" />
+          <p class="hint">e.g. "The Anderson Home", "123 Oak Street", "Beach House"</p>
+        </div>
+
+        <div class="setup-illustration">
+          🏡
+        </div>
+
+        <button class="primary-btn">Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- INVITE EXPIRED -->
+  <div class="screen-wrapper">
+    <div class="phone-label">Invite Expired</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">
+          <svg width="17" height="12" viewBox="0 0 17 12"><rect x="0" y="4" width="3" height="8" rx="1" fill="currentColor" opacity="0.4"/><rect x="4.5" y="2.5" width="3" height="9.5" rx="1" fill="currentColor" opacity="0.6"/><rect x="9" y="1" width="3" height="11" rx="1" fill="currentColor" opacity="0.8"/><rect x="13.5" y="0" width="3" height="12" rx="1" fill="currentColor"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 3.6c1.8 0 3.4.7 4.6 1.9l1.4-1.4C12.4 2.5 10.3 1.6 8 1.6S3.6 2.5 2 4.1l1.4 1.4C4.6 4.3 6.2 3.6 8 3.6zm0 4c.8 0 1.6.3 2.2.9L8 10.8 5.8 8.5c.6-.6 1.4-.9 2.2-.9z" fill="currentColor"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0" y="1" width="21" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="22" y="4" width="2" height="4" rx="0.5" fill="currentColor" opacity="0.4"/><rect x="1.5" y="2.5" width="16" height="7" rx="1" fill="currentColor"/></svg>
+        </span>
+      </div>
+      <div class="error-screen">
+        <div class="error-icon expired">⏳</div>
+        <h2>This invite has expired</h2>
+        <p class="detail">Invite links are valid for 7 days. Ask the homeowner to send you a new one.</p>
+        <a href="#" class="secondary-btn">Close</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- INVITE ALREADY USED -->
+  <div class="screen-wrapper">
+    <div class="phone-label">Invite Already Used</div>
+    <div class="phone">
+      <div class="status-bar">
+        <span class="time">9:41</span>
+        <span class="icons">
+          <svg width="17" height="12" viewBox="0 0 17 12"><rect x="0" y="4" width="3" height="8" rx="1" fill="currentColor" opacity="0.4"/><rect x="4.5" y="2.5" width="3" height="9.5" rx="1" fill="currentColor" opacity="0.6"/><rect x="9" y="1" width="3" height="11" rx="1" fill="currentColor" opacity="0.8"/><rect x="13.5" y="0" width="3" height="12" rx="1" fill="currentColor"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 3.6c1.8 0 3.4.7 4.6 1.9l1.4-1.4C12.4 2.5 10.3 1.6 8 1.6S3.6 2.5 2 4.1l1.4 1.4C4.6 4.3 6.2 3.6 8 3.6zm0 4c.8 0 1.6.3 2.2.9L8 10.8 5.8 8.5c.6-.6 1.4-.9 2.2-.9z" fill="currentColor"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0" y="1" width="21" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="22" y="4" width="2" height="4" rx="0.5" fill="currentColor" opacity="0.4"/><rect x="1.5" y="2.5" width="16" height="7" rx="1" fill="currentColor"/></svg>
+        </span>
+      </div>
+      <div class="error-screen">
+        <div class="error-icon used">✓</div>
+        <h2>This invite has already been used</h2>
+        <p class="detail">Each invite link works once. If you've already set up access, just open the app normally.</p>
+        <a href="#" class="secondary-btn">Open Hearthstone</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACCESS REVOKED -->
+  <div class="screen-wrapper">
+    <div class="phone-label">Access Revoked</div>
+    <div class="phone">
+      <div class="status-bar" style="color: white;">
+        <span class="time">9:41</span>
+        <span class="icons">
+          <svg width="17" height="12" viewBox="0 0 17 12"><rect x="0" y="4" width="3" height="8" rx="1" fill="currentColor" opacity="0.4"/><rect x="4.5" y="2.5" width="3" height="9.5" rx="1" fill="currentColor" opacity="0.6"/><rect x="9" y="1" width="3" height="11" rx="1" fill="currentColor" opacity="0.8"/><rect x="13.5" y="0" width="3" height="12" rx="1" fill="currentColor"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 3.6c1.8 0 3.4.7 4.6 1.9l1.4-1.4C12.4 2.5 10.3 1.6 8 1.6S3.6 2.5 2 4.1l1.4 1.4C4.6 4.3 6.2 3.6 8 3.6zm0 4c.8 0 1.6.3 2.2.9L8 10.8 5.8 8.5c.6-.6 1.4-.9 2.2-.9z" fill="currentColor"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0" y="1" width="21" height="10" rx="2" stroke="currentColor" stroke-width="1" fill="none"/><rect x="22" y="4" width="2" height="4" rx="0.5" fill="currentColor" opacity="0.4"/><rect x="1.5" y="2.5" width="16" height="7" rx="1" fill="currentColor"/></svg>
+        </span>
+      </div>
+      <div class="revoked-screen">
+        <div class="revoked-header">
+          <div class="household-name">Anderson Household</div>
+          <div class="household-sub">Guest Access</div>
+        </div>
+        <div class="revoked-body">
+          <div class="lock-icon">🔒</div>
+          <h2>Your access has been revoked</h2>
+          <p class="detail">The homeowner has removed your access to this household's information.</p>
+          <div class="contact-hint">
+            If you think this is a mistake, contact the homeowner to request a new invite.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
