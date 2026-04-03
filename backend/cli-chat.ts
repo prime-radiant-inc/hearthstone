@@ -50,8 +50,8 @@ const modeArg = args.find(a => a.startsWith("--mode="))?.split("=")[1]
   ?? args[args.indexOf("--mode") + 1]
   ?? "both";
 
-if (!["rag", "full", "mrag", "both", "all"].includes(modeArg)) {
-  console.error("Usage: npx tsx cli-chat.ts --mode [rag|full|mrag|both|all]");
+if (!["rag", "full", "mrag", "hyde", "both", "all"].includes(modeArg)) {
+  console.error("Usage: npx tsx cli-chat.ts --mode [rag|full|mrag|hyde|both|all]");
   process.exit(1);
 }
 
@@ -156,6 +156,32 @@ Return ONLY a JSON array of strings. No explanation.`
   }
 }
 
+// --- HyDE: Hypothetical Document Embedding ---
+
+async function generateHypothesis(query: string, history: Message[]): Promise<string> {
+  const historyContext = history.length > 0
+    ? `\nRecent conversation:\n${history.slice(-4).map(m => `${m.role}: ${m.content}`).join("\n")}\n`
+    : "";
+
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [{
+      role: "system",
+      content: `You are helping retrieve information from household documents (home info, pet care, childcare, emergency contacts, schedules, etc).
+
+Given the user's question, write a short hypothetical passage that would answer it — as if you're writing the paragraph of a household document that contains the answer. Include plausible structure, field names, and formatting that such a document would use. Use placeholder values like [Name], [Phone], [Address].
+
+Write ONLY the hypothetical passage. No preamble. 2-4 sentences max.`
+    }, {
+      role: "user",
+      content: `${historyContext}Question: "${query}"`
+    }],
+    temperature: 0.3,
+  });
+
+  return response.choices[0]?.message?.content || query;
+}
+
 // --- Chat ---
 
 const RAG_SYSTEM = `You are a helpful household assistant. Answer questions using ONLY the provided document excerpts below. If the answer is not present in the excerpts, say exactly: "I don't have that information in the household docs." Do not make up information.
@@ -225,6 +251,7 @@ async function main() {
 
   const ragHistory: Message[] = [];
   const mragHistory: Message[] = [];
+  const hydeHistory: Message[] = [];
   const fullHistory: Message[] = [];
 
   const rl = readline.createInterface({
@@ -242,6 +269,7 @@ async function main() {
     if (query === "/clear") {
       ragHistory.length = 0;
       mragHistory.length = 0;
+      hydeHistory.length = 0;
       fullHistory.length = 0;
       console.log("History cleared.");
       rl.prompt();
@@ -337,6 +365,40 @@ async function main() {
         console.log(`\x1b[2m  Retrieved ${topResults.length} chunks from: ${uniqueDocs.map(d => d.documentTitle).join(", ")}\x1b[0m`);
 
         mragHistory.push({ role: "assistant", content: mragResponse });
+      }
+
+      // --- HyDE mode ---
+      if (modeArg === "hyde" || modeArg === "all") {
+        // Step 1: Generate hypothetical answer
+        const hypothesis = await generateHypothesis(query, hydeHistory);
+        console.log(`\x1b[2m  Hypothesis: "${hypothesis.slice(0, 120)}${hypothesis.length > 120 ? '...' : ''}"\x1b[0m`);
+
+        // Step 2: Embed the hypothesis (not the original query)
+        const hydeEmb = await embedText(hypothesis);
+        const results = searchChunks(new Float32Array(hydeEmb), 5);
+
+        const context = results
+          .map((r, i) => `[${i + 1}] (from "${r.documentTitle}")\n${r.text}`)
+          .join("\n\n---\n\n");
+
+        hydeHistory.push({ role: "user", content: query });
+
+        const hydeMessages: Message[] = [
+          { role: "system", content: RAG_SYSTEM + context },
+          ...hydeHistory,
+        ];
+
+        const hydeResponse = await chatStream(hydeMessages, "HyDE");
+
+        const seen = new Set<string>();
+        const uniqueDocs = results.filter(r => {
+          if (seen.has(r.documentTitle)) return false;
+          seen.add(r.documentTitle);
+          return true;
+        });
+        console.log(`\x1b[2m  Retrieved from: ${uniqueDocs.map(d => d.documentTitle).join(", ")}\x1b[0m`);
+
+        hydeHistory.push({ role: "assistant", content: hydeResponse });
       }
 
       // --- Full context mode ---

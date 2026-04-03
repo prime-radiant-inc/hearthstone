@@ -10,6 +10,7 @@
     "chat:full": "npx tsx cli-chat.ts --mode full",
     "chat:both": "npx tsx cli-chat.ts --mode both",
     "chat:mrag": "npx tsx cli-chat.ts --mode mrag",
+    "chat:hyde": "npx tsx cli-chat.ts --mode hyde",
     "chat:all": "npx tsx cli-chat.ts --mode all"
   },
   "devDependencies": {
