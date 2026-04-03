@@ -1,0 +1,97 @@
+// src/routes/guests.ts
+import type Database from "better-sqlite3";
+import { generateInviteToken, revokeGuestTokens } from "../services/tokens";
+import { randomBytes } from "crypto";
+import { config } from "../config";
+
+function generateId(): string {
+  return randomBytes(16).toString("hex");
+}
+
+export function handleListGuests(
+  db: Database.Database,
+  householdId: string
+): { status: number; body: any } {
+  const guests = db
+    .prepare("SELECT id, name, contact, contact_type, status, created_at FROM guests WHERE household_id = ?")
+    .all(householdId);
+
+  return { status: 200, body: { guests } };
+}
+
+export async function handleCreateGuest(
+  db: Database.Database,
+  householdId: string,
+  body: { name: string | null; email: string | null; phone: string | null }
+): Promise<{ status: number; body: any }> {
+  if (!body.name || !body.name.trim()) {
+    return { status: 422, body: { message: "Name is required" } };
+  }
+  if (!body.email && !body.phone) {
+    return { status: 422, body: { message: "Email or phone number is required" } };
+  }
+
+  const guestId = generateId();
+  const contact = body.email || body.phone!;
+  const contactType = body.email ? "email" : "phone";
+  const now = new Date().toISOString();
+
+  db.prepare(
+    "INSERT INTO guests (id, household_id, name, contact, contact_type, status, created_at) VALUES (?, ?, ?, ?, ?, 'pending', ?)"
+  ).run(guestId, householdId, body.name.trim(), contact, contactType, now);
+
+  const invite = generateInviteToken(db, householdId, guestId);
+  const magicLink = `${config.appBaseUrl}/join/${invite.token}`;
+
+  return {
+    status: 200,
+    body: {
+      guest: { id: guestId, name: body.name.trim(), status: "pending" },
+      magic_link: magicLink,
+      invite_token: invite.token,
+    },
+  };
+}
+
+export function handleRevokeGuest(
+  db: Database.Database,
+  householdId: string,
+  guestId: string
+): { status: number; body: any } {
+  const guest = db
+    .prepare("SELECT * FROM guests WHERE id = ? AND household_id = ?")
+    .get(guestId, householdId) as any;
+
+  if (!guest) {
+    return { status: 404, body: { message: "Guest not found" } };
+  }
+  if (guest.status === "revoked") {
+    return { status: 409, body: { message: "Guest already revoked" } };
+  }
+
+  const revokedAt = revokeGuestTokens(db, guestId);
+  return { status: 200, body: { guest_id: guestId, revoked_at: revokedAt } };
+}
+
+export function handleDeleteGuest(
+  db: Database.Database,
+  householdId: string,
+  guestId: string
+): { status: number; body: any } {
+  const guest = db
+    .prepare("SELECT * FROM guests WHERE id = ? AND household_id = ?")
+    .get(guestId, householdId) as any;
+
+  if (!guest) {
+    return { status: 404, body: { message: "Guest not found" } };
+  }
+  if (guest.status !== "revoked") {
+    return { status: 409, body: { message: "Guest is still active; revoke first" } };
+  }
+
+  db.prepare("DELETE FROM session_tokens WHERE guest_id = ?").run(guestId);
+  db.prepare("DELETE FROM invite_tokens WHERE guest_id = ?").run(guestId);
+  db.prepare("DELETE FROM guests WHERE id = ?").run(guestId);
+
+  return { status: 204, body: null };
+}
