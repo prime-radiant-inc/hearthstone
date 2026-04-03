@@ -149,14 +149,24 @@ function renderStyledHtml(markdown: string, chunks: Array<{ chunk_index: number;
   if (chunks.length > 0) {
     // Render each chunk as a section with an anchor ID
     bodyHtml = chunks.map((chunk) => {
-      // Strip the breadcrumb line (starts with "> ") from display
       let text = chunk.text;
+      let headingHtml = "";
+
+      // Convert breadcrumb line to a visible heading
       if (text.startsWith("> ")) {
         const newlineIdx = text.indexOf("\n");
-        text = newlineIdx !== -1 ? text.slice(newlineIdx + 1).trimStart() : text;
+        const breadcrumb = text.slice(2, newlineIdx !== -1 ? newlineIdx : undefined).trim();
+        text = newlineIdx !== -1 ? text.slice(newlineIdx + 1).trimStart() : "";
+
+        // Use the last segment of the breadcrumb as the heading
+        const parts = breadcrumb.split(" > ");
+        const heading = parts[parts.length - 1];
+        const level = Math.min(parts.length + 1, 4); // h2 for top-level, h3 for nested, etc.
+        headingHtml = `<h${level}>${heading}</h${level}>`;
       }
+
       const chunkHtml = marked(text);
-      return `<section id="chunk-${chunk.chunk_index}" class="chunk">${chunkHtml}</section>`;
+      return `<section id="chunk-${chunk.chunk_index}" class="chunk">${headingHtml}${chunkHtml}</section>`;
     }).join("\n");
   } else {
     bodyHtml = marked(markdown);
