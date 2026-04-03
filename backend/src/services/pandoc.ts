@@ -14,7 +14,7 @@ export async function docxToMarkdown(docxBuffer: Buffer): Promise<string> {
     return await new Promise((resolve, reject) => {
       execFile(
         "pandoc",
-        [tmpPath, "-f", "docx", "-t", "markdown", "--wrap=none"],
+        [tmpPath, "-f", "docx", "-t", "markdown-grid_tables+pipe_tables", "--wrap=none"],
         { maxBuffer: 10 * 1024 * 1024 },
         (error, stdout, stderr) => {
           if (error) reject(new Error(`Pandoc conversion failed: ${stderr || error.message}`));
