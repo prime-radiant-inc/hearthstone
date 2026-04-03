@@ -16,7 +16,6 @@ targets:
       - Hearthstone
     settings:
       base:
-        INFOPLIST_FILE: Hearthstone/Info.plist
         PRODUCT_BUNDLE_IDENTIFIER: app.hearthstone.ios
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_UILaunchScreen_Generation: YES

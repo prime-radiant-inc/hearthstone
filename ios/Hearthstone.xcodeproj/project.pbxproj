@@ -7,23 +7,182 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		030EAB73DED596CB0BA20F1D /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 344516F0243473D20A7D8C8C /* ChatView.swift */; };
+		082449A153B3AB3254F4942F /* DocumentsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51984069D3ED00CEDEA26B78 /* DocumentsViewModel.swift */; };
+		12CAFF2212CB9DDC30AA44D4 /* HearthButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D13E91C8F48290878E5C386 /* HearthButton.swift */; };
+		12D9F0AACD5B4A4D32A5E264 /* StatusBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AB0F06146DFB3EF1D159CDF /* StatusBadge.swift */; };
+		17B3613E09E957F555D69E68 /* SuggestionChips.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB4504D789BCA1AA870DFA83 /* SuggestionChips.swift */; };
+		2AD942D2361699DEDFB8F7C5 /* ConnectionsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8AE83C7D0361CC02AF5A82 /* ConnectionsViewModel.swift */; };
+		2BCB642D1B334674ABD76405 /* Guest.swift in Sources */ = {isa = PBXBuildFile; fileRef = C13A6D4C6E55200DD77A249E /* Guest.swift */; };
+		3253596E11C04A8BCB6EA422 /* HouseholdSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE3D7F4ED477BB3A9D6AC4EA /* HouseholdSetupView.swift */; };
+		34DCE9B015F5FCCF51E170EB /* Suggestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 270789DC8776F9F1F8983D00 /* Suggestion.swift */; };
+		34ED59C4E0B7AF817BB55A52 /* AccessRevokedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3DA8695C636234B1C9F517 /* AccessRevokedView.swift */; };
+		3A0811009ACF47A3F8B97C80 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE4EE6D15E820ECB1A26F3A3 /* APIClient.swift */; };
+		4565B3C4B04CCF46099501B9 /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2EE14D81019E0E37D8489D8 /* Connection.swift */; };
+		478389D01867D92F82315E53 /* ProgressDots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70C443F691027605AC072729 /* ProgressDots.swift */; };
+		4A49FA39AE916008A6E3F830 /* OwnerPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB03D07BB9EF9F7E63B840F /* OwnerPreviewView.swift */; };
+		5083441DA7742299EF84AB81 /* SSEClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDD098C398E3401F959D0287 /* SSEClient.swift */; };
+		52E8F72D0B9D0D7A5FA42471 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDD84A7F97E32C1775351C2C /* KeychainService.swift */; };
+		5E6D6335D619725F1A7B0005 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDFF0389459109EAA5A09A74 /* WelcomeView.swift */; };
+		61688CC2624117D0895B5BC9 /* GuestListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88AA192FF5FDDE7224F434FC /* GuestListView.swift */; };
+		6AEF81B92627FEB704C7EA2C /* SourceDocumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBD36E61ABE11EF9988D51C7 /* SourceDocumentView.swift */; };
+		7108A78F317AA431BA9F0046 /* VerifyCodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 722C9536F2D45780DDF60666 /* VerifyCodeView.swift */; };
+		74BC707D374A562F4E350157 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C0D3E61418EA2173420116F /* AuthViewModel.swift */; };
+		7AE242FCB26AB450761EA112 /* ConnectDocsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 066D70BA714F154CA16063BD /* ConnectDocsView.swift */; };
+		7B07E3ACE9272D7FA428DC25 /* HearthTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27683AA32579AAAA8D655960 /* HearthTextField.swift */; };
 		8207F2214F4F1B1DEC1360FF /* HearthstoneApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637898B473FDD1C99019571D /* HearthstoneApp.swift */; };
+		8A5DA70B1A534E9699E50363 /* AddGuestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D01C211535289B4F0A07CE9 /* AddGuestView.swift */; };
+		91D2682B4D7AA463A931E8B3 /* MessageBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35B54811E9568D04E41E1D40 /* MessageBubble.swift */; };
+		B0B35FEFC16C499171256985 /* ChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC47B1DB3BC3C8AEB9CB62E2 /* ChatViewModel.swift */; };
+		B11C65BF6167E93105F0E182 /* Document.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8FC1D2FA013BB586A464ADA /* Document.swift */; };
+		B3C7012EC5EE28B776AB5C3F /* ChatMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = F54456FA5D506B133989EEAD /* ChatMessage.swift */; };
+		C2B9FF563F53803629F0D4B3 /* DashboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7508202142FDC4B09A8F1239 /* DashboardViewModel.swift */; };
 		CB814B680110FA221E81687B /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 911D8BD2218D321FFACC6783 /* Theme.swift */; };
+		CE52493836C4597D23E0D480 /* Household.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6281E5FF7DCC0E72163CE472 /* Household.swift */; };
+		D78164B826CC21F981D31847 /* Person.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB09FB0849CA8E2DCA07AED5 /* Person.swift */; };
+		F23F482C8426F52978B49299 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6664253F4BA2C390AB56D00 /* DashboardView.swift */; };
+		F33BDECE29CD924BC3776F49 /* InviteErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CFFD695DB89CD17DF3B96C1 /* InviteErrorView.swift */; };
+		FBDCAA2BF756B5DD7B198BC4 /* GuestListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7AF9F5111428B104E32108 /* GuestListViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		066D70BA714F154CA16063BD /* ConnectDocsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectDocsView.swift; sourceTree = "<group>"; };
+		0AB0F06146DFB3EF1D159CDF /* StatusBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBadge.swift; sourceTree = "<group>"; };
+		1CFFD695DB89CD17DF3B96C1 /* InviteErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteErrorView.swift; sourceTree = "<group>"; };
+		1D01C211535289B4F0A07CE9 /* AddGuestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddGuestView.swift; sourceTree = "<group>"; };
+		270789DC8776F9F1F8983D00 /* Suggestion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Suggestion.swift; sourceTree = "<group>"; };
+		27683AA32579AAAA8D655960 /* HearthTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HearthTextField.swift; sourceTree = "<group>"; };
+		344516F0243473D20A7D8C8C /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		35B54811E9568D04E41E1D40 /* MessageBubble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageBubble.swift; sourceTree = "<group>"; };
+		3D3DA8695C636234B1C9F517 /* AccessRevokedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessRevokedView.swift; sourceTree = "<group>"; };
+		51984069D3ED00CEDEA26B78 /* DocumentsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentsViewModel.swift; sourceTree = "<group>"; };
+		5D13E91C8F48290878E5C386 /* HearthButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HearthButton.swift; sourceTree = "<group>"; };
+		6281E5FF7DCC0E72163CE472 /* Household.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Household.swift; sourceTree = "<group>"; };
 		637898B473FDD1C99019571D /* HearthstoneApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HearthstoneApp.swift; sourceTree = "<group>"; };
+		6A8AE83C7D0361CC02AF5A82 /* ConnectionsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionsViewModel.swift; sourceTree = "<group>"; };
+		6C0D3E61418EA2173420116F /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
+		70C443F691027605AC072729 /* ProgressDots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressDots.swift; sourceTree = "<group>"; };
+		722C9536F2D45780DDF60666 /* VerifyCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerifyCodeView.swift; sourceTree = "<group>"; };
+		7508202142FDC4B09A8F1239 /* DashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardViewModel.swift; sourceTree = "<group>"; };
+		88AA192FF5FDDE7224F434FC /* GuestListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestListView.swift; sourceTree = "<group>"; };
 		911D8BD2218D321FFACC6783 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		A575226351EBD6A26DB29462 /* Hearthstone.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Hearthstone.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AB4504D789BCA1AA870DFA83 /* SuggestionChips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuggestionChips.swift; sourceTree = "<group>"; };
+		ACB03D07BB9EF9F7E63B840F /* OwnerPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OwnerPreviewView.swift; sourceTree = "<group>"; };
+		B6664253F4BA2C390AB56D00 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		BC47B1DB3BC3C8AEB9CB62E2 /* ChatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViewModel.swift; sourceTree = "<group>"; };
+		BE4EE6D15E820ECB1A26F3A3 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
+		C13A6D4C6E55200DD77A249E /* Guest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Guest.swift; sourceTree = "<group>"; };
+		C8FC1D2FA013BB586A464ADA /* Document.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Document.swift; sourceTree = "<group>"; };
+		CA7AF9F5111428B104E32108 /* GuestListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestListViewModel.swift; sourceTree = "<group>"; };
+		CE3D7F4ED477BB3A9D6AC4EA /* HouseholdSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdSetupView.swift; sourceTree = "<group>"; };
+		D2EE14D81019E0E37D8489D8 /* Connection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
+		EDD84A7F97E32C1775351C2C /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
+		EDFF0389459109EAA5A09A74 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
+		F54456FA5D506B133989EEAD /* ChatMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessage.swift; sourceTree = "<group>"; };
+		FB09FB0849CA8E2DCA07AED5 /* Person.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Person.swift; sourceTree = "<group>"; };
+		FBD36E61ABE11EF9988D51C7 /* SourceDocumentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceDocumentView.swift; sourceTree = "<group>"; };
+		FDD098C398E3401F959D0287 /* SSEClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSEClient.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
+		2DD1377B1F07C7D952599FDE /* Guest */ = {
+			isa = PBXGroup;
+			children = (
+				344516F0243473D20A7D8C8C /* ChatView.swift */,
+				35B54811E9568D04E41E1D40 /* MessageBubble.swift */,
+				FBD36E61ABE11EF9988D51C7 /* SourceDocumentView.swift */,
+				AB4504D789BCA1AA870DFA83 /* SuggestionChips.swift */,
+			);
+			path = Guest;
+			sourceTree = "<group>";
+		};
+		44719FC759FFF6F26627A94F /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				F54456FA5D506B133989EEAD /* ChatMessage.swift */,
+				D2EE14D81019E0E37D8489D8 /* Connection.swift */,
+				C8FC1D2FA013BB586A464ADA /* Document.swift */,
+				C13A6D4C6E55200DD77A249E /* Guest.swift */,
+				6281E5FF7DCC0E72163CE472 /* Household.swift */,
+				FB09FB0849CA8E2DCA07AED5 /* Person.swift */,
+				270789DC8776F9F1F8983D00 /* Suggestion.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		5F71BAB7E589469F9937F1F8 /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				CE3D7F4ED477BB3A9D6AC4EA /* HouseholdSetupView.swift */,
+				722C9536F2D45780DDF60666 /* VerifyCodeView.swift */,
+				EDFF0389459109EAA5A09A74 /* WelcomeView.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
 		62AD092CBB8F22CF69E65C16 = {
 			isa = PBXGroup;
 			children = (
 				D7D02EC4CBF6936A156D910A /* Hearthstone */,
 				AEB7C14F6E1916A879FCEDCD /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		80C7D14F2641BE29E81C0F0F /* Owner */ = {
+			isa = PBXGroup;
+			children = (
+				1D01C211535289B4F0A07CE9 /* AddGuestView.swift */,
+				066D70BA714F154CA16063BD /* ConnectDocsView.swift */,
+				B6664253F4BA2C390AB56D00 /* DashboardView.swift */,
+				88AA192FF5FDDE7224F434FC /* GuestListView.swift */,
+				ACB03D07BB9EF9F7E63B840F /* OwnerPreviewView.swift */,
+			);
+			path = Owner;
+			sourceTree = "<group>";
+		};
+		87EA53A62C2A6230095B9F4A /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				BE4EE6D15E820ECB1A26F3A3 /* APIClient.swift */,
+				EDD84A7F97E32C1775351C2C /* KeychainService.swift */,
+				FDD098C398E3401F959D0287 /* SSEClient.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		8C6E244EBD885739B4347098 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				5F71BAB7E589469F9937F1F8 /* Auth */,
+				CEB97A1B2F0ADF3F181D426A /* Components */,
+				A459DE1678F3C75DB4D72E23 /* Error */,
+				2DD1377B1F07C7D952599FDE /* Guest */,
+				80C7D14F2641BE29E81C0F0F /* Owner */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		A459DE1678F3C75DB4D72E23 /* Error */ = {
+			isa = PBXGroup;
+			children = (
+				3D3DA8695C636234B1C9F517 /* AccessRevokedView.swift */,
+				1CFFD695DB89CD17DF3B96C1 /* InviteErrorView.swift */,
+			);
+			path = Error;
+			sourceTree = "<group>";
+		};
+		ACD1C48E0DFDB8C9E306BCCA /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				6C0D3E61418EA2173420116F /* AuthViewModel.swift */,
+				BC47B1DB3BC3C8AEB9CB62E2 /* ChatViewModel.swift */,
+				6A8AE83C7D0361CC02AF5A82 /* ConnectionsViewModel.swift */,
+				7508202142FDC4B09A8F1239 /* DashboardViewModel.swift */,
+				51984069D3ED00CEDEA26B78 /* DocumentsViewModel.swift */,
+				CA7AF9F5111428B104E32108 /* GuestListViewModel.swift */,
+			);
+			path = ViewModels;
 			sourceTree = "<group>";
 		};
 		AEB7C14F6E1916A879FCEDCD /* Products */ = {
@@ -34,20 +193,28 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		CEB97A1B2F0ADF3F181D426A /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				5D13E91C8F48290878E5C386 /* HearthButton.swift */,
+				27683AA32579AAAA8D655960 /* HearthTextField.swift */,
+				70C443F691027605AC072729 /* ProgressDots.swift */,
+				0AB0F06146DFB3EF1D159CDF /* StatusBadge.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
 		D7D02EC4CBF6936A156D910A /* Hearthstone */ = {
 			isa = PBXGroup;
 			children = (
 				637898B473FDD1C99019571D /* HearthstoneApp.swift */,
 				911D8BD2218D321FFACC6783 /* Theme.swift */,
+				44719FC759FFF6F26627A94F /* Models */,
+				87EA53A62C2A6230095B9F4A /* Services */,
+				ACD1C48E0DFDB8C9E306BCCA /* ViewModels */,
+				8C6E244EBD885739B4347098 /* Views */,
 			);
 			path = Hearthstone;
-			sourceTree = "<group>";
-		};
-		"TEMP_D8D77832-B755-4910-B3B1-82925867C560" /* Views */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Views;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -105,8 +272,42 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3A0811009ACF47A3F8B97C80 /* APIClient.swift in Sources */,
+				34ED59C4E0B7AF817BB55A52 /* AccessRevokedView.swift in Sources */,
+				8A5DA70B1A534E9699E50363 /* AddGuestView.swift in Sources */,
+				74BC707D374A562F4E350157 /* AuthViewModel.swift in Sources */,
+				B3C7012EC5EE28B776AB5C3F /* ChatMessage.swift in Sources */,
+				030EAB73DED596CB0BA20F1D /* ChatView.swift in Sources */,
+				B0B35FEFC16C499171256985 /* ChatViewModel.swift in Sources */,
+				7AE242FCB26AB450761EA112 /* ConnectDocsView.swift in Sources */,
+				4565B3C4B04CCF46099501B9 /* Connection.swift in Sources */,
+				2AD942D2361699DEDFB8F7C5 /* ConnectionsViewModel.swift in Sources */,
+				F23F482C8426F52978B49299 /* DashboardView.swift in Sources */,
+				C2B9FF563F53803629F0D4B3 /* DashboardViewModel.swift in Sources */,
+				B11C65BF6167E93105F0E182 /* Document.swift in Sources */,
+				082449A153B3AB3254F4942F /* DocumentsViewModel.swift in Sources */,
+				2BCB642D1B334674ABD76405 /* Guest.swift in Sources */,
+				61688CC2624117D0895B5BC9 /* GuestListView.swift in Sources */,
+				FBDCAA2BF756B5DD7B198BC4 /* GuestListViewModel.swift in Sources */,
+				12CAFF2212CB9DDC30AA44D4 /* HearthButton.swift in Sources */,
+				7B07E3ACE9272D7FA428DC25 /* HearthTextField.swift in Sources */,
 				8207F2214F4F1B1DEC1360FF /* HearthstoneApp.swift in Sources */,
+				CE52493836C4597D23E0D480 /* Household.swift in Sources */,
+				3253596E11C04A8BCB6EA422 /* HouseholdSetupView.swift in Sources */,
+				F33BDECE29CD924BC3776F49 /* InviteErrorView.swift in Sources */,
+				52E8F72D0B9D0D7A5FA42471 /* KeychainService.swift in Sources */,
+				91D2682B4D7AA463A931E8B3 /* MessageBubble.swift in Sources */,
+				4A49FA39AE916008A6E3F830 /* OwnerPreviewView.swift in Sources */,
+				D78164B826CC21F981D31847 /* Person.swift in Sources */,
+				478389D01867D92F82315E53 /* ProgressDots.swift in Sources */,
+				5083441DA7742299EF84AB81 /* SSEClient.swift in Sources */,
+				6AEF81B92627FEB704C7EA2C /* SourceDocumentView.swift in Sources */,
+				12D9F0AACD5B4A4D32A5E264 /* StatusBadge.swift in Sources */,
+				34DCE9B015F5FCCF51E170EB /* Suggestion.swift in Sources */,
+				17B3613E09E957F555D69E68 /* SuggestionChips.swift in Sources */,
 				CB814B680110FA221E81687B /* Theme.swift in Sources */,
+				7108A78F317AA431BA9F0046 /* VerifyCodeView.swift in Sources */,
+				5E6D6335D619725F1A7B0005 /* WelcomeView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -176,7 +377,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Hearthstone/Info.plist;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -259,7 +459,6 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Hearthstone/Info.plist;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
