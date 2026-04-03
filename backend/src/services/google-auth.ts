@@ -3,21 +3,19 @@ import { OAuth2Client } from "google-auth-library";
 import { config } from "../config";
 
 const SCOPES = [
-  "https://www.googleapis.com/auth/userinfo.email",
-  "https://www.googleapis.com/auth/userinfo.profile",
   "https://www.googleapis.com/auth/drive.readonly",
 ];
 
-function getClient(): OAuth2Client {
+function getClient(redirectUri?: string): OAuth2Client {
   return new OAuth2Client(
     config.googleClientId,
     config.googleClientSecret,
-    `${config.appBaseUrl}/auth/google/callback`
+    redirectUri ?? `${config.appBaseUrl}/auth/google/callback`
   );
 }
 
-export function getAuthUrl(state: string): string {
-  const client = getClient();
+export function getDriveAuthUrl(state: string, redirectUri: string): string {
+  const client = getClient(redirectUri);
   return client.generateAuthUrl({
     access_type: "offline",
     scope: SCOPES,
@@ -26,26 +24,35 @@ export function getAuthUrl(state: string): string {
   });
 }
 
-export async function exchangeCode(code: string): Promise<{
-  accessToken: string;
+export async function exchangeCodeForDrive(
+  code: string,
+  redirectUri: string
+): Promise<{
   refreshToken: string;
-  email: string;
-  name: string;
+  accessToken: string;
+  email?: string;
 }> {
-  const client = getClient();
+  const client = getClient(redirectUri);
   const { tokens } = await client.getToken(code);
-  client.setCredentials(tokens);
 
-  const res = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
-    headers: { Authorization: `Bearer ${tokens.access_token}` },
-  });
-  const userInfo = (await res.json()) as { email: string; name: string };
+  // Try to get the email associated with the Google account for display
+  let email: string | undefined;
+  try {
+    const res = await fetch(
+      `https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=${tokens.access_token}`
+    );
+    if (res.ok) {
+      const info = (await res.json()) as { email?: string };
+      email = info.email;
+    }
+  } catch {
+    // email is optional, swallow errors
+  }
 
   return {
-    accessToken: tokens.access_token!,
     refreshToken: tokens.refresh_token!,
-    email: userInfo.email,
-    name: userInfo.name,
+    accessToken: tokens.access_token!,
+    email,
   };
 }
 

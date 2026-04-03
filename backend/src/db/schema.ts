@@ -60,9 +60,19 @@ export const SCHEMA_SQL = `
     created_at TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS connections (
+    id TEXT PRIMARY KEY,
+    household_id TEXT NOT NULL REFERENCES households(id),
+    provider TEXT NOT NULL DEFAULT 'google_drive',
+    refresh_token TEXT NOT NULL,
+    email TEXT,
+    created_at TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS documents (
     id TEXT PRIMARY KEY,
     household_id TEXT NOT NULL REFERENCES households(id),
+    connection_id TEXT REFERENCES connections(id),
     drive_file_id TEXT NOT NULL,
     title TEXT NOT NULL,
     markdown TEXT,
