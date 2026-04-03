@@ -1,12 +1,8 @@
 // src/routes/guests.ts
 import type Database from "better-sqlite3";
 import { generateInviteToken, revokeGuestTokens } from "../services/tokens";
-import { randomBytes } from "crypto";
 import { config } from "../config";
-
-function generateId(): string {
-  return randomBytes(16).toString("hex");
-}
+import { generateId } from "../utils";
 
 export function handleListGuests(
   db: Database.Database,

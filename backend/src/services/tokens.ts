@@ -1,12 +1,9 @@
 import type Database from "better-sqlite3";
 import { randomBytes } from "crypto";
+import { generateId } from "../utils";
 
 function generateToken(prefix: string): string {
   return `${prefix}${randomBytes(32).toString("base64url")}`;
-}
-
-function generateId(): string {
-  return randomBytes(16).toString("hex");
 }
 
 export function generateInviteToken(

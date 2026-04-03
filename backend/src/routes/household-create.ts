@@ -1,10 +1,6 @@
 // src/routes/household-create.ts
 import type Database from "better-sqlite3";
-import { randomBytes } from "crypto";
-
-function generateId(): string {
-  return randomBytes(16).toString("hex");
-}
+import { generateId } from "../utils";
 
 export function handleCreateHousehold(
   db: Database.Database,

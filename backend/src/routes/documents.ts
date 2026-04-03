@@ -4,11 +4,7 @@ import { fetchDocAsMarkdown } from "../services/google-drive";
 import { indexDocument, refreshDocument } from "../services/indexer";
 import { embedBatch } from "../services/embeddings";
 import { generateSuggestions } from "../services/suggestions";
-import { randomBytes } from "crypto";
-
-function generateId(): string {
-  return randomBytes(16).toString("hex");
-}
+import { generateId } from "../utils";
 
 export function handleListDocuments(
   db: Database.Database,

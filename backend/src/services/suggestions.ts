@@ -1,10 +1,6 @@
 import type Database from "better-sqlite3";
 import { chatComplete, type ChatMessage } from "./chat-provider";
-import { randomBytes } from "crypto";
-
-function generateId(): string {
-  return randomBytes(16).toString("hex");
-}
+import { generateId } from "../utils";
 
 export async function generateSuggestions(db: Database.Database, householdId: string): Promise<string[]> {
   const chunks = db

@@ -2,11 +2,7 @@
 import type Database from "better-sqlite3";
 import { getDriveAuthUrl, exchangeCodeForDrive } from "../services/google-auth";
 import { config } from "../config";
-import { randomBytes } from "crypto";
-
-function generateId(): string {
-  return randomBytes(16).toString("hex");
-}
+import { generateId } from "../utils";
 
 export function handleListConnections(
   db: Database.Database,

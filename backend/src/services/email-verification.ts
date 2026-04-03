@@ -1,10 +1,7 @@
 // src/services/email-verification.ts
 import type Database from "better-sqlite3";
-import { randomBytes, randomInt } from "crypto";
-
-function generateId(): string {
-  return randomBytes(16).toString("hex");
-}
+import { randomInt } from "crypto";
+import { generateId } from "../utils";
 
 function generateCode(): string {
   return String(randomInt(100000, 999999));

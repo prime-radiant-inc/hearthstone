@@ -9,12 +9,8 @@ import {
   getAuthenticationOptions,
   verifyAuthentication,
 } from "../services/passkey";
-import { randomBytes } from "crypto";
 import { config } from "../config";
-
-function generateId(): string {
-  return randomBytes(16).toString("hex");
-}
+import { generateId } from "../utils";
 
 function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
