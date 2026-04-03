@@ -2,7 +2,16 @@ import { getDb } from "./db/connection";
 import { config } from "./config";
 import { authenticateOwner } from "./middleware/owner-auth";
 import { authenticateGuest } from "./middleware/guest-auth";
-import { handleGoogleAuthStart, handleGoogleCallback, handleInviteRedeem } from "./routes/auth";
+import {
+  handleRegister,
+  handleRegisterVerify,
+  handleRegisterPasskey,
+  handleLoginPasskeyChallenge,
+  handleLoginPasskeyVerify,
+  handleLoginEmail,
+  handleLoginEmailVerify,
+  handleInviteRedeem,
+} from "./routes/auth";
 import { handleUpdateHousehold } from "./routes/household";
 import { handleCreateHousehold } from "./routes/household-create";
 import { handleListGuests, handleCreateGuest, handleRevokeGuest, handleDeleteGuest } from "./routes/guests";
@@ -46,15 +55,45 @@ const server = Bun.serve({
 
     try {
       // --- Auth routes (no auth required) ---
-      if (method === "POST" && pathname === "/auth/google") {
-        return handleGoogleAuthStart();
+      if (method === "POST" && pathname === "/auth/register") {
+        const body = await req.json();
+        const result = await handleRegister(getDb(), body);
+        return json(result.body, result.status);
       }
 
-      if (method === "GET" && pathname === "/auth/google/callback") {
-        const code = url.searchParams.get("code");
-        const state = url.searchParams.get("state");
-        if (!code || !state) return json({ message: "Missing code or state" }, 400);
-        const result = await handleGoogleCallback(getDb(), code, state);
+      if (method === "POST" && pathname === "/auth/register/verify") {
+        const body = await req.json();
+        const result = await handleRegisterVerify(getDb(), body);
+        return json(result.body, result.status);
+      }
+
+      if (method === "POST" && pathname === "/auth/register/passkey") {
+        const body = await req.json();
+        const result = await handleRegisterPasskey(getDb(), body);
+        return json(result.body, result.status);
+      }
+
+      if (method === "POST" && pathname === "/auth/login/passkey/challenge") {
+        const body = await req.json();
+        const result = await handleLoginPasskeyChallenge(getDb(), body);
+        return json(result.body, result.status);
+      }
+
+      if (method === "POST" && pathname === "/auth/login/passkey/verify") {
+        const body = await req.json();
+        const result = await handleLoginPasskeyVerify(getDb(), body);
+        return json(result.body, result.status);
+      }
+
+      if (method === "POST" && pathname === "/auth/login/email") {
+        const body = await req.json();
+        const result = await handleLoginEmail(getDb(), body);
+        return json(result.body, result.status);
+      }
+
+      if (method === "POST" && pathname === "/auth/login/email/verify") {
+        const body = await req.json();
+        const result = await handleLoginEmailVerify(getDb(), body);
         return json(result.body, result.status);
       }
 
