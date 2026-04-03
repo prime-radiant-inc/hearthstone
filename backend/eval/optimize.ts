@@ -69,21 +69,26 @@ interface QuestionScore {
 async function runEval(mode: Mode): Promise<QuestionScore[]> {
   const results: QuestionScore[] = [];
 
-  for (const q of QUESTIONS) {
-    const evalResult = await runQuestion(q.question, mode, q.id);
-    const judge = await judgeResponse(
-      q.id, mode, q.question, evalResult.response,
-      q.keyFacts, q.antiHallucinations,
-    );
-
-    results.push({
-      questionId: q.id,
-      score: judge.score,
-      hallucinationCount: judge.hallucinationCount,
-      absentFacts: judge.facts.filter(f => f.verdict === "absent").map(f => f.fact),
-      partialFacts: judge.facts.filter(f => f.verdict === "partial").map(f => f.fact),
-      response: evalResult.response,
-    });
+  // Run questions concurrently in batches of 4
+  const BATCH_SIZE = 4;
+  for (let i = 0; i < QUESTIONS.length; i += BATCH_SIZE) {
+    const batch = QUESTIONS.slice(i, i + BATCH_SIZE);
+    const batchResults = await Promise.all(batch.map(async (q) => {
+      const evalResult = await runQuestion(q.question, mode, q.id);
+      const judge = await judgeResponse(
+        q.id, mode, q.question, evalResult.response,
+        q.keyFacts, q.antiHallucinations,
+      );
+      return {
+        questionId: q.id,
+        score: judge.score,
+        hallucinationCount: judge.hallucinationCount,
+        absentFacts: judge.facts.filter(f => f.verdict === "absent").map(f => f.fact),
+        partialFacts: judge.facts.filter(f => f.verdict === "partial").map(f => f.fact),
+        response: evalResult.response,
+      };
+    }));
+    results.push(...batchResults);
   }
 
   return results;
@@ -306,7 +311,7 @@ async function runEvalFresh(mode: Mode): Promise<QuestionScore[]> {
   // imported it, we need to re-evaluate. The cleanest way is to call
   // the eval runner as a subprocess and parse the JSON output.
   const { execSync } = await import("node:child_process");
-  const cmd = `npx tsx eval/run.ts --mode ${mode} --concurrency 1 2>/dev/null`;
+  const cmd = `npx tsx eval/run.ts --mode ${mode} --concurrency 4 2>/dev/null`;
   execSync(cmd, { cwd: resolve(import.meta.dirname, ".."), timeout: 600000 });
 
   // Read the latest results file
