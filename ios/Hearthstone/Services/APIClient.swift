@@ -228,7 +228,9 @@ final class APIClient {
     // MARK: - Guest endpoints
 
     func listGuests() async throws -> [Guest] {
-        return try await call(method: "GET", path: "/guests", auth: .owner)
+        struct Response: Decodable { let guests: [Guest] }
+        let r: Response = try await call(method: "GET", path: "/guests", auth: .owner)
+        return r.guests
     }
 
     struct CreateGuestResponse: Decodable {
@@ -266,7 +268,9 @@ final class APIClient {
     // MARK: - Connection endpoints
 
     func listConnections() async throws -> [Connection] {
-        return try await call(method: "GET", path: "/connections", auth: .owner)
+        struct Response: Decodable { let connections: [Connection] }
+        let r: Response = try await call(method: "GET", path: "/connections", auth: .owner)
+        return r.connections
     }
 
     struct GoogleDriveAuthResponse: Decodable {
@@ -285,7 +289,9 @@ final class APIClient {
     // MARK: - Document endpoints
 
     func listDocuments() async throws -> [Document] {
-        return try await call(method: "GET", path: "/documents", auth: .owner)
+        struct Response: Decodable { let documents: [Document] }
+        let r: Response = try await call(method: "GET", path: "/documents", auth: .owner)
+        return r.documents
     }
 
     func connectDocument(driveFileId: String, title: String) async throws -> Document {
