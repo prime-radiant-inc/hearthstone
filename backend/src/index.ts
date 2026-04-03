@@ -112,9 +112,9 @@ async function handleRequest(req: Request): Promise<Response> {
       if (method === "GET" && pathname === "/me") {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         const person = getDb().prepare("SELECT id, email FROM persons WHERE id = ?").get(owner.personId) as any;
-        const household = owner.householdId
-          ? getDb().prepare("SELECT id, name, created_at FROM households WHERE id = ?").get(owner.householdId) as any
-          : null;
+        // Look up household by owner_id, not JWT's householdId — covers the case
+        // where household was created after the JWT was issued
+        const household = getDb().prepare("SELECT id, name, created_at FROM households WHERE owner_id = ?").get(owner.personId) as any || null;
         return json({ person: { id: person.id, email: person.email }, household });
       }
 

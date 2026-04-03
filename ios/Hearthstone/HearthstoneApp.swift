@@ -15,6 +15,8 @@ struct HearthstoneApp: App {
                     LoadingView()
                 case .welcome:
                     AuthFlow(router: router)
+                case .needsHousehold:
+                    HouseholdSetupFlow(router: router)
                 case .ownerDashboard(let householdName, let ownerName):
                     NavigationStack {
                         DashboardView(householdName: householdName, ownerName: ownerName)
@@ -43,6 +45,7 @@ final class AppRouter: ObservableObject {
     enum AppState {
         case loading
         case welcome
+        case needsHousehold(email: String)
         case ownerDashboard(householdName: String, ownerName: String)
         case guestChat(householdName: String)
         case inviteError(InviteErrorType)
@@ -62,8 +65,7 @@ final class AppRouter: ObservableObject {
                     if let household = me.household {
                         state = .ownerDashboard(householdName: household.name, ownerName: me.person.email)
                     } else {
-                        // Has account but no household — go to setup
-                        state = .welcome
+                        state = .needsHousehold(email: me.person.email)
                     }
                 } catch {
                     // Token invalid — clear and start fresh
@@ -138,6 +140,77 @@ struct AuthFlow: View {
             }
         }
         .animation(.easeInOut(duration: 0.3), value: viewModel.step)
+    }
+}
+
+// MARK: - Household Setup Flow (for users who have an account but no household)
+
+struct HouseholdSetupFlow: View {
+    @ObservedObject var router: AppRouter
+    @State private var householdName = ""
+    @State private var isLoading = false
+    @State private var error: String?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: 6) {
+                ForEach(0..<3, id: \.self) { i in
+                    Capsule()
+                        .fill(i < 2 ? Theme.hearth : Theme.creamDeep)
+                        .frame(height: 4)
+                }
+            }
+            .padding(.bottom, 36)
+
+            Text("Welcome")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundColor(Theme.hearth)
+                .padding(.bottom, 8)
+
+            Text("Name your household")
+                .font(Theme.heading(28))
+                .foregroundColor(Theme.charcoal)
+                .padding(.bottom, 10)
+
+            Text("This is what your guests will see when they open the app. You can change it anytime.")
+                .font(.system(size: 15))
+                .foregroundColor(Theme.charcoalSoft)
+                .lineSpacing(4)
+                .padding(.bottom, 40)
+
+            HearthTextField(
+                label: "Household Name",
+                placeholder: "e.g. The Anderson Home",
+                text: $householdName
+            )
+
+            if let error {
+                Text(error)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(Theme.rose)
+                    .padding(.top, 12)
+            }
+
+            Spacer()
+
+            HearthButton(title: "Continue", isLoading: isLoading) {
+                Task {
+                    guard !householdName.isEmpty else { return }
+                    isLoading = true
+                    error = nil
+                    do {
+                        _ = try await APIClient.shared.createHousehold(name: householdName)
+                        router.checkAuth()
+                    } catch {
+                        self.error = error.localizedDescription
+                    }
+                    isLoading = false
+                }
+            }
+            .padding(.bottom, 16)
+        }
+        .padding(24)
+        .background(Theme.cream)
     }
 }
 
