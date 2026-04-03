@@ -78,11 +78,16 @@ export async function handleRegisterVerify(
     now
   );
 
-  // Return WebAuthn registration options
-  const options = await getRegistrationOptions(personId, email);
+  // Issue JWT directly (passkey registration deferred to post-v0)
+  const token = await issueJwt(personId, null);
   return {
     status: 200,
-    body: { person_id: personId, registration_options: options },
+    body: {
+      token,
+      person: { id: personId, email },
+      household: null,
+      is_new: true,
+    },
   };
 }
 

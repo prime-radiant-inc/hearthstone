@@ -21,18 +21,22 @@ export async function authenticateOwner(
     const encoder = new TextEncoder();
     const { payload } = await jwtVerify(token, encoder.encode(jwtSecret));
     const personId = payload.personId as string;
-    const householdId = payload.householdId as string;
+    const householdId = (payload.householdId as string) || null;
 
-    if (!personId || !householdId) throw new Error("unauthorized");
+    if (!personId) throw new Error("unauthorized");
 
     const person = db.prepare("SELECT id FROM persons WHERE id = ?").get(personId);
-    const household = db
-      .prepare("SELECT id FROM households WHERE id = ? AND owner_id = ?")
-      .get(householdId, personId);
+    if (!person) throw new Error("unauthorized");
 
-    if (!person || !household) throw new Error("unauthorized");
+    // householdId may be null for new users who haven't created a household yet
+    if (householdId) {
+      const household = db
+        .prepare("SELECT id FROM households WHERE id = ? AND owner_id = ?")
+        .get(householdId, personId);
+      if (!household) throw new Error("unauthorized");
+    }
 
-    return { personId, householdId };
+    return { personId, householdId: householdId ?? "" };
   } catch {
     throw new Error("unauthorized");
   }

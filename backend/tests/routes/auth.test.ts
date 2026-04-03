@@ -62,7 +62,7 @@ describe("POST /auth/register/verify", () => {
     runMigrations(db);
   });
 
-  it("creates a person and returns registration options on valid code", async () => {
+  it("creates a person and returns JWT on valid code", async () => {
     // First send a code
     await handleRegister(db, { email: "alice@test.com" });
 
@@ -76,15 +76,16 @@ describe("POST /auth/register/verify", () => {
       code: row.code,
     });
     expect(result.status).toBe(200);
-    expect(result.body.person_id).toBeTruthy();
-    expect(result.body.registration_options).toBeTruthy();
-    expect(result.body.registration_options.challenge).toBeTruthy();
+    expect(result.body.token).toBeTruthy();
+    expect(result.body.person.email).toBe("alice@test.com");
+    expect(result.body.household).toBeNull();
+    expect(result.body.is_new).toBe(true);
 
     // Person should exist in DB
     const person = db
-      .prepare("SELECT * FROM persons WHERE id = ?")
-      .get(result.body.person_id) as any;
-    expect(person.email).toBe("alice@test.com");
+      .prepare("SELECT * FROM persons WHERE email = ?")
+      .get("alice@test.com") as any;
+    expect(person).toBeTruthy();
   });
 
   it("returns 401 for wrong code", async () => {

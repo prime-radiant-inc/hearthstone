@@ -156,17 +156,7 @@ final class APIClient {
                               body: Body(email: email))
     }
 
-    struct RegisterVerifyResponse: Decodable {
-        let personId: String
-        let registrationOptions: AnyCodable
-
-        enum CodingKeys: String, CodingKey {
-            case personId = "person_id"
-            case registrationOptions = "registration_options"
-        }
-    }
-
-    func registerVerify(email: String, code: String) async throws -> RegisterVerifyResponse {
+    func registerVerify(email: String, code: String) async throws -> AuthResponse {
         struct Body: Encodable { let email: String; let code: String }
         return try await call(method: "POST", path: "/auth/register/verify",
                               body: Body(email: email, code: code))

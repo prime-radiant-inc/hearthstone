@@ -13,12 +13,14 @@ final class AuthViewModel: ObservableObject {
         case welcome, verifyCode, setupHousehold, done
     }
 
+    private var isNewUser = false
+
     func sendCode() async {
         guard !email.isEmpty else { return }
         isLoading = true
         error = nil
         do {
-            // Try register first; if 409 (already exists), do login
+            // Try register first; if 409 (already exists), send login code
             do {
                 _ = try await APIClient.shared.register(email: email)
                 isNewUser = true
@@ -37,29 +39,20 @@ final class AuthViewModel: ObservableObject {
         isLoading = false
     }
 
-    private var isNewUser = false
-
     func verifyCode() async {
         guard code.count == 6 else { return }
         isLoading = true
         error = nil
         do {
+            let response: APIClient.AuthResponse
             if isNewUser {
-                // New user: register/verify creates the person, then login with same code
-                _ = try await APIClient.shared.registerVerify(email: email, code: code)
-                // Now send a login code (register/verify consumed the first one)
-                _ = try await APIClient.shared.loginEmail(email: email)
-                // For v0, skip passkey — go straight to email login
-                // User needs to enter a new code
-                self.code = ""
-                self.isNewUser = false
-                self.error = "Account created! Enter the new code we just sent."
-                isLoading = false
-                return
+                // New user: registerVerify creates person + issues JWT in one step
+                response = try await APIClient.shared.registerVerify(email: email, code: code)
+            } else {
+                // Existing user: login with email code
+                response = try await APIClient.shared.loginEmailVerify(email: email, code: code)
             }
 
-            // Existing user (or second code entry): login with email code
-            let response = try await APIClient.shared.loginEmailVerify(email: email, code: code)
             KeychainService.shared.ownerToken = response.token
             if response.household != nil {
                 step = .done
