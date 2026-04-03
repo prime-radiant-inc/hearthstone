@@ -24,6 +24,7 @@
     "google-auth-library": "^10.6.2",
     "googleapis": "^171.4.0",
     "jose": "^6.2.2",
+    "marked": "^17.0.5",
     "openai": "^6.33.0",
     "resend": "^6.10.0",
     "sqlite-vec": "^0.1.9"

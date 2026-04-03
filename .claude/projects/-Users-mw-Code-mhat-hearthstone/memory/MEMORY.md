@@ -1,0 +1,1 @@
+- [Design decisions](project_design_decisions.md) — Auth architecture (passkey), guest access, doc picker scope, visual direction
