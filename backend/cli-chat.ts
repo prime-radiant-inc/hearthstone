@@ -1,13 +1,14 @@
 #!/usr/bin/env npx tsx
 /**
- * Hearthstone CLI Chat — RAG vs Full Context experiment
+ * Hearthstone CLI Chat — retrieval strategy experiments
  *
  * Usage (from backend/):
- *   npx tsx cli-chat.ts --mode rag        # RAG: embed query → top 5 chunks → chat
- *   npx tsx cli-chat.ts --mode full       # Full: stuff all docs into context
- *   npx tsx cli-chat.ts --mode both       # Side-by-side comparison (sequential)
- *
- * Reads docs from the backend's SQLite DB directly.
+ *   bun run chat:rag       # Embed query → top 5 chunks → chat
+ *   bun run chat:mrag      # Expand query → search each → union chunks → chat
+ *   bun run chat:mfrag     # Expand query → find docs → full doc context → chat
+ *   bun run chat:full      # All docs, every time
+ *   bun run chat:both      # RAG vs FULL side-by-side
+ *   bun run chat:all       # All modes side-by-side
  */
 
 import Database from "better-sqlite3";
@@ -19,7 +20,6 @@ import { readFileSync } from "node:fs";
 
 // --- Config ---
 
-// Load .env from backend
 const envPath = resolve(import.meta.dirname, ".env");
 try {
   const envContent = readFileSync(envPath, "utf-8");
@@ -45,13 +45,16 @@ const dbPath = resolve(import.meta.dirname, "hearthstone.db");
 
 // --- Args ---
 
-const args = process.argv.slice(2);
-const modeArg = args.find(a => a.startsWith("--mode="))?.split("=")[1]
-  ?? args[args.indexOf("--mode") + 1]
-  ?? "both";
+const MODES = ["rag", "mrag", "mfrag", "full", "both", "all"] as const;
+type Mode = typeof MODES[number];
 
-if (!["rag", "full", "mrag", "mfrag", "hyde", "both", "all"].includes(modeArg)) {
-  console.error("Usage: npx tsx cli-chat.ts --mode [rag|full|mrag|mfrag|hyde|both|all]");
+const args = process.argv.slice(2);
+const modeArg = (args.find(a => a.startsWith("--mode="))?.split("=")[1]
+  ?? args[args.indexOf("--mode") + 1]
+  ?? "both") as Mode;
+
+if (!MODES.includes(modeArg)) {
+  console.error(`Usage: bun run chat:[${MODES.join("|")}]`);
   process.exit(1);
 }
 
@@ -60,7 +63,7 @@ if (!["rag", "full", "mrag", "mfrag", "hyde", "both", "all"].includes(modeArg)) 
 const db = new Database(dbPath, { readonly: true });
 sqliteVec.load(db);
 
-// --- Load all documents and chunks ---
+// --- Data loading ---
 
 interface DocChunk {
   documentTitle: string;
@@ -69,15 +72,18 @@ interface DocChunk {
   text: string;
 }
 
-function loadAllChunks(): DocChunk[] {
-  const rows = db.prepare(`
-    SELECT c.document_id, c.chunk_index, c.text, d.title as document_title
-    FROM chunks c
-    JOIN documents d ON d.id = c.document_id
-    ORDER BY d.title, c.chunk_index
-  `).all() as any[];
+interface Doc {
+  id: string;
+  title: string;
+  markdown: string;
+}
 
-  return rows.map(r => ({
+function loadAllChunks(): DocChunk[] {
+  return (db.prepare(`
+    SELECT c.document_id, c.chunk_index, c.text, d.title as document_title
+    FROM chunks c JOIN documents d ON d.id = c.document_id
+    ORDER BY d.title, c.chunk_index
+  `).all() as any[]).map(r => ({
     documentTitle: r.document_title,
     documentId: r.document_id,
     chunkIndex: r.chunk_index,
@@ -85,33 +91,21 @@ function loadAllChunks(): DocChunk[] {
   }));
 }
 
-interface Doc {
-  id: string;
-  title: string;
-  markdown: string;
-}
-
-function loadAllDocMarkdown(): Doc[] {
+function loadAllDocs(): Doc[] {
   return db.prepare("SELECT id, title, markdown FROM documents ORDER BY title").all() as any[];
 }
 
 // --- Embedding + Search ---
 
 async function embedText(text: string): Promise<number[]> {
-  const response = await openai.embeddings.create({
-    model: "text-embedding-3-small",
-    input: text,
-  });
-  return response.data[0].embedding;
+  const resp = await openai.embeddings.create({ model: "text-embedding-3-small", input: text });
+  return resp.data[0].embedding;
 }
 
 function searchChunks(queryEmbedding: Float32Array, limit: number = 5): DocChunk[] {
   const rows = db.prepare(`
-    SELECT ce.chunk_id, ce.distance
-    FROM chunk_embeddings ce
-    WHERE ce.embedding MATCH ?
-    AND k = ?
-    ORDER BY ce.distance
+    SELECT ce.chunk_id, ce.distance FROM chunk_embeddings ce
+    WHERE ce.embedding MATCH ? AND k = ? ORDER BY ce.distance
   `).all(Buffer.from(queryEmbedding.buffer), limit) as any[];
 
   const chunks = loadAllChunks();
@@ -120,32 +114,33 @@ function searchChunks(queryEmbedding: Float32Array, limit: number = 5): DocChunk
   return rows
     .map(r => {
       const chunk = db.prepare("SELECT document_id, chunk_index FROM chunks WHERE id = ?").get(r.chunk_id) as any;
-      if (!chunk) return null; // orphaned embedding from deleted doc
-      const key = `${chunk.document_id}-${chunk.chunk_index}`;
-      return chunkMap.get(key) ?? null;
+      if (!chunk) return null;
+      return chunkMap.get(`${chunk.document_id}-${chunk.chunk_index}`) ?? null;
     })
     .filter((c): c is DocChunk => c !== null);
 }
 
-// --- Query Expansion (for mRAG) ---
+// --- Query Expansion ---
+
+type Message = { role: "system" | "user" | "assistant"; content: string };
 
 async function expandQuery(query: string, history: Message[]): Promise<string[]> {
   const historyContext = history.length > 0
     ? `\nRecent conversation:\n${history.slice(-4).map(m => `${m.role}: ${m.content}`).join("\n")}\n`
     : "";
 
-  const response = await openai.chat.completions.create({
+  const resp = await openai.chat.completions.create({
     model: "gpt-4o-mini",
     messages: [{
       role: "system",
-      content: `You help expand search queries for a household knowledge base containing documents about home info, pet care, childcare, emergency contacts, schedules, etc.
+      content: `You expand search queries for a household knowledge base (home info, pet care, childcare, emergency contacts, schedules).
 
-Given the user's question (and recent conversation for context), generate 3-5 diverse search queries that would help find the relevant information. Think about:
-- Synonyms and related terms (doctor → pediatrician, physician, medical)
-- What section of a household document might contain this info
+Given the question, generate 3-5 diverse search queries. Think about:
+- Synonyms (doctor → pediatrician, physician, medical)
+- What section might contain this (emergency contacts, vet info)
 - Implicit context (baby's doctor → pediatrician, medical contacts)
 
-Return ONLY a JSON array of strings. No explanation.`
+Return ONLY a JSON array of strings.`
     }, {
       role: "user",
       content: `${historyContext}Question: "${query}"`
@@ -154,104 +149,84 @@ Return ONLY a JSON array of strings. No explanation.`
   });
 
   try {
-    const text = response.choices[0]?.message?.content || "[]";
+    const text = resp.choices[0]?.message?.content || "[]";
     const queries = JSON.parse(text.match(/\[[\s\S]*\]/)?.[0] || "[]") as string[];
-    return [query, ...queries]; // always include the original
+    return [query, ...queries];
   } catch {
     return [query];
   }
 }
 
-// --- HyDE: Hypothetical Document Embedding ---
-
-async function generateHypothesis(query: string, history: Message[]): Promise<string> {
-  const historyContext = history.length > 0
-    ? `\nRecent conversation:\n${history.slice(-4).map(m => `${m.role}: ${m.content}`).join("\n")}\n`
-    : "";
-
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [{
-      role: "system",
-      content: `You are helping retrieve information from household documents (home info, pet care, childcare, emergency contacts, schedules, etc).
-
-Given the user's question, write a short hypothetical passage that would answer it — as if you're writing the paragraph of a household document that contains the answer. Include plausible structure, field names, and formatting that such a document would use. Use placeholder values like [Name], [Phone], [Address].
-
-Write ONLY the hypothetical passage. No preamble. 2-4 sentences max.`
-    }, {
-      role: "user",
-      content: `${historyContext}Question: "${query}"`
-    }],
-    temperature: 0.3,
-  });
-
-  return response.choices[0]?.message?.content || query;
-}
-
-// --- Chat ---
+// --- Prompts ---
 
 const CHAT_STYLE = `Response style:
 - You're a knowledgeable friend, not a search engine. A babysitter at 10pm needs quick, clear answers.
 - Lead with the answer. No preamble, no "According to the document..."
-- Use bold for key details: names, phone numbers, times, addresses.
-- Bullet points for lists. Short paragraphs otherwise.
-- Do not mention document titles in your answer body.
+- Bold key details: names, phone numbers, times, addresses.
+- Bullet points for lists. Keep it short.
+- Do not mention document titles in your answer.
 - Do not invent names, numbers, or details. Ever.`;
 
-const HELPFULNESS = `If the documents don't directly answer the question but contain clearly relevant information (emergency contacts, vet numbers, related procedures, helpful context), share what IS there and briefly note what's not covered. Be helpful, not rigid. A question about a sick pet deserves the vet's number even if there's no "sick pet protocol."
+const HELPFULNESS = `If the documents don't directly answer the question but contain clearly relevant information (emergency contacts, vet numbers, related procedures), share what IS there and briefly note what's not covered. Be helpful, not rigid — a question about a sick pet deserves the vet's number even if there's no "sick pet protocol."
 
 Only say "I don't have that information in the household docs" if the documents contain genuinely nothing relevant.`;
 
-const RAG_SYSTEM = `You are a helpful household assistant for someone staying at this home. Answer questions using ONLY the provided document excerpts. Do not make up information.
+const RAG_SYSTEM = `You are a helpful household assistant. Answer using ONLY the provided excerpts. Do not make up information.
 
 ${CHAT_STYLE}
-
 ${HELPFULNESS}
 
-After your answer, on a new line, list which sources you used: Sources: [1], [3]
+After your answer, on a new line: Sources: [1], [3]
 
 Document excerpts:
 `;
 
-const FULL_SYSTEM = `You are a helpful household assistant for someone staying at this home. Answer questions using ONLY the provided household documents. Do not make up information.
+const FULL_SYSTEM = `You are a helpful household assistant. Answer using ONLY the provided documents. Do not make up information.
 
 ${CHAT_STYLE}
-
 ${HELPFULNESS}
 
-After your answer, on a new line, note which documents you used: Sources: "Document Title", "Other Title"
+After your answer, on a new line: Sources: "Document Title"
 
 Household documents:
 `;
 
-type Message = { role: "system" | "user" | "assistant"; content: string };
+// --- Streaming chat ---
 
 async function chatStream(messages: Message[], label: string): Promise<string> {
   process.stdout.write(`\n\x1b[1;33m[${label}]\x1b[0m `);
-
-  const stream = await openai.chat.completions.create({
-    model: "gpt-4o",
-    messages,
-    stream: true,
-  });
-
+  const stream = await openai.chat.completions.create({ model: "gpt-4o", messages, stream: true });
   let full = "";
   for await (const chunk of stream) {
     const delta = chunk.choices[0]?.delta?.content;
-    if (delta) {
-      process.stdout.write(delta);
-      full += delta;
-    }
+    if (delta) { process.stdout.write(delta); full += delta; }
   }
   process.stdout.write("\n");
   return full;
+}
+
+function logDim(text: string) {
+  console.log(`\x1b[2m  ${text}\x1b[0m`);
+}
+
+function uniqueDocNames(chunks: DocChunk[]): string[] {
+  const seen = new Set<string>();
+  return chunks.filter(r => { if (seen.has(r.documentTitle)) return false; seen.add(r.documentTitle); return true; }).map(r => r.documentTitle);
+}
+
+// --- Mode runners ---
+
+function shouldRun(mode: Mode, ...modes: Mode[]): boolean {
+  if (mode === "all") return true;
+  if (mode === "both" && modes.some(m => m === "rag" || m === "full")) return modes.includes(mode) || modes.includes("rag") || modes.includes("full");
+  return modes.includes(mode);
 }
 
 // --- Main ---
 
 async function main() {
   const allChunks = loadAllChunks();
-  const allDocs = loadAllDocMarkdown();
+  const allDocs = loadAllDocs();
 
   const totalChunkTokens = allChunks.reduce((sum, c) => sum + Math.ceil(c.text.length / 4), 0);
   const totalDocTokens = allDocs.reduce((sum, d) => sum + Math.ceil(d.markdown.length / 4), 0);
@@ -260,223 +235,100 @@ async function main() {
   console.log(`Mode: \x1b[1m${modeArg}\x1b[0m`);
   console.log(`Documents: ${allDocs.length} (${allDocs.map(d => d.title).join(", ")})`);
   console.log(`Chunks: ${allChunks.length} (~${totalChunkTokens.toLocaleString()} tokens)`);
-  console.log(`Full doc corpus: ~${totalDocTokens.toLocaleString()} tokens`);
-  console.log(`\nType your questions. Ctrl+C to exit.\n`);
+  console.log(`Full corpus: ~${totalDocTokens.toLocaleString()} tokens`);
+  console.log(`\nType your questions. /clear to reset. Ctrl+C to exit.\n`);
 
-  // Build full-context system message once
   const fullContextDoc = allDocs
     .map(d => `--- Document: "${d.title}" ---\n\n${d.markdown}`)
-    .join("\n\n" + "=".repeat(60) + "\n\n");
+    .join("\n\n" + "=".repeat(40) + "\n\n");
 
-  const ragHistory: Message[] = [];
-  const mragHistory: Message[] = [];
-  const mfragHistory: Message[] = [];
-  const hydeHistory: Message[] = [];
-  const fullHistory: Message[] = [];
+  const histories: Record<string, Message[]> = {
+    rag: [], mrag: [], mfrag: [], full: [],
+  };
 
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-    prompt: "\x1b[1;32m❯ \x1b[0m",
-  });
-
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout, prompt: "\x1b[1;32m❯ \x1b[0m" });
   rl.prompt();
 
   rl.on("line", async (line) => {
     const query = line.trim();
     if (!query) { rl.prompt(); return; }
-
     if (query === "/clear") {
-      ragHistory.length = 0;
-      mragHistory.length = 0;
-      mfragHistory.length = 0;
-      hydeHistory.length = 0;
-      fullHistory.length = 0;
+      Object.values(histories).forEach(h => h.length = 0);
       console.log("History cleared.");
       rl.prompt();
       return;
     }
 
-    if (query === "/chunks") {
-      console.log(`\n${allChunks.length} chunks across ${allDocs.length} documents:`);
-      allChunks.forEach(c => {
-        const preview = c.text.slice(0, 80).replace(/\n/g, " ");
-        console.log(`  [${c.documentTitle}#${c.chunkIndex}] ${preview}...`);
-      });
-      console.log();
-      rl.prompt();
-      return;
-    }
-
     try {
-      // --- RAG mode ---
+      // --- RAG ---
       if (modeArg === "rag" || modeArg === "both" || modeArg === "all") {
-        const queryEmb = await embedText(query);
-        const results = searchChunks(new Float32Array(queryEmb), 5);
+        const emb = await embedText(query);
+        const results = searchChunks(new Float32Array(emb), 5);
+        const context = results.map((r, i) => `[${i + 1}] (from "${r.documentTitle}")\n${r.text}`).join("\n\n---\n\n");
 
-        const context = results
-          .map((r, i) => `[${i + 1}] (from "${r.documentTitle}")\n${r.text}`)
-          .join("\n\n---\n\n");
-
-        ragHistory.push({ role: "user", content: query });
-
-        const ragMessages: Message[] = [
-          { role: "system", content: RAG_SYSTEM + context },
-          ...ragHistory,
-        ];
-
-        const ragResponse = await chatStream(ragMessages, "RAG");
-
-        // Show which chunks were retrieved
-        const seen = new Set<string>();
-        const uniqueDocs = results.filter(r => {
-          if (seen.has(r.documentTitle)) return false;
-          seen.add(r.documentTitle);
-          return true;
-        });
-        console.log(`\x1b[2m  Retrieved from: ${uniqueDocs.map(d => d.documentTitle).join(", ")}\x1b[0m`);
-
-        ragHistory.push({ role: "assistant", content: ragResponse });
+        histories.rag.push({ role: "user", content: query });
+        const resp = await chatStream([{ role: "system", content: RAG_SYSTEM + context }, ...histories.rag], "RAG");
+        logDim(`Retrieved from: ${uniqueDocNames(results).join(", ")}`);
+        histories.rag.push({ role: "assistant", content: resp });
       }
 
-      // --- Multi-query RAG mode ---
+      // --- mRAG ---
       if (modeArg === "mrag" || modeArg === "all") {
-        // Step 1: Expand the query
-        const expandedQueries = await expandQuery(query, mragHistory);
-        console.log(`\n\x1b[2m  ┌ mRAG expanding: ${expandedQueries.map(q => `"${q}"`).join(", ")}\x1b[0m`);
+        const expanded = await expandQuery(query, histories.mrag);
+        logDim(`┌ mRAG queries: ${expanded.map(q => `"${q}"`).join(", ")}`);
 
-        // Step 2: Search with each expanded query, union results
-        const seenChunkKeys = new Set<string>();
+        const seen = new Set<string>();
         const allResults: DocChunk[] = [];
-
-        for (const q of expandedQueries) {
-          const qEmb = await embedText(q);
-          const results = searchChunks(new Float32Array(qEmb), 3);
+        for (const q of expanded) {
+          const results = searchChunks(new Float32Array(await embedText(q)), 3);
           for (const r of results) {
             const key = `${r.documentId}-${r.chunkIndex}`;
-            if (!seenChunkKeys.has(key)) {
-              seenChunkKeys.add(key);
-              allResults.push(r);
-            }
+            if (!seen.has(key)) { seen.add(key); allResults.push(r); }
           }
         }
+        const top = allResults.slice(0, 10);
+        const context = top.map((r, i) => `[${i + 1}] (from "${r.documentTitle}")\n${r.text}`).join("\n\n---\n\n");
 
-        // Cap at 10 chunks
-        const topResults = allResults.slice(0, 10);
-
-        const context = topResults
-          .map((r, i) => `[${i + 1}] (from "${r.documentTitle}")\n${r.text}`)
-          .join("\n\n---\n\n");
-
-        mragHistory.push({ role: "user", content: query });
-
-        const mragMessages: Message[] = [
-          { role: "system", content: RAG_SYSTEM + context },
-          ...mragHistory,
-        ];
-
-        const mragResponse = await chatStream(mragMessages, "mRAG");
-
-        const seen = new Set<string>();
-        const uniqueDocs = topResults.filter(r => {
-          if (seen.has(r.documentTitle)) return false;
-          seen.add(r.documentTitle);
-          return true;
-        });
-        console.log(`\x1b[2m  Retrieved ${topResults.length} chunks from: ${uniqueDocs.map(d => d.documentTitle).join(", ")}\x1b[0m`);
-
-        mragHistory.push({ role: "assistant", content: mragResponse });
+        histories.mrag.push({ role: "user", content: query });
+        const resp = await chatStream([{ role: "system", content: RAG_SYSTEM + context }, ...histories.mrag], "mRAG");
+        logDim(`Retrieved ${top.length} chunks from: ${uniqueDocNames(top).join(", ")}`);
+        histories.mrag.push({ role: "assistant", content: resp });
       }
 
-      // --- mFRAG mode: expand query → find documents → full doc context ---
+      // --- mFRAG: expand → find docs → full doc context ---
       if (modeArg === "mfrag" || modeArg === "all") {
-        // Step 1: Expand the query
-        const expandedQueries = await expandQuery(query, mfragHistory);
-        console.log(`\n\x1b[2m  ┌ mFRAG expanding: ${expandedQueries.map(q => `"${q}"`).join(", ")}\x1b[0m`);
+        const expanded = await expandQuery(query, histories.mfrag);
+        logDim(`┌ mFRAG queries: ${expanded.map(q => `"${q}"`).join(", ")}`);
 
-        // Step 2: Search with each expanded query, collect which documents match
-        const docHits = new Map<string, number>(); // documentId → hit count
-
-        for (const q of expandedQueries) {
-          const qEmb = await embedText(q);
-          const results = searchChunks(new Float32Array(qEmb), 3);
+        const docHits = new Map<string, number>();
+        for (const q of expanded) {
+          const results = searchChunks(new Float32Array(await embedText(q)), 3);
           for (const r of results) {
             docHits.set(r.documentId, (docHits.get(r.documentId) || 0) + 1);
           }
         }
 
-        // Step 3: Rank documents by hit count, load full text
-        const rankedDocIds = [...docHits.entries()]
+        const selectedDocs = [...docHits.entries()]
           .sort((a, b) => b[1] - a[1])
-          .map(([id]) => id);
-
-        const selectedDocs = rankedDocIds
-          .map(id => allDocs.find(d => d.id === id))
+          .map(([id]) => allDocs.find(d => d.id === id))
           .filter((d): d is Doc => d !== null);
 
-        console.log(`\x1b[2m  ┌ Selected ${selectedDocs.length} docs: ${selectedDocs.map(d => d.title).join(", ")}\x1b[0m`);
+        logDim(`┌ Selected docs: ${selectedDocs.map(d => d.title).join(", ")}`);
 
-        // Step 4: Build full-doc context
         const context = selectedDocs
           .map(d => `--- Document: "${d.title}" ---\n\n${d.markdown}`)
           .join("\n\n" + "=".repeat(40) + "\n\n");
 
-        mfragHistory.push({ role: "user", content: query });
-
-        const mfragMessages: Message[] = [
-          { role: "system", content: FULL_SYSTEM + context },
-          ...mfragHistory,
-        ];
-
-        const mfragResponse = await chatStream(mfragMessages, "mFRAG");
-        mfragHistory.push({ role: "assistant", content: mfragResponse });
+        histories.mfrag.push({ role: "user", content: query });
+        const resp = await chatStream([{ role: "system", content: FULL_SYSTEM + context }, ...histories.mfrag], "mFRAG");
+        histories.mfrag.push({ role: "assistant", content: resp });
       }
 
-      // --- HyDE mode ---
-      if (modeArg === "hyde" || modeArg === "all") {
-        // Step 1: Generate hypothetical answer
-        const hypothesis = await generateHypothesis(query, hydeHistory);
-        console.log(`\n\x1b[2m  ┌ HyDE hypothesis: "${hypothesis.slice(0, 120)}${hypothesis.length > 120 ? '...' : ''}"\x1b[0m`);
-
-        // Step 2: Embed the hypothesis (not the original query)
-        const hydeEmb = await embedText(hypothesis);
-        const results = searchChunks(new Float32Array(hydeEmb), 5);
-
-        const context = results
-          .map((r, i) => `[${i + 1}] (from "${r.documentTitle}")\n${r.text}`)
-          .join("\n\n---\n\n");
-
-        hydeHistory.push({ role: "user", content: query });
-
-        const hydeMessages: Message[] = [
-          { role: "system", content: RAG_SYSTEM + context },
-          ...hydeHistory,
-        ];
-
-        const hydeResponse = await chatStream(hydeMessages, "HyDE");
-
-        const seen = new Set<string>();
-        const uniqueDocs = results.filter(r => {
-          if (seen.has(r.documentTitle)) return false;
-          seen.add(r.documentTitle);
-          return true;
-        });
-        console.log(`\x1b[2m  Retrieved from: ${uniqueDocs.map(d => d.documentTitle).join(", ")}\x1b[0m`);
-
-        hydeHistory.push({ role: "assistant", content: hydeResponse });
-      }
-
-      // --- Full context mode ---
+      // --- FULL ---
       if (modeArg === "full" || modeArg === "both" || modeArg === "all") {
-        fullHistory.push({ role: "user", content: query });
-
-        const fullMessages: Message[] = [
-          { role: "system", content: FULL_SYSTEM + fullContextDoc },
-          ...fullHistory,
-        ];
-
-        const fullResponse = await chatStream(fullMessages, "FULL");
-        fullHistory.push({ role: "assistant", content: fullResponse });
+        histories.full.push({ role: "user", content: query });
+        const resp = await chatStream([{ role: "system", content: FULL_SYSTEM + fullContextDoc }, ...histories.full], "FULL");
+        histories.full.push({ role: "assistant", content: resp });
       }
 
       if (["both", "all"].includes(modeArg)) {
