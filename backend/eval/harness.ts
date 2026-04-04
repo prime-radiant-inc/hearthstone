@@ -109,7 +109,7 @@ function searchChunks(queryEmbedding: Float32Array, limit: number = 5): DocChunk
 
 async function expandQuery(query: string): Promise<string[]> {
   const resp = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
+    model: "gpt-5-mini",
     messages: [{
       role: "system",
       content: `You expand search queries for a household knowledge base (home info, pet care, childcare, emergency contacts, schedules).
@@ -168,7 +168,7 @@ Household documents:
 async function chatComplete(systemContent: string, question: string): Promise<string> {
   const resp = await openai.chat.completions.create({
     model: CHAT_MODEL,
-    temperature: 0,
+    ...(CHAT_MODEL.startsWith("gpt-5") ? {} : { temperature: 0 }),
     messages: [
       { role: "system", content: systemContent },
       { role: "user", content: question },
