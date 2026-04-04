@@ -246,50 +246,59 @@ async function main() {
 
     const currentPrompt = readFileSync(promptPath, "utf-8");
 
-    // Build ASI from current baseline
-    const asi = buildASI(baseline);
-    console.log(`\nFailures to address:\n${asi.slice(0, 500)}${asi.length > 500 ? "..." : ""}\n`);
+    try {
+      // Build ASI from current baseline
+      const asi = buildASI(baseline);
+      console.log(`\nFailures to address:\n${asi.slice(0, 500)}${asi.length > 500 ? "..." : ""}\n`);
 
-    // Propose mutation
-    console.log(`Proposing edit...`);
-    const newPrompt = await proposeEdit(currentPrompt, asi, history.slice(-5));
+      // Propose mutation
+      console.log(`Proposing edit...`);
+      const newPrompt = await proposeEdit(currentPrompt, asi, history.slice(-5));
 
-    if (newPrompt === currentPrompt) {
-      console.log(`Proposer returned identical prompt. Skipping.`);
-      continue;
-    }
+      if (newPrompt === currentPrompt) {
+        console.log(`Proposer returned identical prompt. Skipping.`);
+        continue;
+      }
 
-    // Show diff summary
-    const oldLines = currentPrompt.split("\n").length;
-    const newLines = newPrompt.split("\n").length;
-    console.log(`Prompt: ${oldLines} lines → ${newLines} lines`);
+      // Show diff summary
+      const oldLines = currentPrompt.split("\n").length;
+      const newLines = newPrompt.split("\n").length;
+      console.log(`Prompt: ${oldLines} lines → ${newLines} lines`);
 
-    // Write and eval
-    writeFileSync(promptPath, newPrompt);
-    console.log(`Evaluating candidate...`);
+      // Write and eval
+      writeFileSync(promptPath, newPrompt);
+      console.log(`Evaluating candidate...`);
 
-    // Need to re-import the prompt since harness reads it at module load.
-    // We re-run via a subprocess to pick up the new prompt.
-    const candidate = await runEvalFresh(evalMode);
-    const candidateAvg = avgScore(candidate);
+      // Need to re-import the prompt since harness reads it at module load.
+      // We re-run via a subprocess to pick up the new prompt.
+      const candidate = await runEvalFresh(evalMode);
+      const candidateAvg = avgScore(candidate);
 
-    // Pareto check
-    const { improved, details } = isParetoImprovement(baseline, candidate);
+      // Pareto check
+      const { improved, details } = isParetoImprovement(baseline, candidate);
 
-    console.log(`\nCandidate: ${(candidateAvg * 100).toFixed(1)}% (baseline: ${(baselineAvg * 100).toFixed(1)}%)`);
-    console.log(`Changes:\n${details}`);
+      console.log(`\nCandidate: ${(candidateAvg * 100).toFixed(1)}% (baseline: ${(baselineAvg * 100).toFixed(1)}%)`);
+      console.log(`Changes:\n${details}`);
 
-    if (improved) {
-      console.log(`\n✅ KEPT — Pareto improvement`);
-      baseline = candidate;
-      baselineAvg = candidateAvg;
-      keepCount++;
-      history.push(`Iteration ${i}: KEPT (${(baselineAvg * 100).toFixed(1)}%) — ${details.split("\n")[0]}`);
-    } else {
-      console.log(`\n❌ REVERTED — not a Pareto improvement`);
+      if (improved) {
+        console.log(`\n✅ KEPT — Pareto improvement`);
+        baseline = candidate;
+        baselineAvg = candidateAvg;
+        keepCount++;
+        // Update backup so crashes don't lose progress
+        copyFileSync(promptPath, backupPath);
+        history.push(`Iteration ${i}: KEPT (${(baselineAvg * 100).toFixed(1)}%) — ${details.split("\n")[0]}`);
+      } else {
+        console.log(`\n❌ REVERTED — not a Pareto improvement`);
+        writeFileSync(promptPath, currentPrompt);
+        revertCount++;
+        history.push(`Iteration ${i}: REVERTED — ${details.split("\n")[0]}`);
+      }
+    } catch (err: any) {
+      console.log(`\n⚠ ERROR in iteration ${i}: ${err.message?.slice(0, 200)}`);
+      console.log(`  Reverting prompt and continuing...`);
       writeFileSync(promptPath, currentPrompt);
-      revertCount++;
-      history.push(`Iteration ${i}: REVERTED — ${details.split("\n")[0]}`);
+      history.push(`Iteration ${i}: ERROR — ${err.message?.slice(0, 100)}`);
     }
   }
 
@@ -311,8 +320,12 @@ async function runEvalFresh(mode: Mode): Promise<QuestionScore[]> {
   // imported it, we need to re-evaluate. The cleanest way is to call
   // the eval runner as a subprocess and parse the JSON output.
   const { execSync } = await import("node:child_process");
-  const cmd = `npx tsx eval/run.ts --mode ${mode} --concurrency 27 2>/dev/null`;
-  execSync(cmd, { cwd: resolve(import.meta.dirname, ".."), timeout: 600000 });
+  const cmd = `npx tsx eval/run.ts --mode ${mode} --concurrency 27`;
+  try {
+    execSync(cmd, { cwd: resolve(import.meta.dirname, ".."), timeout: 600000, stdio: "pipe" });
+  } catch (err: any) {
+    throw new Error(`Eval subprocess failed: ${err.stderr?.toString().slice(-200) || err.message}`);
+  }
 
   // Read the latest results file
   const { readdirSync } = await import("node:fs");
