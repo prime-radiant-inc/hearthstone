@@ -3,6 +3,7 @@ import * as sqliteVec from "sqlite-vec";
 import OpenAI from "openai";
 import { resolve } from "node:path";
 import { readFileSync } from "node:fs";
+import { RAG_SYSTEM, FULL_SYSTEM } from "../src/services/prompt";
 
 // --- Env loading (same approach as cli-chat.ts) ---
 
@@ -135,32 +136,9 @@ Return ONLY a JSON array of strings.`
   }
 }
 
-// --- Prompts (same as cli-chat.ts) ---
-
-// Prompt loaded from eval/prompt.txt — the optimizer mutates this file
-const promptPath = resolve(import.meta.dirname, "prompt.txt");
-const promptContent = readFileSync(promptPath, "utf-8");
-const [CHAT_STYLE, HELPFULNESS] = promptContent.split("\n---\n").map(s => s.trim());
-
-const RAG_SYSTEM = `You are a helpful household assistant. Answer using ONLY the provided excerpts. Do not make up information.
-
-${CHAT_STYLE}
-${HELPFULNESS}
-
-After your answer, on a new line: Sources: [1], [3]
-
-Document excerpts:
-`;
-
-const FULL_SYSTEM = `You are a helpful household assistant. Answer using ONLY the provided documents. Do not make up information.
-
-${CHAT_STYLE}
-${HELPFULNESS}
-
-After your answer, on a new line: Sources: "Document Title"
-
-Household documents:
-`;
+// --- Prompts ---
+// Single source of truth: eval/prompt.txt → src/services/prompt.ts
+// (import is at top of file)
 
 // --- Chat (non-streaming) ---
 

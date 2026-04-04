@@ -3,14 +3,7 @@ import { embed } from "../services/embeddings";
 import { chat, type ChatMessage } from "../services/chat-provider";
 import { searchChunks } from "../services/search";
 import { getSuggestions } from "../services/suggestions";
-
-const SYSTEM_PROMPT = `You are a helpful household assistant. Answer questions using ONLY the provided document excerpts below. If the answer is not present in the excerpts, say exactly: "I don't have that information in the household docs." Do not make up information or use knowledge outside these documents.
-
-After your answer, on a new line, list which sources you used in the format: Sources: [1], [3]
-Only list sources you actually used. If you didn't use any sources (e.g. the answer wasn't in the docs), don't include a Sources line.
-
-Document excerpts:
-`;
+import { RAG_SYSTEM } from "../services/prompt";
 
 interface ChatRequest {
   message: string;
@@ -32,7 +25,7 @@ export async function handleChat(
     .join("\n\n---\n\n");
 
   const messages: ChatMessage[] = [
-    { role: "system", content: SYSTEM_PROMPT + chunkContext },
+    { role: "system", content: RAG_SYSTEM + chunkContext },
     ...body.history.map((h) => ({
       role: h.role as "user" | "assistant",
       content: h.content,
