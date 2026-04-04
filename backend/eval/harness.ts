@@ -124,7 +124,6 @@ Return ONLY a JSON array of strings.`
       role: "user",
       content: `Question: "${query}"`
     }],
-    temperature: 0.3,
   });
 
   try {
