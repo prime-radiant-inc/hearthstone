@@ -88,7 +88,7 @@ ${antiHallucinations.length > 0
       { role: "system", content: JUDGE_PROMPT },
       { role: "user", content: userContent },
     ],
-    temperature: 0,
+    ...(JUDGE_MODEL.startsWith("gpt-5") ? {} : { temperature: 0 }),
     response_format: { type: "json_object" },
   });
 
