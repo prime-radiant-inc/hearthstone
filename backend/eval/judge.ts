@@ -18,7 +18,7 @@ try {
 } catch {}
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-export const JUDGE_MODEL = process.env.EVAL_JUDGE_MODEL || "gpt-4o-mini";
+export const JUDGE_MODEL = process.env.EVAL_JUDGE_MODEL || "gpt-5-mini";
 
 export interface FactVerdict {
   fact: string;

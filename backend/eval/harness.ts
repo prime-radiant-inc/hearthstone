@@ -27,7 +27,7 @@ if (!OPENAI_API_KEY) {
 }
 
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
-export const CHAT_MODEL = process.env.EVAL_CHAT_MODEL || "gpt-4o";
+export const CHAT_MODEL = process.env.EVAL_CHAT_MODEL || "gpt-5.1";
 
 // --- Types ---
 
