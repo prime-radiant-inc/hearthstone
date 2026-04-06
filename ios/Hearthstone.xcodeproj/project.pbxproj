@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		030EAB73DED596CB0BA20F1D /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 344516F0243473D20A7D8C8C /* ChatView.swift */; };
 		082449A153B3AB3254F4942F /* DocumentsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51984069D3ED00CEDEA26B78 /* DocumentsViewModel.swift */; };
+		B2C3D4E5F6A7B8C9D0E1F2A3 /* DriveFilePickerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F2 /* DriveFilePickerViewModel.swift */; };
+		D4E5F6A7B8C9D0E1F2A3B4C5 /* DriveFilePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D4E5F6A7B8C9D0E1F2A3B4 /* DriveFilePickerView.swift */; };
 		12CAFF2212CB9DDC30AA44D4 /* HearthButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D13E91C8F48290878E5C386 /* HearthButton.swift */; };
 		12D9F0AACD5B4A4D32A5E264 /* StatusBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AB0F06146DFB3EF1D159CDF /* StatusBadge.swift */; };
 		17B3613E09E957F555D69E68 /* SuggestionChips.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB4504D789BCA1AA870DFA83 /* SuggestionChips.swift */; };
@@ -57,6 +59,8 @@
 		35B54811E9568D04E41E1D40 /* MessageBubble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageBubble.swift; sourceTree = "<group>"; };
 		3D3DA8695C636234B1C9F517 /* AccessRevokedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessRevokedView.swift; sourceTree = "<group>"; };
 		51984069D3ED00CEDEA26B78 /* DocumentsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentsViewModel.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6A7B8C9D0E1F2 /* DriveFilePickerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveFilePickerViewModel.swift; sourceTree = "<group>"; };
+		C3D4E5F6A7B8C9D0E1F2A3B4 /* DriveFilePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveFilePickerView.swift; sourceTree = "<group>"; };
 		5D13E91C8F48290878E5C386 /* HearthButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HearthButton.swift; sourceTree = "<group>"; };
 		6281E5FF7DCC0E72163CE472 /* Household.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Household.swift; sourceTree = "<group>"; };
 		637898B473FDD1C99019571D /* HearthstoneApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HearthstoneApp.swift; sourceTree = "<group>"; };
@@ -138,6 +142,7 @@
 				1D01C211535289B4F0A07CE9 /* AddGuestView.swift */,
 				066D70BA714F154CA16063BD /* ConnectDocsView.swift */,
 				B6664253F4BA2C390AB56D00 /* DashboardView.swift */,
+				C3D4E5F6A7B8C9D0E1F2A3B4 /* DriveFilePickerView.swift */,
 				88AA192FF5FDDE7224F434FC /* GuestListView.swift */,
 				ACB03D07BB9EF9F7E63B840F /* OwnerPreviewView.swift */,
 			);
@@ -183,6 +188,7 @@
 				6A8AE83C7D0361CC02AF5A82 /* ConnectionsViewModel.swift */,
 				7508202142FDC4B09A8F1239 /* DashboardViewModel.swift */,
 				51984069D3ED00CEDEA26B78 /* DocumentsViewModel.swift */,
+				A1B2C3D4E5F6A7B8C9D0E1F2 /* DriveFilePickerViewModel.swift */,
 				CA7AF9F5111428B104E32108 /* GuestListViewModel.swift */,
 			);
 			path = ViewModels;
@@ -290,6 +296,8 @@
 				B11C65BF6167E93105F0E182 /* Document.swift in Sources */,
 				BEA9C2F91F8B43EBB78DC21C /* DriveFile.swift in Sources */,
 				082449A153B3AB3254F4942F /* DocumentsViewModel.swift in Sources */,
+				B2C3D4E5F6A7B8C9D0E1F2A3 /* DriveFilePickerViewModel.swift in Sources */,
+				D4E5F6A7B8C9D0E1F2A3B4C5 /* DriveFilePickerView.swift in Sources */,
 				2BCB642D1B334674ABD76405 /* Guest.swift in Sources */,
 				61688CC2624117D0895B5BC9 /* GuestListView.swift in Sources */,
 				FBDCAA2BF756B5DD7B198BC4 /* GuestListViewModel.swift in Sources */,
