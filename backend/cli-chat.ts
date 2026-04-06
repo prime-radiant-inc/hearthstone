@@ -45,7 +45,7 @@ const dbPath = resolve(import.meta.dirname, "hearthstone.db");
 
 // --- Args ---
 
-const MODES = ["rag", "mrag", "mfrag", "full", "both", "all"] as const;
+const MODES = ["rag", "full", "both"] as const;
 type Mode = typeof MODES[number];
 
 const args = process.argv.slice(2);
@@ -120,42 +120,7 @@ function searchChunks(queryEmbedding: Float32Array, limit: number = 5): DocChunk
     .filter((c): c is DocChunk => c !== null);
 }
 
-// --- Query Expansion ---
-
 type Message = { role: "system" | "user" | "assistant"; content: string };
-
-async function expandQuery(query: string, history: Message[]): Promise<string[]> {
-  const historyContext = history.length > 0
-    ? `\nRecent conversation:\n${history.slice(-4).map(m => `${m.role}: ${m.content}`).join("\n")}\n`
-    : "";
-
-  const resp = await openai.chat.completions.create({
-    model: "gpt-5.4-mini",
-    messages: [{
-      role: "system",
-      content: `You expand search queries for a household knowledge base (home info, pet care, childcare, emergency contacts, schedules).
-
-Given the question, generate 3-5 diverse search queries. Think about:
-- Synonyms (doctor → pediatrician, physician, medical)
-- What section might contain this (emergency contacts, vet info)
-- Implicit context (baby's doctor → pediatrician, medical contacts)
-
-Return ONLY a JSON array of strings.`
-    }, {
-      role: "user",
-      content: `${historyContext}Question: "${query}"`
-    }],
-    temperature: 0.3,
-  });
-
-  try {
-    const text = resp.choices[0]?.message?.content || "[]";
-    const queries = JSON.parse(text.match(/\[[\s\S]*\]/)?.[0] || "[]") as string[];
-    return [query, ...queries];
-  } catch {
-    return [query];
-  }
-}
 
 // --- Prompts ---
 
@@ -213,7 +178,7 @@ async function main() {
     .join("\n\n" + "=".repeat(40) + "\n\n");
 
   const histories: Record<string, Message[]> = {
-    rag: [], mrag: [], mfrag: [], full: [],
+    rag: [], full: [],
   };
 
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout, prompt: "\x1b[1;32m❯ \x1b[0m" });
@@ -242,58 +207,6 @@ async function main() {
         histories.rag.push({ role: "assistant", content: resp });
       }
 
-      // --- mRAG ---
-      if (modeArg === "mrag" || modeArg === "all") {
-        const expanded = await expandQuery(query, histories.mrag);
-        logDim(`┌ mRAG queries: ${expanded.map(q => `"${q}"`).join(", ")}`);
-
-        const seen = new Set<string>();
-        const allResults: DocChunk[] = [];
-        for (const q of expanded) {
-          const results = searchChunks(new Float32Array(await embedText(q)), 3);
-          for (const r of results) {
-            const key = `${r.documentId}-${r.chunkIndex}`;
-            if (!seen.has(key)) { seen.add(key); allResults.push(r); }
-          }
-        }
-        const top = allResults.slice(0, 10);
-        const context = top.map((r, i) => `[${i + 1}] (from "${r.documentTitle}")\n${r.text}`).join("\n\n---\n\n");
-
-        histories.mrag.push({ role: "user", content: query });
-        const resp = await chatStream([{ role: "system", content: RAG_SYSTEM + context }, ...histories.mrag], "mRAG");
-        logDim(`Retrieved ${top.length} chunks from: ${uniqueDocNames(top).join(", ")}`);
-        histories.mrag.push({ role: "assistant", content: resp });
-      }
-
-      // --- mFRAG: expand → find docs → full doc context ---
-      if (modeArg === "mfrag" || modeArg === "all") {
-        const expanded = await expandQuery(query, histories.mfrag);
-        logDim(`┌ mFRAG queries: ${expanded.map(q => `"${q}"`).join(", ")}`);
-
-        const docHits = new Map<string, number>();
-        for (const q of expanded) {
-          const results = searchChunks(new Float32Array(await embedText(q)), 3);
-          for (const r of results) {
-            docHits.set(r.documentId, (docHits.get(r.documentId) || 0) + 1);
-          }
-        }
-
-        const selectedDocs = [...docHits.entries()]
-          .sort((a, b) => b[1] - a[1])
-          .map(([id]) => allDocs.find(d => d.id === id))
-          .filter((d): d is Doc => d !== null);
-
-        logDim(`┌ Selected docs: ${selectedDocs.map(d => d.title).join(", ")}`);
-
-        const context = selectedDocs
-          .map(d => `--- Document: "${d.title}" ---\n\n${d.markdown}`)
-          .join("\n\n" + "=".repeat(40) + "\n\n");
-
-        histories.mfrag.push({ role: "user", content: query });
-        const resp = await chatStream([{ role: "system", content: FULL_SYSTEM + context }, ...histories.mfrag], "mFRAG");
-        histories.mfrag.push({ role: "assistant", content: resp });
-      }
-
       // --- FULL ---
       if (modeArg === "full" || modeArg === "both" || modeArg === "all") {
         histories.full.push({ role: "user", content: query });
@@ -301,7 +214,7 @@ async function main() {
         histories.full.push({ role: "assistant", content: resp });
       }
 
-      if (["both", "all"].includes(modeArg)) {
+      if (modeArg === "both") {
         console.log("\x1b[2m" + "─".repeat(60) + "\x1b[0m");
       }
     } catch (err: any) {

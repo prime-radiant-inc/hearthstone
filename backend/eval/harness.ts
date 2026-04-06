@@ -32,7 +32,7 @@ export const CHAT_MODEL = process.env.EVAL_CHAT_MODEL || "gpt-5.4";
 
 // --- Types ---
 
-export type Mode = "rag" | "mrag" | "mfrag" | "full";
+export type Mode = "rag" | "full";
 
 export interface EvalResult {
   questionId: string;
@@ -106,36 +106,6 @@ function searchChunks(queryEmbedding: Float32Array, limit: number = 5): DocChunk
     .filter((c): c is DocChunk => c !== null);
 }
 
-// --- Query expansion ---
-
-async function expandQuery(query: string): Promise<string[]> {
-  const resp = await openai.chat.completions.create({
-    model: "gpt-5.4-mini",
-    messages: [{
-      role: "system",
-      content: `You expand search queries for a household knowledge base (home info, pet care, childcare, emergency contacts, schedules).
-
-Given the question, generate 3-5 diverse search queries. Think about:
-- Synonyms (doctor → pediatrician, physician, medical)
-- What section might contain this (emergency contacts, vet info)
-- Implicit context (baby's doctor → pediatrician, medical contacts)
-
-Return ONLY a JSON array of strings.`
-    }, {
-      role: "user",
-      content: `Question: "${query}"`
-    }],
-  });
-
-  try {
-    const text = resp.choices[0]?.message?.content || "[]";
-    const queries = JSON.parse(text.match(/\[[\s\S]*\]/)?.[0] || "[]") as string[];
-    return [query, ...queries];
-  } catch {
-    return [query];
-  }
-}
-
 // --- Prompts ---
 // Single source of truth: eval/prompt.txt → src/services/prompt.ts
 // (import is at top of file)
@@ -189,60 +159,6 @@ async function runRag(question: string): Promise<EvalResult> {
   };
 }
 
-async function runMrag(question: string): Promise<EvalResult> {
-  const start = Date.now();
-  const expanded = await expandQuery(question);
-  const seen = new Set<string>();
-  const allResults: DocChunk[] = [];
-  for (const q of expanded) {
-    const results = searchChunks(new Float32Array(await embedText(q)), 3);
-    for (const r of results) {
-      const key = `${r.documentId}-${r.chunkIndex}`;
-      if (!seen.has(key)) { seen.add(key); allResults.push(r); }
-    }
-  }
-  const top = allResults.slice(0, 10);
-  const context = top.map((r, i) => `[${i + 1}] (from "${r.documentTitle}")\n${r.text}`).join("\n\n---\n\n");
-  const response = await chatComplete(RAG_SYSTEM + context, question);
-  return {
-    questionId: "",
-    mode: "mrag",
-    response,
-    retrievedDocs: uniqueDocNames(top),
-    retrievedChunkCount: top.length,
-    latencyMs: Date.now() - start,
-  };
-}
-
-async function runMfrag(question: string): Promise<EvalResult> {
-  const start = Date.now();
-  const expanded = await expandQuery(question);
-  const docHits = new Map<string, number>();
-  for (const q of expanded) {
-    const results = searchChunks(new Float32Array(await embedText(q)), 3);
-    for (const r of results) {
-      docHits.set(r.documentId, (docHits.get(r.documentId) || 0) + 1);
-    }
-  }
-  const selectedDocs = [...docHits.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .map(([id]) => allDocs.find(d => d.id === id))
-    .filter((d): d is Doc => d !== null);
-
-  const context = selectedDocs
-    .map(d => `--- Document: "${d.title}" ---\n\n${d.markdown}`)
-    .join("\n\n" + "=".repeat(40) + "\n\n");
-
-  const response = await chatComplete(FULL_SYSTEM + context, question);
-  return {
-    questionId: "",
-    mode: "mfrag",
-    response,
-    retrievedDocs: selectedDocs.map(d => d.title),
-    latencyMs: Date.now() - start,
-  };
-}
-
 async function runFull(question: string): Promise<EvalResult> {
   const start = Date.now();
   const response = await chatComplete(FULL_SYSTEM + fullContextDoc, question);
@@ -259,8 +175,6 @@ async function runFull(question: string): Promise<EvalResult> {
 
 const MODE_RUNNERS: Record<Mode, (q: string) => Promise<EvalResult>> = {
   rag: runRag,
-  mrag: runMrag,
-  mfrag: runMfrag,
   full: runFull,
 };
 
