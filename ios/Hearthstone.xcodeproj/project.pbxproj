@@ -35,6 +35,7 @@
 		91D2682B4D7AA463A931E8B3 /* MessageBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35B54811E9568D04E41E1D40 /* MessageBubble.swift */; };
 		B0B35FEFC16C499171256985 /* ChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC47B1DB3BC3C8AEB9CB62E2 /* ChatViewModel.swift */; };
 		B11C65BF6167E93105F0E182 /* Document.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8FC1D2FA013BB586A464ADA /* Document.swift */; };
+		BEA9C2F91F8B43EBB78DC21C /* DriveFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E20C4A529634EF4AA4FA796 /* DriveFile.swift */; };
 		B3C7012EC5EE28B776AB5C3F /* ChatMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = F54456FA5D506B133989EEAD /* ChatMessage.swift */; };
 		C2B9FF563F53803629F0D4B3 /* DashboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7508202142FDC4B09A8F1239 /* DashboardViewModel.swift */; };
 		CB814B680110FA221E81687B /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 911D8BD2218D321FFACC6783 /* Theme.swift */; };
@@ -74,6 +75,7 @@
 		BE4EE6D15E820ECB1A26F3A3 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		C13A6D4C6E55200DD77A249E /* Guest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Guest.swift; sourceTree = "<group>"; };
 		C8FC1D2FA013BB586A464ADA /* Document.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Document.swift; sourceTree = "<group>"; };
+		7E20C4A529634EF4AA4FA796 /* DriveFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveFile.swift; sourceTree = "<group>"; };
 		CA7AF9F5111428B104E32108 /* GuestListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestListViewModel.swift; sourceTree = "<group>"; };
 		CE3D7F4ED477BB3A9D6AC4EA /* HouseholdSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdSetupView.swift; sourceTree = "<group>"; };
 		D2EE14D81019E0E37D8489D8 /* Connection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
@@ -103,6 +105,7 @@
 				F54456FA5D506B133989EEAD /* ChatMessage.swift */,
 				D2EE14D81019E0E37D8489D8 /* Connection.swift */,
 				C8FC1D2FA013BB586A464ADA /* Document.swift */,
+				7E20C4A529634EF4AA4FA796 /* DriveFile.swift */,
 				C13A6D4C6E55200DD77A249E /* Guest.swift */,
 				6281E5FF7DCC0E72163CE472 /* Household.swift */,
 				FB09FB0849CA8E2DCA07AED5 /* Person.swift */,
@@ -285,6 +288,7 @@
 				F23F482C8426F52978B49299 /* DashboardView.swift in Sources */,
 				C2B9FF563F53803629F0D4B3 /* DashboardViewModel.swift in Sources */,
 				B11C65BF6167E93105F0E182 /* Document.swift in Sources */,
+				BEA9C2F91F8B43EBB78DC21C /* DriveFile.swift in Sources */,
 				082449A153B3AB3254F4942F /* DocumentsViewModel.swift in Sources */,
 				2BCB642D1B334674ABD76405 /* Guest.swift in Sources */,
 				61688CC2624117D0895B5BC9 /* GuestListView.swift in Sources */,

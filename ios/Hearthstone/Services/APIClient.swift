@@ -286,6 +286,12 @@ final class APIClient {
         try await callVoid(method: "DELETE", path: "/connections/\(id)", auth: .owner)
     }
 
+    func listDriveFiles(connectionId: String) async throws -> [DriveFile] {
+        struct Response: Decodable { let files: [DriveFile] }
+        let r: Response = try await call(method: "GET", path: "/connections/\(connectionId)/files", auth: .owner)
+        return r.files
+    }
+
     // MARK: - Document endpoints
 
     func listDocuments() async throws -> [Document] {
