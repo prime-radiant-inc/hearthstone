@@ -28,7 +28,7 @@ if (!OPENAI_API_KEY) {
 }
 
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
-export const CHAT_MODEL = process.env.EVAL_CHAT_MODEL || "gpt-5.1";
+export const CHAT_MODEL = process.env.EVAL_CHAT_MODEL || "gpt-5.4";
 
 // --- Types ---
 
@@ -110,7 +110,7 @@ function searchChunks(queryEmbedding: Float32Array, limit: number = 5): DocChunk
 
 async function expandQuery(query: string): Promise<string[]> {
   const resp = await openai.chat.completions.create({
-    model: "gpt-5-mini",
+    model: "gpt-5.4-mini",
     messages: [{
       role: "system",
       content: `You expand search queries for a household knowledge base (home info, pet care, childcare, emergency contacts, schedules).

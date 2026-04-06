@@ -35,7 +35,7 @@ try {
 } catch {}
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const PROPOSER_MODEL = process.env.EVAL_PROPOSER_MODEL || "gpt-5.1";
+const PROPOSER_MODEL = process.env.EVAL_PROPOSER_MODEL || "gpt-5.4";
 
 // --- Args ---
 const args = process.argv.slice(2);
