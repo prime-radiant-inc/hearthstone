@@ -28,6 +28,7 @@ import {
   handleConnectGoogleDrive,
   handleGoogleDriveCallback,
   handleDeleteConnection,
+  handleListDriveFiles,
 } from "./routes/connections";
 import { handleChat, handleGetSuggestions, handleChatPreview } from "./routes/chat";
 
@@ -222,6 +223,13 @@ async function handleRequest(req: Request): Promise<Response> {
             headers: { Location: result.redirect },
           });
         }
+        return json(result.body, result.status);
+      }
+
+      const connFilesParams = parsePathParams("/connections/:id/files", pathname);
+      if (method === "GET" && connFilesParams) {
+        const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        const result = await handleListDriveFiles(getDb(), owner.householdId, connFilesParams.id);
         return json(result.body, result.status);
       }
 

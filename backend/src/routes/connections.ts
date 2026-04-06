@@ -72,6 +72,45 @@ export async function handleGoogleDriveCallback(
   }
 }
 
+export async function handleListDriveFiles(
+  db: Database.Database,
+  householdId: string,
+  connectionId: string
+): Promise<{ status: number; body: any }> {
+  const connection = db
+    .prepare(
+      "SELECT id, refresh_token FROM connections WHERE id = ? AND household_id = ?"
+    )
+    .get(connectionId, householdId) as any;
+
+  if (!connection) {
+    return { status: 404, body: { message: "Connection not found" } };
+  }
+
+  try {
+    const allFiles = await listDriveFiles(connection.refresh_token);
+
+    // Filter out docs already connected to this household
+    const existingDriveIds = db
+      .prepare("SELECT drive_file_id FROM documents WHERE household_id = ?")
+      .all(householdId)
+      .map((row: any) => row.drive_file_id);
+
+    const existingSet = new Set(existingDriveIds);
+    const files = allFiles
+      .filter((f) => !existingSet.has(f.id))
+      .map((f) => ({
+        id: f.id,
+        name: f.name,
+        modified_time: f.modifiedTime,
+      }));
+
+    return { status: 200, body: { files } };
+  } catch (err) {
+    return { status: 502, body: { message: "Failed to list Drive files" } };
+  }
+}
+
 export function handleDeleteConnection(
   db: Database.Database,
   householdId: string,
