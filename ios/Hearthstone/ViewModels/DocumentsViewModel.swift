@@ -33,4 +33,16 @@ final class DocumentsViewModel: ObservableObject {
             self.error = error.localizedDescription
         }
     }
+
+    func refreshAll() async {
+        isLoading = true
+        for doc in documents {
+            do {
+                _ = try await APIClient.shared.refreshDocument(id: doc.id)
+            } catch {
+                // Continue refreshing remaining docs even if one fails
+            }
+        }
+        await load()
+    }
 }

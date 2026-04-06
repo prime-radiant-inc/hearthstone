@@ -4,13 +4,19 @@ struct ConnectDocsView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var docsVM = DocumentsViewModel()
     @StateObject private var connVM = ConnectionsViewModel()
+    @State private var showFilePicker = false
+    @State private var isRefreshingAll = false
+
+    /// The connection ID to use for the file picker — either from a fresh OAuth or existing connection
+    private var activeConnectionId: String? {
+        connVM.newConnectionId ?? connVM.connections.first?.id
+    }
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
                 // Connection status
                 if connVM.connections.isEmpty {
-                    // No Drive connected
                     Button {
                         Task { await connVM.connectGoogleDrive() }
                     } label: {
@@ -49,6 +55,22 @@ struct ConnectDocsView: View {
                     .overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.goldBadge, lineWidth: 1))
                     .padding(.horizontal, 24)
                     .padding(.vertical, 12)
+
+                    // Add Documents button
+                    Button {
+                        showFilePicker = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "plus.circle.fill")
+                            Text("Add Documents")
+                                .fontWeight(.semibold)
+                        }
+                        .font(.system(size: 15))
+                        .foregroundColor(Theme.hearth)
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
                 if docsVM.documents.isEmpty && !docsVM.isLoading {
@@ -93,16 +115,55 @@ struct ConnectDocsView: View {
             .navigationTitle("Documents")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    if !docsVM.documents.isEmpty {
+                        Button {
+                            Task {
+                                isRefreshingAll = true
+                                await docsVM.refreshAll()
+                                isRefreshingAll = false
+                            }
+                        } label: {
+                            if isRefreshingAll {
+                                ProgressView().tint(Theme.hearth)
+                            } else {
+                                Image(systemName: "arrow.clockwise")
+                                    .foregroundColor(Theme.hearth)
+                            }
+                        }
+                        .disabled(isRefreshingAll)
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }
                         .foregroundColor(Theme.hearth)
                         .fontWeight(.semibold)
                 }
             }
+            .sheet(isPresented: $showFilePicker, onDismiss: {
+                Task { await docsVM.load() }
+            }) {
+                if let connectionId = activeConnectionId {
+                    DriveFilePickerView(connectionId: connectionId)
+                }
+            }
         }
         .task {
             await connVM.load()
             await docsVM.load()
+        }
+        .onChange(of: connVM.newConnectionId) { connectionId in
+            if connectionId != nil {
+                showFilePicker = true
+            }
+        }
+        .alert("Error", isPresented: .init(
+            get: { connVM.error != nil },
+            set: { if !$0 { connVM.error = nil } }
+        )) {
+            Button("OK") { connVM.error = nil }
+        } message: {
+            Text(connVM.error ?? "")
         }
     }
 }
