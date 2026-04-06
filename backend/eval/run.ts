@@ -1,6 +1,6 @@
 #!/usr/bin/env npx tsx
 import { QUESTIONS, type EvalQuestion } from "./questions";
-import { runQuestion, closeDb, type Mode, CHAT_MODEL } from "./harness";
+import { runQuestion, closeDb, type Mode, CHAT_MODEL, type TokenUsage } from "./harness";
 import { judgeResponse, type JudgeResult, JUDGE_MODEL } from "./judge";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -56,6 +56,7 @@ interface RunResult {
   retrievedDocs: string[];
   latencyMs: number;
   judge: JudgeResult;
+  usage?: TokenUsage;
 }
 
 async function runOne(question: EvalQuestion, mode: Mode): Promise<RunResult> {
@@ -75,6 +76,7 @@ async function runOne(question: EvalQuestion, mode: Mode): Promise<RunResult> {
     retrievedDocs: evalResult.retrievedDocs,
     latencyMs: evalResult.latencyMs,
     judge,
+    usage: evalResult.usage,
   };
 }
 
@@ -187,6 +189,24 @@ function printResults(results: RunResult[]) {
   });
   console.log(`${"Avg Latency".padEnd(idWidth)}${latRow.join("")}`);
 
+  const fmtTokens = (n: number) => n >= 1000 ? `${(n / 1000).toFixed(1)}K` : `${n}`;
+
+  const tokInRow = modes.map(m => {
+    const modeResults = results.filter(r => r.mode === m && r.usage);
+    if (modeResults.length === 0) return "—".padStart(8);
+    const total = modeResults.reduce((s, r) => s + (r.usage?.promptTokens || 0), 0);
+    return fmtTokens(total).padStart(8);
+  });
+  console.log(`${"Total In Tokens".padEnd(idWidth)}${tokInRow.join("")}`);
+
+  const tokOutRow = modes.map(m => {
+    const modeResults = results.filter(r => r.mode === m && r.usage);
+    if (modeResults.length === 0) return "—".padStart(8);
+    const total = modeResults.reduce((s, r) => s + (r.usage?.completionTokens || 0), 0);
+    return fmtTokens(total).padStart(8);
+  });
+  console.log(`${"Total Out Tokens".padEnd(idWidth)}${tokOutRow.join("")}`);
+
   console.log("=".repeat(80));
   console.log(`\nLegend: 3/5 = 3 of 5 facts present, +1 = partial matches, ! = hallucination detected\n`);
 }
@@ -217,6 +237,7 @@ function saveResults(results: RunResult[]) {
       hallucinationCount: r.judge.hallucinationCount,
       facts: r.judge.facts,
       antiHallucinations: r.judge.antiHallucinations,
+      usage: r.usage,
     })),
     summary: Object.fromEntries(modes.map(m => {
       const modeResults = results.filter(r => r.mode === m);
@@ -224,6 +245,9 @@ function saveResults(results: RunResult[]) {
         avgScore: modeResults.reduce((s, r) => s + r.judge.score, 0) / (modeResults.length || 1),
         totalHallucinations: modeResults.reduce((s, r) => s + r.judge.hallucinationCount, 0),
         avgLatencyMs: modeResults.reduce((s, r) => s + r.latencyMs, 0) / (modeResults.length || 1),
+        totalPromptTokens: modeResults.reduce((s, r) => s + (r.usage?.promptTokens || 0), 0),
+        totalCompletionTokens: modeResults.reduce((s, r) => s + (r.usage?.completionTokens || 0), 0),
+        totalTokens: modeResults.reduce((s, r) => s + (r.usage?.totalTokens || 0), 0),
       }];
     })),
   };

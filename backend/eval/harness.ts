@@ -34,6 +34,12 @@ export const CHAT_MODEL = process.env.EVAL_CHAT_MODEL || "gpt-5.4";
 
 export type Mode = "rag" | "full";
 
+export interface TokenUsage {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+}
+
 export interface EvalResult {
   questionId: string;
   mode: Mode;
@@ -41,6 +47,7 @@ export interface EvalResult {
   retrievedDocs: string[];
   retrievedChunkCount?: number;
   latencyMs: number;
+  usage?: TokenUsage;
 }
 
 interface DocChunk {
@@ -112,7 +119,7 @@ function searchChunks(queryEmbedding: Float32Array, limit: number = 5): DocChunk
 
 // --- Chat (non-streaming) ---
 
-async function chatComplete(systemContent: string, question: string): Promise<string> {
+async function chatComplete(systemContent: string, question: string): Promise<{ text: string; usage?: TokenUsage }> {
   const resp = await openai.chat.completions.create({
     model: CHAT_MODEL,
     ...(CHAT_MODEL.startsWith("gpt-5") ? {} : { temperature: 0 }),
@@ -121,7 +128,12 @@ async function chatComplete(systemContent: string, question: string): Promise<st
       { role: "user", content: question },
     ],
   });
-  return resp.choices[0]?.message?.content || "";
+  const usage = resp.usage ? {
+    promptTokens: resp.usage.prompt_tokens,
+    completionTokens: resp.usage.completion_tokens,
+    totalTokens: resp.usage.total_tokens,
+  } : undefined;
+  return { text: resp.choices[0]?.message?.content || "", usage };
 }
 
 // --- Unique doc names helper ---
@@ -148,26 +160,28 @@ async function runRag(question: string): Promise<EvalResult> {
   const emb = await embedText(question);
   const results = searchChunks(new Float32Array(emb), 5);
   const context = results.map((r, i) => `[${i + 1}] (from "${r.documentTitle}")\n${r.text}`).join("\n\n---\n\n");
-  const response = await chatComplete(RAG_SYSTEM + context, question);
+  const { text, usage } = await chatComplete(RAG_SYSTEM + context, question);
   return {
     questionId: "",
     mode: "rag",
-    response,
+    response: text,
     retrievedDocs: uniqueDocNames(results),
     retrievedChunkCount: results.length,
     latencyMs: Date.now() - start,
+    usage,
   };
 }
 
 async function runFull(question: string): Promise<EvalResult> {
   const start = Date.now();
-  const response = await chatComplete(FULL_SYSTEM + fullContextDoc, question);
+  const { text, usage } = await chatComplete(FULL_SYSTEM + fullContextDoc, question);
   return {
     questionId: "",
     mode: "full",
-    response,
+    response: text,
     retrievedDocs: allDocs.map(d => d.title),
     latencyMs: Date.now() - start,
+    usage,
   };
 }
 
