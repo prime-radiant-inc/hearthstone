@@ -216,6 +216,12 @@ async function handleRequest(req: Request): Promise<Response> {
         const code = url.searchParams.get("code") || "";
         const state = url.searchParams.get("state") || "";
         const result = await handleGoogleDriveCallback(getDb(), code, state);
+        if (result.redirect) {
+          return new Response(null, {
+            status: 302,
+            headers: { Location: result.redirect },
+          });
+        }
         return json(result.body, result.status);
       }
 

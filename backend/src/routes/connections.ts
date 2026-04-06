@@ -1,6 +1,7 @@
 // src/routes/connections.ts
 import type Database from "better-sqlite3";
 import { getDriveAuthUrl, exchangeCodeForDrive } from "../services/google-auth";
+import { listDriveFiles } from "../services/google-drive";
 import { config } from "../config";
 import { generateId } from "../utils";
 
@@ -32,9 +33,9 @@ export async function handleGoogleDriveCallback(
   db: Database.Database,
   code: string,
   state: string
-): Promise<{ status: number; body: any }> {
+): Promise<{ status: number; body: any; redirect?: string }> {
   if (!code || !state) {
-    return { status: 422, body: { message: "Missing code or state" } };
+    return { status: 302, body: null, redirect: "hearthstone://drive-error?message=Missing+code+or+state" };
   }
 
   let householdId: string;
@@ -43,14 +44,14 @@ export async function handleGoogleDriveCallback(
     householdId = decoded.householdId;
     if (!householdId) throw new Error("missing householdId");
   } catch {
-    return { status: 422, body: { message: "Invalid state parameter" } };
+    return { status: 302, body: null, redirect: "hearthstone://drive-error?message=Invalid+state" };
   }
 
   const household = db
     .prepare("SELECT id FROM households WHERE id = ?")
     .get(householdId);
   if (!household) {
-    return { status: 404, body: { message: "Household not found" } };
+    return { status: 302, body: null, redirect: "hearthstone://drive-error?message=Household+not+found" };
   }
 
   const redirectUri = `${config.appBaseUrl}/connections/google-drive/callback`;
@@ -65,13 +66,9 @@ export async function handleGoogleDriveCallback(
       "INSERT INTO connections (id, household_id, provider, refresh_token, email, created_at) VALUES (?, ?, ?, ?, ?, ?)"
     ).run(id, householdId, "google_drive", refreshToken, email ?? null, now);
 
-    const connection = db
-      .prepare("SELECT id, provider, email, created_at FROM connections WHERE id = ?")
-      .get(id);
-
-    return { status: 200, body: { connection } };
+    return { status: 302, body: null, redirect: `hearthstone://drive-connected?connection_id=${id}` };
   } catch (err) {
-    return { status: 502, body: { message: "Failed to exchange Google authorization code" } };
+    return { status: 302, body: null, redirect: "hearthstone://drive-error?message=Google+authorization+failed" };
   }
 }
 
