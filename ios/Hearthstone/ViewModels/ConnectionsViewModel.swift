@@ -1,4 +1,5 @@
 import Foundation
+import AuthenticationServices
 import UIKit
 
 @MainActor
@@ -6,6 +7,7 @@ final class ConnectionsViewModel: ObservableObject {
     @Published var connections: [Connection] = []
     @Published var isLoading = false
     @Published var error: String?
+    @Published var newConnectionId: String?
 
     func load() async {
         do {
@@ -18,10 +20,24 @@ final class ConnectionsViewModel: ObservableObject {
     func connectGoogleDrive() async {
         do {
             let response = try await APIClient.shared.connectGoogleDrive()
-            // Open the OAuth URL in Safari
-            if let url = URL(string: response.authUrl) {
-                await UIApplication.shared.open(url)
+            guard let authURL = URL(string: response.authUrl) else {
+                self.error = "Invalid auth URL"
+                return
             }
+
+            let callbackURL = try await startAuthSession(url: authURL)
+            let components = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false)
+
+            if callbackURL.host == "drive-connected",
+               let connectionId = components?.queryItems?.first(where: { $0.name == "connection_id" })?.value {
+                await load()
+                newConnectionId = connectionId
+            } else if callbackURL.host == "drive-error" {
+                let message = components?.queryItems?.first(where: { $0.name == "message" })?.value ?? "Connection failed"
+                self.error = message.replacingOccurrences(of: "+", with: " ")
+            }
+        } catch let error as ASWebAuthenticationSessionError where error.code == .canceledLogin {
+            // User cancelled — not an error
         } catch {
             self.error = error.localizedDescription
         }
@@ -34,5 +50,36 @@ final class ConnectionsViewModel: ObservableObject {
         } catch {
             self.error = error.localizedDescription
         }
+    }
+
+    private func startAuthSession(url: URL) async throws -> URL {
+        try await withCheckedThrowingContinuation { continuation in
+            let session = ASWebAuthenticationSession(
+                url: url,
+                callbackURLScheme: "hearthstone"
+            ) { callbackURL, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else if let callbackURL {
+                    continuation.resume(returning: callbackURL)
+                } else {
+                    continuation.resume(throwing: URLError(.badServerResponse))
+                }
+            }
+            session.prefersEphemeralWebBrowserSession = false
+            session.presentationContextProvider = ASWebAuthSessionContextProvider.shared
+            session.start()
+        }
+    }
+}
+
+// Provides the window anchor for ASWebAuthenticationSession
+final class ASWebAuthSessionContextProvider: NSObject, ASWebAuthenticationPresentationContextProviding {
+    static let shared = ASWebAuthSessionContextProvider()
+    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .first(where: \.isKeyWindow) ?? ASPresentationAnchor()
     }
 }
