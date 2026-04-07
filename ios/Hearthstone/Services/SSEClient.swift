@@ -52,9 +52,7 @@ final class SSEClient {
                 request.setValue("application/json", forHTTPHeaderField: "Content-Type")
                 request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
 
-                let token = isPreview
-                    ? KeychainService.shared.ownerToken
-                    : KeychainService.shared.guestToken
+                let token = await SessionStore.shared.activeToken
 
                 if let token = token {
                     request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")

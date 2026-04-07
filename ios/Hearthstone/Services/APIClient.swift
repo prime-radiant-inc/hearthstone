@@ -99,12 +99,8 @@ final class APIClient {
         switch auth {
         case .none:
             break
-        case .owner:
-            if let token = KeychainService.shared.ownerToken {
-                req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-            }
-        case .guest:
-            if let token = KeychainService.shared.guestToken {
+        case .owner, .guest:
+            if let token = await SessionStore.shared.activeToken {
                 req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
             }
         }
@@ -388,7 +384,7 @@ final class APIClient {
         let boundary = UUID().uuidString
         req.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
 
-        if let token = KeychainService.shared.ownerToken {
+        if let token = await SessionStore.shared.activeToken {
             req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
 
