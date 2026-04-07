@@ -3,20 +3,42 @@ import SwiftUI
 // MARK: - DashboardView
 
 struct DashboardView: View {
-    let householdName: String
+    @State var householdName: String
     let ownerName: String
 
     @StateObject private var viewModel = DashboardViewModel()
     @State private var showDocuments = false
     @State private var showGuestList = false
     @State private var showOwnerPreview = false
+    @State private var isEditingName = false
+    @State private var editedName = ""
+    @State private var isSavingName = false
 
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
                 HeroHeader(
                     householdName: householdName,
-                    ownerName: ownerName
+                    ownerName: ownerName,
+                    isEditing: $isEditingName,
+                    editedName: $editedName,
+                    isSaving: isSavingName,
+                    onSave: {
+                        let newName = editedName.trimmingCharacters(in: .whitespacesAndNewlines)
+                        guard !newName.isEmpty, newName != householdName else {
+                            isEditingName = false
+                            return
+                        }
+                        isSavingName = true
+                        Task {
+                            do {
+                                let updated = try await APIClient.shared.updateHousehold(name: newName)
+                                householdName = updated.name
+                            } catch {}
+                            isSavingName = false
+                            isEditingName = false
+                        }
+                    }
                 )
 
                 StatRow(
@@ -94,6 +116,10 @@ struct DashboardView: View {
 private struct HeroHeader: View {
     let householdName: String
     let ownerName: String
+    @Binding var isEditing: Bool
+    @Binding var editedName: String
+    let isSaving: Bool
+    let onSave: () -> Void
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -108,9 +134,39 @@ private struct HeroHeader: View {
                     .kerning(1.2)
                     .opacity(0.7)
 
-                Text(householdName)
-                    .font(Theme.heading(26))
-                    .fontWeight(.semibold)
+                if isEditing {
+                    HStack(spacing: 8) {
+                        TextField("Household name", text: $editedName)
+                            .font(Theme.heading(26))
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                            .tint(.white)
+                            .onSubmit { onSave() }
+
+                        if isSaving {
+                            ProgressView().tint(.white)
+                        } else {
+                            Button { onSave() } label: {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.system(size: 22))
+                                    .foregroundColor(.white.opacity(0.9))
+                            }
+                        }
+                    }
+                } else {
+                    HStack(spacing: 6) {
+                        Text(householdName)
+                            .font(Theme.heading(26))
+                            .fontWeight(.semibold)
+                        Image(systemName: "pencil")
+                            .font(.system(size: 14))
+                            .opacity(0.6)
+                    }
+                    .onTapGesture {
+                        editedName = householdName
+                        isEditing = true
+                    }
+                }
 
                 Text("Welcome back, \(ownerName)")
                     .font(.system(size: 14))
