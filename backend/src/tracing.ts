@@ -36,7 +36,7 @@ if (ENDPOINT) {
     resource,
     spanProcessors: [new BatchSpanProcessor(exporter)],
   });
-  provider.register();
+  trace.setGlobalTracerProvider(provider);
 
   console.log(`OpenTelemetry tracing enabled -> ${ENDPOINT}`);
 }
