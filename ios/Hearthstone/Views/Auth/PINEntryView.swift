@@ -1,8 +1,7 @@
 import SwiftUI
 
 struct PINEntryView: View {
-    let onOwnerAuth: (String, Person, Household) -> Void
-    let onGuestAuth: (String, String) -> Void
+    let onAuthenticated: (HouseSession, String) -> Void
 
     @State private var pin = ""
     @State private var isLoading = false
@@ -101,12 +100,14 @@ struct PINEntryView: View {
         error = nil
         do {
             let response = try await APIClient.shared.redeemPin(pin: pin)
-            if response.role == "owner", let person = response.person, let household = response.household {
-                onOwnerAuth(response.token, person, household)
-            } else if response.role == "guest" {
-                let householdName = response.householdName ?? ""
-                onGuestAuth(response.token, householdName)
-            }
+            let session = HouseSession(
+                id: UUID().uuidString,
+                householdId: response.household?.id ?? response.guest?.householdId ?? "",
+                householdName: response.household?.name ?? response.householdName ?? "",
+                role: response.role == "owner" ? .owner : .guest,
+                addedAt: Date()
+            )
+            onAuthenticated(session, response.token)
         } catch let err as APIError {
             if case .server(_, let message) = err {
                 error = message
