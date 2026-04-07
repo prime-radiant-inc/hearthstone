@@ -225,6 +225,26 @@ final class APIClient {
                               body: Body(inviteToken: token))
     }
 
+    struct PinRedeemResponse: Decodable {
+        let token: String
+        let role: String
+        let person: Person?
+        let household: Household?
+        let guest: InviteRedeemResponse.InviteGuest?
+        let householdName: String?
+
+        enum CodingKeys: String, CodingKey {
+            case token, role, person, household, guest
+            case householdName = "household_name"
+        }
+    }
+
+    func redeemPin(pin: String) async throws -> PinRedeemResponse {
+        struct Body: Encodable { let pin: String }
+        return try await call(method: "POST", path: "/auth/pin/redeem",
+                              body: Body(pin: pin))
+    }
+
     // MARK: - Me
 
     struct MeResponse: Decodable {
@@ -260,8 +280,8 @@ final class APIClient {
 
     struct CreateGuestResponse: Decodable {
         let guest: CreatedGuest
-        let magicLink: String
-        let inviteToken: String
+        let pin: String
+        let expiresAt: String
 
         struct CreatedGuest: Decodable {
             let id: String
@@ -270,16 +290,15 @@ final class APIClient {
         }
 
         enum CodingKeys: String, CodingKey {
-            case guest
-            case magicLink = "magic_link"
-            case inviteToken = "invite_token"
+            case guest, pin
+            case expiresAt = "expires_at"
         }
     }
 
-    func createGuest(name: String, email: String?, phone: String?) async throws -> CreateGuestResponse {
-        struct Body: Encodable { let name: String; let email: String?; let phone: String? }
+    func createGuest(name: String, email: String?) async throws -> CreateGuestResponse {
+        struct Body: Encodable { let name: String; let email: String? }
         return try await call(method: "POST", path: "/guests", auth: .owner,
-                              body: Body(name: name, email: email, phone: phone))
+                              body: Body(name: name, email: email))
     }
 
     func revokeGuest(id: String) async throws {
@@ -287,11 +306,11 @@ final class APIClient {
     }
 
     struct ReinviteResponse: Decodable {
-        let magicLink: String
-        let inviteToken: String
+        let pin: String
+        let expiresAt: String
         enum CodingKeys: String, CodingKey {
-            case magicLink = "magic_link"
-            case inviteToken = "invite_token"
+            case pin
+            case expiresAt = "expires_at"
         }
     }
 

@@ -129,7 +129,7 @@ private struct GuestCard: View {
                     Text(guest.name)
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(Theme.charcoal)
-                    Text(guest.contact)
+                    Text(guest.contact ?? "")
                         .font(.system(size: 13))
                         .foregroundColor(Theme.charcoalSoft)
                 }

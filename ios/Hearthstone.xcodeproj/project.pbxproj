@@ -26,6 +26,7 @@
 		5083441DA7742299EF84AB81 /* SSEClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDD098C398E3401F959D0287 /* SSEClient.swift */; };
 		52E8F72D0B9D0D7A5FA42471 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDD84A7F97E32C1775351C2C /* KeychainService.swift */; };
 		5E6D6335D619725F1A7B0005 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDFF0389459109EAA5A09A74 /* WelcomeView.swift */; };
+		B2C3D4E5F60123456789AB01 /* PINEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F601234567890A /* PINEntryView.swift */; };
 		61688CC2624117D0895B5BC9 /* GuestListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88AA192FF5FDDE7224F434FC /* GuestListView.swift */; };
 		6AEF81B92627FEB704C7EA2C /* SourceDocumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBD36E61ABE11EF9988D51C7 /* SourceDocumentView.swift */; };
 		7108A78F317AA431BA9F0046 /* VerifyCodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 722C9536F2D45780DDF60666 /* VerifyCodeView.swift */; };
@@ -34,6 +35,7 @@
 		7B07E3ACE9272D7FA428DC25 /* HearthTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27683AA32579AAAA8D655960 /* HearthTextField.swift */; };
 		8207F2214F4F1B1DEC1360FF /* HearthstoneApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637898B473FDD1C99019571D /* HearthstoneApp.swift */; };
 		8A5DA70B1A534E9699E50363 /* AddGuestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D01C211535289B4F0A07CE9 /* AddGuestView.swift */; };
+		E2F3A4B5C6D7E8F9A0B1C2D3 /* GuestPINView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A8B2C1D4E5F6A7B8C9D0E1 /* GuestPINView.swift */; };
 		91D2682B4D7AA463A931E8B3 /* MessageBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35B54811E9568D04E41E1D40 /* MessageBubble.swift */; };
 		B0B35FEFC16C499171256985 /* ChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC47B1DB3BC3C8AEB9CB62E2 /* ChatViewModel.swift */; };
 		B11C65BF6167E93105F0E182 /* Document.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8FC1D2FA013BB586A464ADA /* Document.swift */; };
@@ -53,6 +55,7 @@
 		0AB0F06146DFB3EF1D159CDF /* StatusBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBadge.swift; sourceTree = "<group>"; };
 		1CFFD695DB89CD17DF3B96C1 /* InviteErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteErrorView.swift; sourceTree = "<group>"; };
 		1D01C211535289B4F0A07CE9 /* AddGuestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddGuestView.swift; sourceTree = "<group>"; };
+		F3A8B2C1D4E5F6A7B8C9D0E1 /* GuestPINView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestPINView.swift; sourceTree = "<group>"; };
 		270789DC8776F9F1F8983D00 /* Suggestion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Suggestion.swift; sourceTree = "<group>"; };
 		27683AA32579AAAA8D655960 /* HearthTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HearthTextField.swift; sourceTree = "<group>"; };
 		344516F0243473D20A7D8C8C /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
@@ -85,6 +88,7 @@
 		D2EE14D81019E0E37D8489D8 /* Connection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
 		EDD84A7F97E32C1775351C2C /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
 		EDFF0389459109EAA5A09A74 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F601234567890A /* PINEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PINEntryView.swift; sourceTree = "<group>"; };
 		F54456FA5D506B133989EEAD /* ChatMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessage.swift; sourceTree = "<group>"; };
 		FB09FB0849CA8E2DCA07AED5 /* Person.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Person.swift; sourceTree = "<group>"; };
 		FBD36E61ABE11EF9988D51C7 /* SourceDocumentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceDocumentView.swift; sourceTree = "<group>"; };
@@ -122,6 +126,7 @@
 			isa = PBXGroup;
 			children = (
 				CE3D7F4ED477BB3A9D6AC4EA /* HouseholdSetupView.swift */,
+				A1B2C3D4E5F601234567890A /* PINEntryView.swift */,
 				722C9536F2D45780DDF60666 /* VerifyCodeView.swift */,
 				EDFF0389459109EAA5A09A74 /* WelcomeView.swift */,
 			);
@@ -141,6 +146,7 @@
 			children = (
 				1D01C211535289B4F0A07CE9 /* AddGuestView.swift */,
 				066D70BA714F154CA16063BD /* ConnectDocsView.swift */,
+				F3A8B2C1D4E5F6A7B8C9D0E1 /* GuestPINView.swift */,
 				B6664253F4BA2C390AB56D00 /* DashboardView.swift */,
 				C3D4E5F6A7B8C9D0E1F2A3B4 /* DriveFilePickerView.swift */,
 				88AA192FF5FDDE7224F434FC /* GuestListView.swift */,
@@ -301,6 +307,7 @@
 				2BCB642D1B334674ABD76405 /* Guest.swift in Sources */,
 				61688CC2624117D0895B5BC9 /* GuestListView.swift in Sources */,
 				FBDCAA2BF756B5DD7B198BC4 /* GuestListViewModel.swift in Sources */,
+				E2F3A4B5C6D7E8F9A0B1C2D3 /* GuestPINView.swift in Sources */,
 				12CAFF2212CB9DDC30AA44D4 /* HearthButton.swift in Sources */,
 				7B07E3ACE9272D7FA428DC25 /* HearthTextField.swift in Sources */,
 				8207F2214F4F1B1DEC1360FF /* HearthstoneApp.swift in Sources */,
@@ -320,6 +327,7 @@
 				CB814B680110FA221E81687B /* Theme.swift in Sources */,
 				7108A78F317AA431BA9F0046 /* VerifyCodeView.swift in Sources */,
 				5E6D6335D619725F1A7B0005 /* WelcomeView.swift in Sources */,
+				B2C3D4E5F60123456789AB01 /* PINEntryView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
