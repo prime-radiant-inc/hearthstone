@@ -9,17 +9,17 @@ interface IndexParams {
   driveFileId: string;
   title: string;
   markdown: string;
-  embedBatch: (texts: string[], ctx?: Context) => Promise<number[][]>;
+  embedBatch: (ctx: Context | undefined, texts: string[]) => Promise<number[][]>;
 }
 
 interface RefreshParams {
   documentId: string;
   householdId: string;
   markdown: string;
-  embedBatch: (texts: string[], ctx?: Context) => Promise<number[][]>;
+  embedBatch: (ctx: Context | undefined, texts: string[]) => Promise<number[][]>;
 }
 
-export async function indexDocument(db: Database, params: IndexParams, ctx?: Context): Promise<void> {
+export async function indexDocument(ctx: Context | undefined, db: Database, params: IndexParams): Promise<void> {
   const span = startSpan("indexer.index_document", ctx);
   const { documentId, householdId, driveFileId, title, markdown, embedBatch } = params;
   span.setAttribute("app.document_id", documentId);
@@ -32,7 +32,7 @@ export async function indexDocument(db: Database, params: IndexParams, ctx?: Con
 
   try {
     const childCtx = spanContext(span);
-    await storeChunks(db, documentId, householdId, markdown, embedBatch, title, childCtx);
+    await storeChunks(childCtx, db, documentId, householdId, markdown, embedBatch, title);
     const chunkCount = db.prepare("SELECT COUNT(*) as count FROM chunks WHERE document_id = ?").get(documentId) as any;
     span.setAttribute("app.chunk_count", chunkCount.count);
     db.prepare("UPDATE documents SET status = 'ready', chunk_count = ?, last_synced = ? WHERE id = ?").run(
@@ -48,7 +48,7 @@ export async function indexDocument(db: Database, params: IndexParams, ctx?: Con
   }
 }
 
-export async function refreshDocument(db: Database, params: RefreshParams, ctx?: Context): Promise<void> {
+export async function refreshDocument(ctx: Context | undefined, db: Database, params: RefreshParams): Promise<void> {
   const span = startSpan("indexer.refresh_document", ctx);
   const { documentId, householdId, markdown, embedBatch } = params;
   span.setAttribute("app.document_id", documentId);
@@ -66,7 +66,7 @@ export async function refreshDocument(db: Database, params: RefreshParams, ctx?:
     db.prepare("DELETE FROM chunks WHERE document_id = ?").run(documentId);
 
     const childCtx = spanContext(span);
-    await storeChunks(db, documentId, householdId, markdown, embedBatch, doc?.title, childCtx);
+    await storeChunks(childCtx, db, documentId, householdId, markdown, embedBatch, doc?.title);
     const chunkCount = db.prepare("SELECT COUNT(*) as count FROM chunks WHERE document_id = ?").get(documentId) as any;
     span.setAttribute("app.chunk_count", chunkCount.count);
     db.prepare("UPDATE documents SET status = 'ready', chunk_count = ?, last_synced = ? WHERE id = ?").run(
@@ -83,19 +83,19 @@ export async function refreshDocument(db: Database, params: RefreshParams, ctx?:
 }
 
 async function storeChunks(
+  ctx: Context | undefined,
   db: Database,
   documentId: string,
   householdId: string,
   markdown: string,
-  embedBatch: (texts: string[], ctx?: Context) => Promise<number[][]>,
+  embedBatch: (ctx: Context | undefined, texts: string[]) => Promise<number[][]>,
   title?: string,
-  ctx?: Context,
 ): Promise<void> {
   const chunks = chunkMarkdown(markdown);
   if (chunks.length === 0) return;
 
   const embeddingTexts = chunks.map(c => buildEmbeddingText(c, title || ""));
-  const embeddings = await embedBatch(embeddingTexts, ctx);
+  const embeddings = await embedBatch(ctx, embeddingTexts);
   const now = new Date().toISOString();
 
   const insertChunk = db.prepare(

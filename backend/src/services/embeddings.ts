@@ -3,21 +3,21 @@ import OpenAI from "openai";
 import { config } from "../config";
 import { startSpan, SpanStatusCode, type Context } from "../tracing";
 
-export async function embed(text: string, ctx?: Context): Promise<number[]> {
+export async function embed(ctx: Context | undefined, text: string): Promise<number[]> {
   if (config.embeddingProvider === "openai") {
-    return embedOpenAI(text, ctx);
+    return embedOpenAI(ctx, text);
   }
   throw new Error(`Unknown embedding provider: ${config.embeddingProvider}`);
 }
 
-export async function embedBatch(texts: string[], ctx?: Context): Promise<number[][]> {
+export async function embedBatch(ctx: Context | undefined, texts: string[]): Promise<number[][]> {
   if (config.embeddingProvider === "openai") {
-    return embedBatchOpenAI(texts, ctx);
+    return embedBatchOpenAI(ctx, texts);
   }
   throw new Error(`Unknown embedding provider: ${config.embeddingProvider}`);
 }
 
-async function embedOpenAI(text: string, ctx?: Context): Promise<number[]> {
+async function embedOpenAI(ctx: Context | undefined, text: string): Promise<number[]> {
   const span = startSpan("openai.embeddings", ctx);
   span.setAttribute("openai.model", "text-embedding-3-small");
   span.setAttribute("app.chunk_count", 1);
@@ -37,7 +37,7 @@ async function embedOpenAI(text: string, ctx?: Context): Promise<number[]> {
   }
 }
 
-async function embedBatchOpenAI(texts: string[], ctx?: Context): Promise<number[][]> {
+async function embedBatchOpenAI(ctx: Context | undefined, texts: string[]): Promise<number[][]> {
   const span = startSpan("openai.embeddings.batch", ctx);
   span.setAttribute("openai.model", "text-embedding-3-small");
   span.setAttribute("app.chunk_count", texts.length);

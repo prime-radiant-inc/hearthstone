@@ -27,10 +27,10 @@ describe("indexer", () => {
   });
 
   it("stores chunks and embeddings for a new document", async () => {
-    const fakeEmbed = async (texts: string[]) =>
+    const fakeEmbed = async (ctx: any, texts: string[]) =>
       texts.map(() => Array.from({ length: 1536 }, () => Math.random()));
 
-    await indexDocument(db, {
+    await indexDocument(undefined, db, {
       documentId: "d1",
       householdId: "h1",
       driveFileId: "drive1",
@@ -52,10 +52,10 @@ describe("indexer", () => {
   });
 
   it("atomically replaces chunks on refresh", async () => {
-    const fakeEmbed = async (texts: string[]) =>
+    const fakeEmbed = async (ctx: any, texts: string[]) =>
       texts.map(() => Array.from({ length: 1536 }, () => Math.random()));
 
-    await indexDocument(db, {
+    await indexDocument(undefined, db, {
       documentId: "d1",
       householdId: "h1",
       driveFileId: "drive1",
@@ -64,7 +64,7 @@ describe("indexer", () => {
       embedBatch: fakeEmbed,
     });
 
-    await refreshDocument(db, {
+    await refreshDocument(undefined, db, {
       documentId: "d1",
       householdId: "h1",
       markdown: "## New Section\nNew content. " + "New section details here. ".repeat(10) + "\n\n## Another\nMore new. " + "Another section details. ".repeat(10),

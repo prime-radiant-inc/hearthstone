@@ -8,15 +8,15 @@ export interface ChatMessage {
   content: string;
 }
 
-export async function* chat(messages: ChatMessage[], ctx?: Context): AsyncGenerator<string> {
+export async function* chat(ctx: Context | undefined, messages: ChatMessage[]): AsyncGenerator<string> {
   if (config.chatProvider === "openai") {
-    yield* chatOpenAI(messages, ctx);
+    yield* chatOpenAI(ctx, messages);
     return;
   }
   throw new Error(`Unknown chat provider: ${config.chatProvider}`);
 }
 
-async function* chatOpenAI(messages: ChatMessage[], ctx?: Context): AsyncGenerator<string> {
+async function* chatOpenAI(ctx: Context | undefined, messages: ChatMessage[]): AsyncGenerator<string> {
   const span = startSpan("openai.chat.stream", ctx);
   span.setAttribute("openai.model", "gpt-5.4");
   try {
@@ -40,7 +40,7 @@ async function* chatOpenAI(messages: ChatMessage[], ctx?: Context): AsyncGenerat
   }
 }
 
-export async function chatComplete(messages: ChatMessage[], ctx?: Context): Promise<string> {
+export async function chatComplete(ctx: Context | undefined, messages: ChatMessage[]): Promise<string> {
   if (config.chatProvider === "openai") {
     const span = startSpan("openai.chat.complete", ctx);
     span.setAttribute("openai.model", "gpt-5.4");

@@ -23,10 +23,10 @@ export function handleListDocuments(
 }
 
 export async function handleConnectDocument(
+  ctx: Context | undefined,
   db: Database,
   householdId: string,
-  body: { drive_file_id: string; title?: string },
-  ctx?: Context
+  body: { drive_file_id: string; title?: string }
 ): Promise<{ status: number; body: any }> {
   if (!body.drive_file_id) {
     return { status: 422, body: { message: "Missing drive_file_id" } };
@@ -43,16 +43,16 @@ export async function handleConnectDocument(
   const documentId = generateId();
 
   try {
-    const { title, markdown } = await fetchDocAsMarkdown(connection.refresh_token, body.drive_file_id, ctx);
+    const { title, markdown } = await fetchDocAsMarkdown(ctx, connection.refresh_token, body.drive_file_id);
 
-    await indexDocument(db, {
+    await indexDocument(ctx, db, {
       documentId,
       householdId,
       driveFileId: body.drive_file_id,
       title: body.title || title,
       markdown,
       embedBatch,
-    }, ctx);
+    });
 
     generateSuggestions(db, householdId).catch(() => {});
 
@@ -64,10 +64,10 @@ export async function handleConnectDocument(
 }
 
 export async function handleRefreshDocument(
+  ctx: Context | undefined,
   db: Database,
   householdId: string,
-  documentId: string,
-  ctx?: Context
+  documentId: string
 ): Promise<{ status: number; body: any }> {
   const doc = db
     .prepare("SELECT * FROM documents WHERE id = ? AND household_id = ?")
@@ -84,14 +84,14 @@ export async function handleRefreshDocument(
   }
 
   try {
-    const { markdown } = await fetchDocAsMarkdown(connection.refresh_token, doc.drive_file_id, ctx);
+    const { markdown } = await fetchDocAsMarkdown(ctx, connection.refresh_token, doc.drive_file_id);
 
-    await refreshDocument(db, {
+    await refreshDocument(ctx, db, {
       documentId,
       householdId,
       markdown,
       embedBatch,
-    }, ctx);
+    });
 
     generateSuggestions(db, householdId).catch(() => {});
 
@@ -252,11 +252,11 @@ function scrollToChunk(index) {
 }
 
 export async function handleUploadDocument(
+  ctx: Context | undefined,
   db: Database,
   householdId: string,
   title: string,
-  docxBuffer: Buffer,
-  ctx?: Context
+  docxBuffer: Buffer
 ): Promise<{ status: number; body: any }> {
   if (!title?.trim()) {
     return { status: 422, body: { message: "Title is required" } };
@@ -270,14 +270,14 @@ export async function handleUploadDocument(
   try {
     const markdown = await docxToMarkdown(docxBuffer);
 
-    await indexDocument(db, {
+    await indexDocument(ctx, db, {
       documentId,
       householdId,
       driveFileId: `upload:${documentId}`,
       title: title.trim(),
       markdown,
       embedBatch,
-    }, ctx);
+    });
 
     // Regenerate suggestion chips
     generateSuggestions(db, householdId).catch(() => {});

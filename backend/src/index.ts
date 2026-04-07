@@ -140,7 +140,7 @@ function matchRoute(method: string, pathname: string): string {
   return pathname;
 }
 
-async function handleRequest(req: Request, ctx?: Context): Promise<Response> {
+async function handleRequest(ctx: Context | undefined, req: Request): Promise<Response> {
     const url = new URL(req.url);
     const { pathname } = url;
     const method = req.method;
@@ -311,7 +311,7 @@ async function handleRequest(req: Request, ctx?: Context): Promise<Response> {
         const body = Buffer.from(await req.arrayBuffer());
         const { title, file } = parseMultipart(body, boundary);
 
-        const result = await handleUploadDocument(getDb(), owner.householdId, title, file, ctx);
+        const result = await handleUploadDocument(ctx, getDb(), owner.householdId, title, file);
         return json(result.body, result.status);
       }
 
@@ -324,14 +324,14 @@ async function handleRequest(req: Request, ctx?: Context): Promise<Response> {
       if (method === "POST" && pathname === "/documents") {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         const body = await req.json();
-        const result = await handleConnectDocument(getDb(), owner.householdId, body, ctx);
+        const result = await handleConnectDocument(ctx, getDb(), owner.householdId, body);
         return json(result.body, result.status);
       }
 
       const refreshDocParams = parsePathParams("/documents/:id/refresh", pathname);
       if (method === "POST" && refreshDocParams) {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
-        const result = await handleRefreshDocument(getDb(), owner.householdId, refreshDocParams.id, ctx);
+        const result = await handleRefreshDocument(ctx, getDb(), owner.householdId, refreshDocParams.id);
         return json(result.body, result.status);
       }
 
@@ -365,7 +365,7 @@ async function handleRequest(req: Request, ctx?: Context): Promise<Response> {
       if (method === "POST" && pathname === "/chat") {
         const guest = authenticateGuest(getDb(), req.headers.get("authorization"));
         const body = await req.json();
-        return handleChat(getDb(), guest.householdId, body, ctx);
+        return handleChat(ctx, getDb(), guest.householdId, body);
       }
 
       if (method === "GET" && pathname === "/chat/suggestions") {
@@ -388,7 +388,7 @@ async function handleRequest(req: Request, ctx?: Context): Promise<Response> {
       if (method === "POST" && pathname === "/chat/preview") {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         const body = await req.json();
-        return handleChatPreview(getDb(), owner.householdId, body, ctx);
+        return handleChatPreview(ctx, getDb(), owner.householdId, body);
       }
 
       return json({ message: "Not found" }, 404);
@@ -419,7 +419,7 @@ async function tracedFetch(req: Request): Promise<Response> {
   const ctx = spanContext(span);
 
   try {
-    const response = await handleRequest(req, ctx);
+    const response = await handleRequest(ctx, req);
     span.setAttribute("http.status_code", response.status);
     if (response.status >= 500) {
       span.setStatus({ code: SpanStatusCode.ERROR, message: `HTTP ${response.status}` });

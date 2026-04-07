@@ -12,12 +12,12 @@ interface ChatRequest {
 }
 
 export async function handleChat(
+  ctx: Context | undefined,
   db: Database,
   householdId: string,
-  body: ChatRequest,
-  ctx?: Context
+  body: ChatRequest
 ): Promise<Response> {
-  const queryEmbedding = await embed(body.message, ctx);
+  const queryEmbedding = await embed(ctx, body.message);
   const queryVec = new Float32Array(queryEmbedding);
 
   const results = searchChunks(db, householdId, queryVec, 5);
@@ -51,7 +51,7 @@ export async function handleChat(
       const encoder = new TextEncoder();
       let fullResponse = "";
       try {
-        for await (const delta of chat(messages, ctx)) {
+        for await (const delta of chat(ctx, messages)) {
           fullResponse += delta;
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ delta })}\n\n`));
         }
@@ -107,10 +107,10 @@ export function handleGetSuggestions(
 }
 
 export async function handleChatPreview(
+  ctx: Context | undefined,
   db: Database,
   householdId: string,
-  body: ChatRequest,
-  ctx?: Context
+  body: ChatRequest
 ): Promise<Response> {
-  return handleChat(db, householdId, body, ctx);
+  return handleChat(ctx, db, householdId, body);
 }

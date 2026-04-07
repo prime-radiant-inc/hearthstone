@@ -4,9 +4,9 @@ import { docxToMarkdown } from "./pandoc";
 import { startSpan, SpanStatusCode, type Context } from "../tracing";
 
 export async function fetchDocAsMarkdown(
+  ctx: Context | undefined,
   refreshToken: string,
-  driveFileId: string,
-  ctx?: Context
+  driveFileId: string
 ): Promise<{ title: string; markdown: string }> {
   const span = startSpan("google_drive.fetch_doc", ctx);
   span.setAttribute("app.drive_file_id", driveFileId);
@@ -46,8 +46,8 @@ export interface DriveFileInfo {
 }
 
 export async function listDriveFiles(
-  refreshToken: string,
-  ctx?: Context
+  ctx: Context | undefined,
+  refreshToken: string
 ): Promise<DriveFileInfo[]> {
   const span = startSpan("google_drive.list_files", ctx);
   try {
