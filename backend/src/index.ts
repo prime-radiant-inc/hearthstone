@@ -1,3 +1,4 @@
+import { tracer, SpanStatusCode } from "./tracing"; // must be first import
 import { getDb } from "./db/connection";
 import { config } from "./config";
 import { authenticateOwner } from "./middleware/owner-auth";
@@ -90,6 +91,53 @@ function parseMultipart(body: Buffer, boundary: string): { title: string; file: 
   }
 
   return { title, file };
+}
+
+/** Match a logical route pattern for the given pathname (used for span attributes). */
+function matchRoute(method: string, pathname: string): string {
+  const staticRoutes = [
+    "POST /auth/register",
+    "POST /auth/register/verify",
+    "POST /auth/register/passkey",
+    "POST /auth/login/passkey/challenge",
+    "POST /auth/login/passkey/verify",
+    "POST /auth/login/email",
+    "POST /auth/login/email/verify",
+    "POST /auth/invite/redeem",
+    "POST /auth/pin/redeem",
+    "GET /me",
+    "POST /household",
+    "PATCH /household",
+    "GET /guests",
+    "POST /guests",
+    "GET /connections",
+    "POST /connections/google-drive",
+    "GET /connections/google-drive/callback",
+    "GET /documents",
+    "POST /documents",
+    "POST /documents/upload",
+    "POST /chat",
+    "GET /chat/suggestions",
+    "POST /chat/preview",
+  ];
+  const key = `${method} ${pathname}`;
+  if (staticRoutes.includes(key)) return pathname;
+
+  // Parameterized routes
+  const paramPatterns = [
+    "/guests/:id/reinvite",
+    "/guests/:id/revoke",
+    "/guests/:id",
+    "/connections/:id/files",
+    "/connections/:id",
+    "/documents/:id/refresh",
+    "/documents/:id/content",
+    "/documents/:id",
+  ];
+  for (const p of paramPatterns) {
+    if (parsePathParams(p, pathname)) return p;
+  }
+  return pathname;
 }
 
 async function handleRequest(req: Request): Promise<Response> {
@@ -356,5 +404,31 @@ async function handleRequest(req: Request): Promise<Response> {
     }
 }
 
-Bun.serve({ port: config.port, fetch: handleRequest });
+async function tracedFetch(req: Request): Promise<Response> {
+  const url = new URL(req.url);
+  const route = matchRoute(req.method, url.pathname);
+
+  return tracer.startActiveSpan(`${req.method} ${route}`, async (span) => {
+    span.setAttribute("http.method", req.method);
+    span.setAttribute("http.url", url.pathname);
+    span.setAttribute("http.route", route);
+
+    try {
+      const response = await handleRequest(req);
+      span.setAttribute("http.status_code", response.status);
+      if (response.status >= 500) {
+        span.setStatus({ code: SpanStatusCode.ERROR, message: `HTTP ${response.status}` });
+      }
+      return response;
+    } catch (err: any) {
+      span.setStatus({ code: SpanStatusCode.ERROR, message: err?.message || "unknown" });
+      span.recordException(err);
+      throw err;
+    } finally {
+      span.end();
+    }
+  });
+}
+
+Bun.serve({ port: config.port, fetch: tracedFetch });
 console.log(`Hearthstone backend running on http://localhost:${config.port}`);

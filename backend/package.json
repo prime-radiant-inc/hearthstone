@@ -24,6 +24,11 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@opentelemetry/api": "^1.9.1",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.214.0",
+    "@opentelemetry/resources": "^2.6.1",
+    "@opentelemetry/sdk-trace-base": "^2.6.1",
+    "@opentelemetry/semantic-conventions": "^1.40.0",
     "@simplewebauthn/server": "^13.3.0",
     "google-auth-library": "^10.6.2",
     "googleapis": "^171.4.0",
