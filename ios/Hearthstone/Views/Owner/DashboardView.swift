@@ -163,13 +163,15 @@ private struct HeroHeader: View {
                         }
                 }
 
-                Text("Welcome back, \(ownerName)")
-                    .font(.system(size: 14))
-                    .opacity(0.75)
+                if !ownerName.isEmpty {
+                    Text("Welcome back, \(ownerName)")
+                        .font(.system(size: 14))
+                        .opacity(0.75)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 24)
-            .padding(.top, 4)
+            .padding(.top, 20)
             .padding(.bottom, 28)
         }
         .foregroundColor(.white)
