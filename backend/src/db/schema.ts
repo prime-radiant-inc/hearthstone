@@ -98,4 +98,16 @@ export const SCHEMA_SQL = `
     chips TEXT NOT NULL,
     created_at TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS auth_pins (
+    id TEXT PRIMARY KEY,
+    pin TEXT UNIQUE NOT NULL,
+    role TEXT NOT NULL CHECK(role IN ('owner', 'guest')),
+    person_id TEXT NOT NULL REFERENCES persons(id),
+    household_id TEXT NOT NULL REFERENCES households(id),
+    guest_id TEXT REFERENCES guests(id),
+    expires_at TEXT NOT NULL,
+    used_at TEXT,
+    created_at TEXT NOT NULL
+  );
 `;
