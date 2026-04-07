@@ -1,21 +1,13 @@
 import type { Database } from "bun:sqlite";
 import { redeemPin } from "../services/pins";
+import { generateToken } from "../services/tokens";
 import { generateId } from "../utils";
-
-function generateToken(prefix: string): string {
-  const bytes = new Uint8Array(32);
-  crypto.getRandomValues(bytes);
-  const base64 = btoa(String.fromCharCode(...bytes))
-    .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-  return `${prefix}${base64}`;
-}
 
 async function issueOwnerJwt(personId: string, householdId: string, jwtSecret: string): Promise<string> {
   const { SignJWT } = await import("jose");
   const secret = new TextEncoder().encode(jwtSecret);
-  return new SignJWT({ sub: personId, household_id: householdId })
+  return new SignJWT({ personId, householdId })
     .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
     .setExpirationTime("30d")
     .sign(secret);
 }

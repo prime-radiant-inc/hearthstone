@@ -1,6 +1,6 @@
 // src/routes/guests.ts
 import type { Database } from "bun:sqlite";
-import { generateInviteToken, revokeGuestTokens } from "../services/tokens";
+import { revokeGuestTokens } from "../services/tokens";
 import { createAuthPin } from "../services/pins";
 import { config } from "../config";
 import { generateId } from "../utils";

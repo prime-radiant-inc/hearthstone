@@ -2,7 +2,7 @@ import type { Database } from "bun:sqlite";
 import { randomBytes } from "crypto";
 import { generateId } from "../utils";
 
-function generateToken(prefix: string): string {
+export function generateToken(prefix: string): string {
   return `${prefix}${randomBytes(32).toString("base64url")}`;
 }
 

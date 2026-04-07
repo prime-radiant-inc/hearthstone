@@ -103,14 +103,9 @@ The app opens to a PIN entry screen. Type the six-digit owner PIN from the previ
 
 ### Running on a Physical Device
 
-To run on your iPhone, you need an Apple Developer account (free or paid). In Xcode:
+To run on your iPhone, you need an Apple Developer account (free or paid). In Xcode, select the Hearthstone target, choose your team under Signing & Capabilities, connect your device, and run.
 
-1. Select the Hearthstone target
-2. Under Signing & Capabilities, choose your team
-3. Change the bundle identifier to something unique (e.g. `com.yourname.hearthstone`)
-4. Connect your device and run
-
-The simulator connects to `localhost:3000` automatically. For a physical device, replace `localhost` with your Mac's local IP address in `ios/Hearthstone/Services/APIClient.swift` — both devices must be on the same network.
+Debug builds connect to `localhost:3000`, which works on the simulator but not on a phone. For local testing on a physical device, temporarily change the debug URL in `APIClient.swift` to your Mac's local IP (both devices must be on the same WiFi network). For production testing, build with Release configuration — it connects to the Fly deployment URL.
 
 ## Google Drive Setup
 
@@ -179,33 +174,94 @@ bun test
 
 Tests cover route handlers, services, database schema, and API contract conformance.
 
-## Sharing the App
+## Deploying to Fly.io
 
-You have three options for getting Hearthstone onto other people's phones.
+The backend runs on a single [Fly.io](https://fly.io) machine with a persistent volume for SQLite. No Postgres, no replication.
 
-### Option 1: Build on Their Mac
+### Prerequisites
 
-If your friend is technical, they clone the repo and build it themselves. They run their own backend, create their own household, and manage their own Google Cloud credentials. This is the full self-hosted path.
+- A Fly.io account (free tier works)
+- The [Fly CLI](https://fly.io/docs/flyctl/install/) installed and authenticated (`fly auth login`)
 
-### Option 2: TestFlight (Recommended for Friends & Family)
+### Deploy
 
-TestFlight lets you distribute a build to up to 10,000 testers without going through App Store review. You need a paid Apple Developer account ($99/year).
+From the `backend/` directory:
 
-1. In Xcode, set the bundle identifier to something you own (e.g. `com.yourname.hearthstone`)
-2. Archive the app: Product > Archive
-3. Upload to App Store Connect (Xcode walks you through this)
-4. In [App Store Connect](https://appstoreconnect.apple.com), create an app record and add your build to a TestFlight group
-5. Add testers by email — they get an invite to install via the TestFlight app
+```bash
+fly launch --no-deploy
+```
 
-The app still needs a backend to talk to. Your testers either connect to your server (update `APIClient.swift` with your server's public URL before archiving) or run their own.
+Accept the defaults. This creates the app from the existing `fly.toml`.
 
-### Option 3: Ad Hoc Distribution
+Create a 1GB persistent volume for the database:
 
-You can export a signed `.ipa` and send it directly, but each tester's device UDID must be registered in your Apple Developer account. TestFlight is easier for more than one or two people.
+```bash
+fly volumes create hearthstone_data --size 1 --region sjc
+```
 
-### What About the Backend?
+Set your secrets:
 
-The iOS app is just a client. Each household needs a running backend with an OpenAI key and (optionally) Google Drive credentials. For a small group of friends, you can run one server on [Fly.io](https://fly.io) and create a household for each person. Or each person runs their own.
+```bash
+fly secrets set \
+  OPENAI_API_KEY="sk-..." \
+  JWT_SECRET="$(openssl rand -base64 32)" \
+  GOOGLE_CLIENT_ID="your-client-id" \
+  GOOGLE_CLIENT_SECRET="your-client-secret" \
+  APP_BASE_URL="https://your-app-name.fly.dev"
+```
+
+Deploy:
+
+```bash
+fly deploy
+```
+
+Verify the server is running:
+
+```bash
+curl https://your-app-name.fly.dev/
+# {"message":"Not found"}  ← this is correct (404, but the server is up)
+```
+
+### Create a household in production
+
+```bash
+fly ssh console -C "sh -c 'cd /app && bun run create-household'"
+```
+
+### Google OAuth in production
+
+Add your production callback URL in the Google Cloud Console under Credentials:
+
+```
+https://your-app-name.fly.dev/connections/google-drive/callback
+```
+
+Keep the `localhost:3000` one for local development.
+
+### How it's configured
+
+The `fly.toml` sets `auto_stop_machines = "suspend"` — the machine sleeps when idle and wakes on the first request (~2-3 seconds cold start). Fine for a household app. The database lives on a persistent NVMe volume at `/data/hearthstone.db`, which survives deploys and restarts.
+
+## Distributing the iOS App
+
+The iOS app is a client. It needs a running backend to talk to.
+
+`APIClient.swift` uses a compile-time flag: debug builds connect to `localhost:3000`, release builds connect to the production URL in the `#else` branch. Update that URL to your Fly deployment before archiving.
+
+### TestFlight (recommended)
+
+TestFlight distributes builds to up to 100 internal testers without App Store review. You need a paid Apple Developer Program membership ($99/year).
+
+The process: register a bundle ID in the Apple Developer portal, create an app in App Store Connect, archive the build in Xcode, and upload it. Add testers by Apple ID email — they install via the TestFlight app on their phone.
+
+Apple's UI for this changes regularly. Search "TestFlight internal testing" for current steps.
+
+### Other options
+
+**Build locally:** Technical users can clone the repo, open the Xcode project, and build to their own device. They run their own backend or point at yours.
+
+**Ad hoc:** Export a signed `.ipa` from Xcode and send it directly. Each device UDID must be registered in your developer account. TestFlight is easier for more than two people.
 
 ## Architecture Notes
 

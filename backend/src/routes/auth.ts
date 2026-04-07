@@ -4,7 +4,6 @@ import { SignJWT } from "jose";
 import { redeemInviteToken } from "../services/tokens";
 import { createVerification, verifyCode } from "../services/email-verification";
 import {
-  getRegistrationOptions,
   verifyRegistration,
   getAuthenticationOptions,
   verifyAuthentication,

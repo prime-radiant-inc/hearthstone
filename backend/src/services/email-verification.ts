@@ -22,9 +22,6 @@ export function createVerification(
     "INSERT INTO email_verifications (id, email, code, purpose, expires_at, created_at) VALUES (?, ?, ?, ?, ?, ?)"
   ).run(generateId(), email, code, purpose, expiresAt.toISOString(), now.toISOString());
 
-  // Console-based delivery for now (Resend integration later)
-  console.log(`[EMAIL VERIFICATION] ${email} code=${code} purpose=${purpose}`);
-
   return { code };
 }
 

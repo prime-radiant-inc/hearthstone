@@ -92,8 +92,6 @@ function parseMultipart(body: Buffer, boundary: string): { title: string; file: 
   return { title, file };
 }
 
-import { createServer } from "node:http";
-
 async function handleRequest(req: Request): Promise<Response> {
     const url = new URL(req.url);
     const { pathname } = url;
@@ -347,40 +345,5 @@ async function handleRequest(req: Request): Promise<Response> {
     }
 }
 
-// Node HTTP server adapter — converts between Node streams and Web API Request/Response
-const server = createServer(async (nodeReq, nodeRes) => {
-  const url = `http://localhost:${config.port}${nodeReq.url}`;
-  const body = await new Promise<Buffer>((resolve) => {
-    const chunks: Buffer[] = [];
-    nodeReq.on("data", (chunk: Buffer) => chunks.push(chunk));
-    nodeReq.on("end", () => resolve(Buffer.concat(chunks)));
-  });
-
-  const webReq = new Request(url, {
-    method: nodeReq.method,
-    headers: nodeReq.headers as Record<string, string>,
-    body: ["GET", "HEAD"].includes(nodeReq.method!) ? undefined : body.length > 0 ? body : undefined,
-  });
-
-  const webRes = await handleRequest(webReq);
-
-  nodeRes.writeHead(webRes.status, Object.fromEntries(webRes.headers.entries()));
-
-  if (webRes.body) {
-    const reader = webRes.body.getReader();
-    const pump = async () => {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) { nodeRes.end(); return; }
-        nodeRes.write(value);
-      }
-    };
-    pump();
-  } else {
-    nodeRes.end();
-  }
-});
-
-server.listen(config.port, () => {
-  console.log(`Hearthstone backend running on http://localhost:${config.port}`);
-});
+Bun.serve({ port: config.port, fetch: handleRequest });
+console.log(`Hearthstone backend running on http://localhost:${config.port}`);

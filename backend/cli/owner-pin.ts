@@ -1,37 +1,8 @@
 #!/usr/bin/env bun
-import "../src/db/setup-sqlite";
-import { Database } from "bun:sqlite";
-import * as sqliteVec from "sqlite-vec";
-import { resolve } from "node:path";
-import { readFileSync } from "node:fs";
+import { getDb } from "../src/db/connection";
 import { createAuthPin } from "../src/services/pins";
-import { runMigrations } from "../src/db/migrations";
 
-// Load .env
-const envPath = resolve(import.meta.dirname, "..", ".env");
-try {
-  const envContent = readFileSync(envPath, "utf-8");
-  for (const line of envContent.split("\n")) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#")) continue;
-    const eq = trimmed.indexOf("=");
-    if (eq === -1) continue;
-    const key = trimmed.slice(0, eq);
-    const val = trimmed.slice(eq + 1);
-    if (!process.env[key]) process.env[key] = val;
-  }
-} catch {}
-
-const dbPath = resolve(import.meta.dirname, "..", process.env.DATABASE_URL || "./hearthstone.db");
-const db = new Database(dbPath);
-sqliteVec.load(db);
-runMigrations(db);
-db.run(`
-  CREATE VIRTUAL TABLE IF NOT EXISTS chunk_embeddings USING vec0(
-    chunk_id TEXT PRIMARY KEY,
-    embedding float[1536]
-  );
-`);
+const db = getDb();
 
 const householdId = process.argv[2];
 if (!householdId) {

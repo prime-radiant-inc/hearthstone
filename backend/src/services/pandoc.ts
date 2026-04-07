@@ -62,9 +62,7 @@ function promoteImpliedHeadings(markdown: string): string {
     if (headingText && headingText.length < 80) {
       // Check context: is this a standalone line? (not part of a paragraph)
       const prevLine = i > 0 ? lines[i - 1].trim() : "";
-      const nextLine = i < lines.length - 1 ? lines[i + 1].trim() : "";
       const isStandalone = prevLine === "" || i === 0;
-      const isFollowedByContent = nextLine === "" || nextLine.startsWith("-") || nextLine.startsWith("*") || nextLine.startsWith("<");
 
       if (isStandalone) {
         result.push(`## ${headingText}`);
