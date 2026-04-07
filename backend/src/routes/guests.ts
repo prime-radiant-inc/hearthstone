@@ -1,6 +1,7 @@
 // src/routes/guests.ts
 import type { Database } from "bun:sqlite";
 import { generateInviteToken, revokeGuestTokens } from "../services/tokens";
+import { createAuthPin } from "../services/pins";
 import { config } from "../config";
 import { generateId } from "../utils";
 
@@ -18,33 +19,35 @@ export function handleListGuests(
 export async function handleCreateGuest(
   db: Database,
   householdId: string,
-  body: { name: string | null; email: string | null; phone: string | null }
+  body: { name: string | null; email: string | null }
 ): Promise<{ status: number; body: any }> {
   if (!body.name || !body.name.trim()) {
     return { status: 422, body: { message: "Name is required" } };
   }
-  if (!body.email && !body.phone) {
-    return { status: 422, body: { message: "Email or phone number is required" } };
-  }
 
   const guestId = generateId();
-  const contact = body.email || body.phone!;
-  const contactType = body.email ? "email" : "phone";
+  const contact = body.email?.trim() || "";
+  const contactType = "email";
   const now = new Date().toISOString();
 
   db.prepare(
     "INSERT INTO guests (id, household_id, name, contact, contact_type, status, created_at) VALUES (?, ?, ?, ?, ?, 'pending', ?)"
   ).run(guestId, householdId, body.name.trim(), contact, contactType, now);
 
-  const invite = generateInviteToken(db, householdId, guestId);
-  const magicLink = `${config.appBaseUrl}/join/${invite.token}`;
+  const household = db.prepare("SELECT owner_id FROM households WHERE id = ?").get(householdId) as any;
+  const { pin, expiresAt } = createAuthPin(db, {
+    role: "guest",
+    personId: household.owner_id,
+    householdId,
+    guestId,
+  });
 
   return {
     status: 200,
     body: {
       guest: { id: guestId, name: body.name.trim(), status: "pending" },
-      magic_link: magicLink,
-      invite_token: invite.token,
+      pin,
+      expires_at: expiresAt,
     },
   };
 }
@@ -82,17 +85,21 @@ export function handleReinviteGuest(
     return { status: 404, body: { message: "Guest not found" } };
   }
 
-  // For revoked guests, reactivate them
   if (guest.status === "revoked") {
     db.prepare("UPDATE guests SET status = 'pending' WHERE id = ?").run(guestId);
   }
 
-  const invite = generateInviteToken(db, householdId, guestId);
-  const magicLink = `${config.appBaseUrl}/join/${invite.token}`;
+  const household = db.prepare("SELECT owner_id FROM households WHERE id = ?").get(householdId) as any;
+  const { pin, expiresAt } = createAuthPin(db, {
+    role: "guest",
+    personId: household.owner_id,
+    householdId,
+    guestId,
+  });
 
   return {
     status: 200,
-    body: { magic_link: magicLink, invite_token: invite.token },
+    body: { pin, expires_at: expiresAt },
   };
 }
 

@@ -34,7 +34,7 @@ export const config = {
   openaiApiKey: required("OPENAI_API_KEY"),
   embeddingProvider: optional("EMBEDDING_PROVIDER", "openai"),
   chatProvider: optional("CHAT_PROVIDER", "openai"),
-  resendApiKey: required("RESEND_API_KEY"),
+  resendApiKey: optional("RESEND_API_KEY", ""),
   jwtSecret: required("JWT_SECRET"),
   appBaseUrl: optional("APP_BASE_URL", "https://hearthstone.app"),
   port: parseInt(optional("PORT", "3000"), 10),
