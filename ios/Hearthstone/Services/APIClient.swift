@@ -71,7 +71,7 @@ final class APIClient {
     #if DEBUG
     private let baseURL = "http://localhost:3000"
     #else
-    private let baseURL = "https://api.hearthstone.app"
+    private let baseURL = "https://hearthstone-mhat.fly.dev"
     #endif
 
     private let session = URLSession.shared
