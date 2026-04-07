@@ -193,8 +193,19 @@ final class APIClient {
 
     struct InviteRedeemResponse: Decodable {
         let sessionToken: String
-        let guest: Guest
+        let guest: InviteGuest
         let householdName: String
+
+        struct InviteGuest: Decodable {
+            let id: String
+            let name: String
+            let householdId: String
+
+            enum CodingKeys: String, CodingKey {
+                case id, name
+                case householdId = "household_id"
+            }
+        }
 
         enum CodingKeys: String, CodingKey {
             case sessionToken = "session_token"
@@ -204,9 +215,14 @@ final class APIClient {
     }
 
     func redeemInvite(token: String) async throws -> InviteRedeemResponse {
-        struct Body: Encodable { let token: String }
+        struct Body: Encodable {
+            let inviteToken: String
+            enum CodingKeys: String, CodingKey {
+                case inviteToken = "invite_token"
+            }
+        }
         return try await call(method: "POST", path: "/auth/invite/redeem",
-                              body: Body(token: token))
+                              body: Body(inviteToken: token))
     }
 
     // MARK: - Me
