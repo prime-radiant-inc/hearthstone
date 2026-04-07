@@ -15,6 +15,18 @@ struct HearthstoneApp: App {
                     LoadingView()
                 case .welcome:
                     AuthFlow(router: router)
+                case .pinEntry:
+                    PINEntryView(
+                        onOwnerAuth: { token, person, household in
+                            KeychainService.shared.ownerToken = token
+                            router.state = .ownerDashboard(householdName: household.name, ownerName: person.email)
+                        },
+                        onGuestAuth: { token, householdName in
+                            KeychainService.shared.guestToken = token
+                            UserDefaults.standard.set(householdName, forKey: "guestHouseholdName")
+                            router.state = .guestChat(householdName: householdName)
+                        }
+                    )
                 case .needsHousehold:
                     HouseholdSetupFlow(router: router)
                 case .ownerDashboard(let householdName, let ownerName):
@@ -51,6 +63,7 @@ final class AppRouter: ObservableObject {
     enum AppState {
         case loading
         case welcome
+        case pinEntry
         case needsHousehold(email: String)
         case ownerDashboard(householdName: String, ownerName: String)
         case guestChat(householdName: String)
@@ -84,14 +97,14 @@ final class AppRouter: ObservableObject {
                 } catch {
                     // Token invalid — clear and start fresh
                     KeychainService.shared.ownerToken = nil
-                    state = .welcome
+                    state = .pinEntry
                 }
             }
         } else if KeychainService.shared.guestToken != nil {
             let name = UserDefaults.standard.string(forKey: "guestHouseholdName") ?? ""
             state = .guestChat(householdName: name)
         } else {
-            state = .welcome
+            state = .pinEntry
         }
     }
 
@@ -132,7 +145,8 @@ final class AppRouter: ObservableObject {
 
     func signOut() {
         KeychainService.shared.clearAll()
-        state = .welcome
+        UserDefaults.standard.removeObject(forKey: "guestHouseholdName")
+        state = .pinEntry
     }
 }
 
