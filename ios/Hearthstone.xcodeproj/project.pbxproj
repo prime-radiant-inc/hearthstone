@@ -52,6 +52,7 @@
 		AA01000000000000000001B1 /* HouseSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01000000000000000001A1 /* HouseSession.swift */; };
 		AA02000000000000000002B1 /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA02000000000000000002A1 /* SessionStore.swift */; };
 		AA03000000000000000003B1 /* SidebarOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA03000000000000000003A1 /* SidebarOverlay.swift */; };
+		AA04000000000000000004B1 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA04000000000000000004A1 /* SidebarView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -101,6 +102,7 @@
 		AA01000000000000000001A1 /* HouseSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseSession.swift; sourceTree = "<group>"; };
 		AA02000000000000000002A1 /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
 		AA03000000000000000003A1 /* SidebarOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarOverlay.swift; sourceTree = "<group>"; };
+		AA04000000000000000004A1 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -192,6 +194,7 @@
 			isa = PBXGroup;
 			children = (
 				AA03000000000000000003A1 /* SidebarOverlay.swift */,
+				AA04000000000000000004A1 /* SidebarView.swift */,
 			);
 			path = Sidebar;
 			sourceTree = "<group>";
@@ -361,6 +364,7 @@
 				5E6D6335D619725F1A7B0005 /* WelcomeView.swift in Sources */,
 				B2C3D4E5F60123456789AB01 /* PINEntryView.swift in Sources */,
 				AA03000000000000000003B1 /* SidebarOverlay.swift in Sources */,
+				AA04000000000000000004B1 /* SidebarView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
