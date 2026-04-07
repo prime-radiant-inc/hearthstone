@@ -423,7 +423,7 @@ final class APIClient {
 
     // MARK: - Chat endpoints
 
-    func getSuggestions() async throws -> SuggestionsResponse {
-        return try await call(method: "GET", path: "/chat/suggestions", auth: .guest)
+    func getSuggestions(asOwner: Bool = false) async throws -> SuggestionsResponse {
+        return try await call(method: "GET", path: "/chat/suggestions", auth: asOwner ? .owner : .guest)
     }
 }

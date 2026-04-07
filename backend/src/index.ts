@@ -321,8 +321,19 @@ async function handleRequest(req: Request): Promise<Response> {
       }
 
       if (method === "GET" && pathname === "/chat/suggestions") {
-        const guest = authenticateGuest(getDb(), req.headers.get("authorization"));
-        const result = handleGetSuggestions(getDb(), guest.householdId);
+        let householdId: string;
+        try {
+          const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+          householdId = owner.householdId;
+        } catch {
+          try {
+            const guest = authenticateGuest(getDb(), req.headers.get("authorization"));
+            householdId = guest.householdId;
+          } catch {
+            return json({ message: "Unauthorized" }, 401);
+          }
+        }
+        const result = handleGetSuggestions(getDb(), householdId);
         return json(result.body, result.status);
       }
 
