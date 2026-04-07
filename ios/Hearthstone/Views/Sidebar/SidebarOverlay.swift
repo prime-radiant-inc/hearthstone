@@ -31,12 +31,12 @@ struct SidebarOverlay<Content: View>: View {
                 .offset(x: sidebarOffset - sidebarWidth)
             }
             .gesture(
-                DragGesture(minimumDistance: 20)
+                DragGesture(minimumDistance: 12)
                     .onChanged { value in
                         if isOpen {
                             let drag = min(0, value.translation.width)
                             dragOffset = sidebarWidth + drag
-                        } else if value.startLocation.x < 30 {
+                        } else if value.startLocation.x < 50 {
                             dragOffset = max(0, min(sidebarWidth, value.translation.width))
                         }
                     }
