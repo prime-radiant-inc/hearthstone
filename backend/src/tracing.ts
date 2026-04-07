@@ -10,10 +10,10 @@ if (ENDPOINT) {
   // Dynamic imports keep the SDK out of the module graph when tracing is off.
   const { BasicTracerProvider, BatchSpanProcessor } = await import("@opentelemetry/sdk-trace-base");
   const { OTLPTraceExporter } = await import("@opentelemetry/exporter-trace-otlp-http");
-  const { Resource } = await import("@opentelemetry/resources");
+  const { resourceFromAttributes } = await import("@opentelemetry/resources");
   const { ATTR_SERVICE_NAME } = await import("@opentelemetry/semantic-conventions");
 
-  const resource = new Resource({
+  const resource = resourceFromAttributes({
     [ATTR_SERVICE_NAME]: process.env.OTEL_SERVICE_NAME || "hearthstone-backend",
   });
 
