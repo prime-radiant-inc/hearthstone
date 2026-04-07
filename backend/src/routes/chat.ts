@@ -21,7 +21,10 @@ export async function handleChat(
   const results = searchChunks(db, householdId, queryVec, 5);
 
   const chunkContext = results
-    .map((r, i) => `[${i + 1}] (from "${r.documentTitle}")\n${r.text}`)
+    .map((r, i) => {
+      const header = `[${i + 1}] (from "${r.documentTitle}"${r.heading ? ` — ${r.heading}` : ""})`;
+      return `${header}\n${r.text}`;
+    })
     .join("\n\n---\n\n");
 
   const messages: ChatMessage[] = [

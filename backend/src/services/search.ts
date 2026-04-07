@@ -5,6 +5,7 @@ export interface SearchResult {
   documentId: string;
   documentTitle: string;
   chunkIndex: number;
+  heading: string;
   text: string;
   householdId: string;
   distance: number;
@@ -28,6 +29,7 @@ export function searchChunks(
         c.document_id,
         c.household_id,
         c.chunk_index,
+        c.heading,
         c.text,
         d.title       AS document_title
       FROM (
@@ -56,6 +58,7 @@ export function searchChunks(
     documentId: r.document_id,
     documentTitle: r.document_title,
     chunkIndex: r.chunk_index,
+    heading: r.heading || "",
     text: r.text,
     householdId: r.household_id,
     distance: r.distance,

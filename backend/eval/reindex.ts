@@ -9,7 +9,7 @@ import * as sqliteVec from "sqlite-vec";
 import OpenAI from "openai";
 import { resolve } from "node:path";
 import { readFileSync } from "node:fs";
-import { chunkMarkdown } from "../src/services/chunker";
+import { chunkMarkdown, buildEmbeddingText } from "../src/services/chunker";
 
 // --- Env loading ---
 const envPath = resolve(import.meta.dirname, "..", ".env");
@@ -45,6 +45,12 @@ function generateId(): string {
 }
 
 async function main() {
+  // Ensure heading column exists
+  const columns = db.prepare("PRAGMA table_info(chunks)").all() as any[];
+  if (!columns.some((c: any) => c.name === "heading")) {
+    db.exec("ALTER TABLE chunks ADD COLUMN heading TEXT NOT NULL DEFAULT ''");
+  }
+
   const docs = db.prepare("SELECT id, title, markdown FROM documents ORDER BY title").all() as any[];
   console.log(`Re-indexing ${docs.length} documents...\n`);
 
@@ -56,33 +62,34 @@ async function main() {
     }
     db.prepare("DELETE FROM chunks WHERE document_id = ?").run(doc.id);
 
-    // Generate new chunks with document title
-    const texts = chunkMarkdown(doc.markdown, doc.title);
-    console.log(`  ${doc.title}: ${oldChunks.length} chunks → ${texts.length} chunks`);
+    // Generate new chunks
+    const chunks = chunkMarkdown(doc.markdown);
+    console.log(`  ${doc.title}: ${oldChunks.length} chunks → ${chunks.length} chunks`);
 
-    if (texts.length === 0) continue;
+    if (chunks.length === 0) continue;
 
-    // Preview chunk sizes
-    for (let i = 0; i < texts.length; i++) {
-      console.log(`    chunk ${i}: ${texts[i].length} chars`);
+    // Build embedding texts and preview chunk sizes
+    const embeddingTexts = chunks.map(c => buildEmbeddingText(c, doc.title));
+    for (let i = 0; i < chunks.length; i++) {
+      console.log(`    chunk ${i}: ${chunks[i].text.length} chars (heading: "${chunks[i].heading}")`);
     }
 
     // Embed and store
-    const embeddings = await embedBatch(texts);
+    const embeddings = await embedBatch(embeddingTexts);
     const now = new Date().toISOString();
     const hid = (db.prepare("SELECT id FROM households LIMIT 1").get() as any).id;
 
     const insertChunk = db.prepare(
-      "INSERT INTO chunks (id, document_id, household_id, chunk_index, text, created_at) VALUES (?, ?, ?, ?, ?, ?)"
+      "INSERT INTO chunks (id, document_id, household_id, chunk_index, heading, text, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
     );
     const insertEmbedding = db.prepare(
       "INSERT INTO chunk_embeddings (chunk_id, embedding) VALUES (?, ?)"
     );
 
     const transaction = db.transaction(() => {
-      for (let i = 0; i < texts.length; i++) {
+      for (let i = 0; i < chunks.length; i++) {
         const chunkId = generateId();
-        insertChunk.run(chunkId, doc.id, hid, i, texts[i], now);
+        insertChunk.run(chunkId, doc.id, hid, i, chunks[i].heading, chunks[i].text, now);
         const vec = new Float32Array(embeddings[i]);
         insertEmbedding.run(chunkId, Buffer.from(vec.buffer));
       }
@@ -91,7 +98,7 @@ async function main() {
 
     // Update document
     db.prepare("UPDATE documents SET chunk_count = ?, last_synced = ? WHERE id = ?")
-      .run(texts.length, now, doc.id);
+      .run(chunks.length, now, doc.id);
 
     console.log();
   }

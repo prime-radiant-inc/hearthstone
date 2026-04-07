@@ -87,6 +87,7 @@ export const SCHEMA_SQL = `
     document_id TEXT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
     household_id TEXT NOT NULL REFERENCES households(id),
     chunk_index INTEGER NOT NULL,
+    heading TEXT NOT NULL DEFAULT '',
     text TEXT NOT NULL,
     created_at TEXT NOT NULL
   );

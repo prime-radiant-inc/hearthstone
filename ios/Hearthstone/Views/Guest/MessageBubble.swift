@@ -21,7 +21,7 @@ struct MessageBubble: View {
     }
 
     private var bubbleContent: some View {
-        Text(message.content)
+        Text(LocalizedStringKey(message.content))
             .font(.system(size: 15))
             .lineSpacing(4)
             .foregroundColor(message.role == .user ? .white : Theme.charcoal)

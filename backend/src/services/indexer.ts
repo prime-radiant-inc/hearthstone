@@ -1,5 +1,5 @@
 import type Database from "better-sqlite3";
-import { chunkMarkdown } from "./chunker";
+import { chunkMarkdown, buildEmbeddingText } from "./chunker";
 import { generateId } from "../utils";
 
 interface IndexParams {
@@ -71,23 +71,25 @@ async function storeChunks(
   embedBatch: (texts: string[]) => Promise<number[][]>,
   title?: string,
 ): Promise<void> {
-  const texts = chunkMarkdown(markdown, title);
-  if (texts.length === 0) return;
+  const chunks = chunkMarkdown(markdown);
+  if (chunks.length === 0) return;
 
-  const embeddings = await embedBatch(texts);
+  // Build decorated text for embeddings only — clean text is stored separately
+  const embeddingTexts = chunks.map(c => buildEmbeddingText(c, title || ""));
+  const embeddings = await embedBatch(embeddingTexts);
   const now = new Date().toISOString();
 
   const insertChunk = db.prepare(
-    "INSERT INTO chunks (id, document_id, household_id, chunk_index, text, created_at) VALUES (?, ?, ?, ?, ?, ?)"
+    "INSERT INTO chunks (id, document_id, household_id, chunk_index, heading, text, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
   );
   const insertEmbedding = db.prepare(
     "INSERT INTO chunk_embeddings (chunk_id, embedding) VALUES (?, ?)"
   );
 
   const transaction = db.transaction(() => {
-    for (let i = 0; i < texts.length; i++) {
+    for (let i = 0; i < chunks.length; i++) {
       const chunkId = generateId();
-      insertChunk.run(chunkId, documentId, householdId, i, texts[i], now);
+      insertChunk.run(chunkId, documentId, householdId, i, chunks[i].heading, chunks[i].text, now);
       const vec = new Float32Array(embeddings[i]);
       insertEmbedding.run(chunkId, Buffer.from(vec.buffer));
     }
