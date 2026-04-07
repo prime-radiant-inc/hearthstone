@@ -2,8 +2,8 @@
 import { describe, it, expect, beforeEach } from "bun:test";
 import { Database } from "bun:sqlite";
 import { runMigrations } from "../src/db/migrations";
-import { handleInviteRedeem } from "../src/routes/auth";
 import { handleCreateGuest, handleListGuests, handleRevokeGuest, handleDeleteGuest } from "../src/routes/guests";
+import { handlePinRedeem } from "../src/routes/pin-auth";
 import { handleUpdateHousehold } from "../src/routes/household";
 import { handleGetSuggestions } from "../src/routes/chat";
 import { handleListDocuments, handleDeleteDocument, handleGetContent } from "../src/routes/documents";
@@ -22,25 +22,25 @@ describe("integration: full guest lifecycle", () => {
     );
   });
 
-  it("owner creates guest → guest redeems invite → owner revokes → owner deletes", async () => {
+  it("owner creates guest → guest redeems PIN → owner revokes → owner deletes", async () => {
     // 1. Owner creates guest
     const created = await handleCreateGuest(db, "h1", {
       name: "Maria",
       email: "maria@test.com",
-      phone: null,
     });
     expect(created.status).toBe(200);
     const guestId = created.body.guest.id;
-    const inviteToken = created.body.invite_token;
+    const pin = created.body.pin;
 
     // 2. Guest list shows pending
     const list1 = handleListGuests(db, "h1");
     expect(list1.body.guests[0].status).toBe("pending");
 
-    // 3. Guest redeems invite
-    const redeemed = await handleInviteRedeem(db, { invite_token: inviteToken });
+    // 3. Guest redeems PIN
+    const redeemed = await handlePinRedeem(db, { pin }, "test-secret");
     expect(redeemed.status).toBe(200);
-    expect(redeemed.body.session_token).toMatch(/^hss_/);
+    expect(redeemed.body.token).toBeTruthy();
+    expect(redeemed.body.role).toBe("guest");
 
     // 4. Guest is now active
     const list2 = handleListGuests(db, "h1");

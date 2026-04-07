@@ -3,6 +3,7 @@ import { describe, it, expect, beforeEach } from "bun:test";
 import { Database } from "bun:sqlite";
 import { runMigrations } from "../../src/db/migrations";
 import { handleListGuests, handleCreateGuest, handleRevokeGuest, handleDeleteGuest } from "../../src/routes/guests";
+import { redeemPin } from "../../src/services/pins";
 
 describe("guest routes", () => {
   let db: Database;
@@ -19,33 +20,22 @@ describe("guest routes", () => {
   });
 
   describe("POST /guests", () => {
-    it("creates a guest with pending status and returns magic link", async () => {
+    it("creates a guest with pending status and returns pin", async () => {
       const result = await handleCreateGuest(db, "h1", {
         name: "Maria",
         email: "maria@test.com",
-        phone: null,
       });
       expect(result.status).toBe(200);
       expect(result.body.guest.name).toBe("Maria");
       expect(result.body.guest.status).toBe("pending");
-      expect(result.body.magic_link).toContain("hsi_");
-      expect(result.body.invite_token).toMatch(/^hsi_/);
+      expect(result.body.pin).toMatch(/^\d{6}$/);
+      expect(result.body.expires_at).toBeTruthy();
     });
 
     it("returns 422 when name is missing", async () => {
       const result = await handleCreateGuest(db, "h1", {
         name: "",
         email: "maria@test.com",
-        phone: null,
-      });
-      expect(result.status).toBe(422);
-    });
-
-    it("returns 422 when neither email nor phone provided", async () => {
-      const result = await handleCreateGuest(db, "h1", {
-        name: "Maria",
-        email: null,
-        phone: null,
       });
       expect(result.status).toBe(422);
     });
@@ -53,8 +43,8 @@ describe("guest routes", () => {
 
   describe("GET /guests", () => {
     it("lists all guests for the household", async () => {
-      await handleCreateGuest(db, "h1", { name: "Maria", email: "maria@test.com", phone: null });
-      await handleCreateGuest(db, "h1", { name: "James", email: "james@test.com", phone: null });
+      await handleCreateGuest(db, "h1", { name: "Maria", email: "maria@test.com" });
+      await handleCreateGuest(db, "h1", { name: "James", email: "james@test.com" });
       const result = handleListGuests(db, "h1");
       expect(result.body.guests).toHaveLength(2);
     });
@@ -62,11 +52,11 @@ describe("guest routes", () => {
 
   describe("POST /guests/:id/revoke", () => {
     it("revokes an active guest", async () => {
-      const created = await handleCreateGuest(db, "h1", { name: "Maria", email: "maria@test.com", phone: null });
+      const created = await handleCreateGuest(db, "h1", { name: "Maria", email: "maria@test.com" });
       const guestId = created.body.guest.id;
 
-      const { redeemInviteToken } = await import("../../src/services/tokens");
-      redeemInviteToken(db, created.body.invite_token);
+      // Activate the guest by redeeming the PIN
+      redeemPin(db, created.body.pin);
 
       const result = handleRevokeGuest(db, "h1", guestId);
       expect(result.status).toBe(200);
@@ -74,10 +64,9 @@ describe("guest routes", () => {
     });
 
     it("returns 409 for already-revoked guest", async () => {
-      const created = await handleCreateGuest(db, "h1", { name: "Maria", email: "maria@test.com", phone: null });
+      const created = await handleCreateGuest(db, "h1", { name: "Maria", email: "maria@test.com" });
       const guestId = created.body.guest.id;
-      const { redeemInviteToken } = await import("../../src/services/tokens");
-      redeemInviteToken(db, created.body.invite_token);
+      redeemPin(db, created.body.pin);
 
       handleRevokeGuest(db, "h1", guestId);
       const result = handleRevokeGuest(db, "h1", guestId);
@@ -87,10 +76,9 @@ describe("guest routes", () => {
 
   describe("DELETE /guests/:id", () => {
     it("deletes a revoked guest", async () => {
-      const created = await handleCreateGuest(db, "h1", { name: "Maria", email: "maria@test.com", phone: null });
+      const created = await handleCreateGuest(db, "h1", { name: "Maria", email: "maria@test.com" });
       const guestId = created.body.guest.id;
-      const { redeemInviteToken } = await import("../../src/services/tokens");
-      redeemInviteToken(db, created.body.invite_token);
+      redeemPin(db, created.body.pin);
       handleRevokeGuest(db, "h1", guestId);
 
       const result = handleDeleteGuest(db, "h1", guestId);
@@ -98,10 +86,9 @@ describe("guest routes", () => {
     });
 
     it("returns 409 if guest is still active", async () => {
-      const created = await handleCreateGuest(db, "h1", { name: "Maria", email: "maria@test.com", phone: null });
+      const created = await handleCreateGuest(db, "h1", { name: "Maria", email: "maria@test.com" });
       const guestId = created.body.guest.id;
-      const { redeemInviteToken } = await import("../../src/services/tokens");
-      redeemInviteToken(db, created.body.invite_token);
+      redeemPin(db, created.body.pin);
 
       const result = handleDeleteGuest(db, "h1", guestId);
       expect(result.status).toBe(409);

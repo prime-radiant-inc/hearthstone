@@ -21,6 +21,8 @@ import { handleListDocuments, handleConnectDocument, handleDeleteDocument, handl
 import { handleListConnections } from "../src/routes/connections";
 import { handleGetSuggestions } from "../src/routes/chat";
 import { generateInviteToken } from "../src/services/tokens";
+import { handlePinRedeem } from "../src/routes/pin-auth";
+import { createAuthPin } from "../src/services/pins";
 
 // --- Helpers ---
 
@@ -155,12 +157,13 @@ describe("API Contract: POST /guests", () => {
   let db: Database;
   beforeEach(() => { db = createTestDb(); });
 
-  it("response has { guest: { id, name, status }, magic_link, invite_token }", async () => {
+  it("response has { guest: { id, name, status }, pin, expires_at }", async () => {
     const hid = seedOwner(db);
-    const result = await handleCreateGuest(db, hid, { name: "Maria", email: "maria@test.com", phone: null });
+    const result = await handleCreateGuest(db, hid, { name: "Maria", email: "maria@test.com" });
     expect(result.status).toBe(200);
-    hasExactKeys(result.body, ["guest", "magic_link", "invite_token"]);
+    hasExactKeys(result.body, ["guest", "pin", "expires_at"]);
     hasExactKeys(result.body.guest, ["id", "name", "status"]);
+    expect(result.body.pin).toMatch(/^\d{6}$/);
   });
 });
 
@@ -181,12 +184,13 @@ describe("API Contract: POST /guests/:id/reinvite", () => {
   let db: Database;
   beforeEach(() => { db = createTestDb(); });
 
-  it("response has { magic_link, invite_token }", () => {
+  it("response has { pin, expires_at }", () => {
     const hid = seedOwner(db);
     seedGuest(db, hid, "pending");
     const result = handleReinviteGuest(db, hid, "g1");
     expect(result.status).toBe(200);
-    hasExactKeys(result.body, ["magic_link", "invite_token"]);
+    hasExactKeys(result.body, ["pin", "expires_at"]);
+    expect(result.body.pin).toMatch(/^\d{6}$/);
   });
 });
 
@@ -258,5 +262,41 @@ describe("API Contract: GET /chat/suggestions", () => {
     expect(result.status).toBe(200);
     hasExactKeys(result.body, ["suggestions"]);
     expect(Array.isArray(result.body.suggestions)).toBe(true);
+  });
+});
+
+// ============================================================
+// PIN AUTH
+// ============================================================
+
+describe("API Contract: POST /auth/pin/redeem (owner)", () => {
+  let db: Database;
+  beforeEach(() => { db = createTestDb(); });
+
+  it("response has { token, role, person, household }", async () => {
+    const hid = seedOwner(db);
+    const { pin } = createAuthPin(db, { role: "owner", personId: "p1", householdId: hid });
+    const result = await handlePinRedeem(db, { pin }, "test-secret");
+    expect(result.status).toBe(200);
+    hasExactKeys(result.body, ["token", "role", "person", "household"]);
+    expect(result.body.role).toBe("owner");
+    hasExactKeys(result.body.person, ["id", "email"]);
+    hasExactKeys(result.body.household, ["id", "name", "created_at"]);
+  });
+});
+
+describe("API Contract: POST /auth/pin/redeem (guest)", () => {
+  let db: Database;
+  beforeEach(() => { db = createTestDb(); });
+
+  it("response has { token, role, guest, household_name }", async () => {
+    const hid = seedOwner(db);
+    seedGuest(db, hid, "pending");
+    const { pin } = createAuthPin(db, { role: "guest", personId: "p1", householdId: hid, guestId: "g1" });
+    const result = await handlePinRedeem(db, { pin }, "test-secret");
+    expect(result.status).toBe(200);
+    hasExactKeys(result.body, ["token", "role", "guest", "household_name"]);
+    expect(result.body.role).toBe("guest");
+    hasExactKeys(result.body.guest, ["id", "name", "household_id"]);
   });
 });
