@@ -43,7 +43,9 @@ struct DashboardView: View {
 
                 StatRow(
                     documentCount: viewModel.documentCount,
-                    guestCount: viewModel.activeGuestCount + viewModel.pendingGuestCount
+                    guestCount: viewModel.activeGuestCount + viewModel.pendingGuestCount,
+                    onDocumentsTap: { showDocuments = true },
+                    onGuestsTap: { showGuestList = true }
                 )
                 .padding(.top, -16)
                 .padding(.horizontal, 24)
@@ -186,16 +188,25 @@ private struct HeroHeader: View {
     }
 }
 
-// MARK: - StatRow (display only, no tap targets)
+// MARK: - StatRow
 
 private struct StatRow: View {
     let documentCount: Int
     let guestCount: Int
+    let onDocumentsTap: () -> Void
+    let onGuestsTap: () -> Void
 
     var body: some View {
         HStack(spacing: 12) {
-            StatCard(number: documentCount, label: "Documents")
-            StatCard(number: guestCount, label: "Guests")
+            Button(action: onDocumentsTap) {
+                StatCard(number: documentCount, label: "Documents")
+            }
+            .buttonStyle(.plain)
+
+            Button(action: onGuestsTap) {
+                StatCard(number: guestCount, label: "Guests")
+            }
+            .buttonStyle(.plain)
         }
     }
 }
