@@ -1,6 +1,6 @@
 // tests/routes/auth.test.ts
 import { describe, it, expect, beforeEach } from "bun:test";
-import Database from "better-sqlite3";
+import { Database } from "bun:sqlite";
 import { runMigrations } from "../../src/db/migrations";
 import {
   handleRegister,
@@ -15,7 +15,7 @@ import { generateInviteToken } from "../../src/services/tokens";
 // --- Registration flow ---
 
 describe("POST /auth/register", () => {
-  let db: Database.Database;
+  let db: Database;
 
   beforeEach(() => {
     db = new Database(":memory:");
@@ -55,7 +55,7 @@ describe("POST /auth/register", () => {
 });
 
 describe("POST /auth/register/verify", () => {
-  let db: Database.Database;
+  let db: Database;
 
   beforeEach(() => {
     db = new Database(":memory:");
@@ -109,7 +109,7 @@ describe("POST /auth/register/verify", () => {
 // --- Login flow: email ---
 
 describe("POST /auth/login/email", () => {
-  let db: Database.Database;
+  let db: Database;
 
   beforeEach(() => {
     db = new Database(":memory:");
@@ -132,7 +132,7 @@ describe("POST /auth/login/email", () => {
 });
 
 describe("POST /auth/login/email/verify", () => {
-  let db: Database.Database;
+  let db: Database;
 
   beforeEach(() => {
     db = new Database(":memory:");
@@ -197,7 +197,7 @@ describe("POST /auth/login/email/verify", () => {
 // --- Login flow: passkey ---
 
 describe("POST /auth/login/passkey/challenge", () => {
-  let db: Database.Database;
+  let db: Database;
 
   beforeEach(() => {
     db = new Database(":memory:");
@@ -236,7 +236,7 @@ describe("POST /auth/login/passkey/challenge", () => {
 // --- Invite redeem (unchanged) ---
 
 describe("POST /auth/invite/redeem", () => {
-  let db: Database.Database;
+  let db: Database;
 
   beforeEach(() => {
     db = new Database(":memory:");

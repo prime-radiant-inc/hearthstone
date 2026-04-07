@@ -1,11 +1,11 @@
 // tests/routes/chat.test.ts
 import { describe, it, expect, beforeEach } from "bun:test";
-import Database from "better-sqlite3";
+import { Database } from "bun:sqlite";
 import { runMigrations } from "../../src/db/migrations";
 import { handleGetSuggestions } from "../../src/routes/chat";
 
 describe("chat routes", () => {
-  let db: Database.Database;
+  let db: Database;
 
   beforeEach(() => {
     db = new Database(":memory:");

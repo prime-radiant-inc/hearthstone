@@ -1,6 +1,6 @@
 // tests/routes/connections.test.ts
 import { describe, it, expect, beforeEach } from "bun:test";
-import Database from "better-sqlite3";
+import { Database } from "bun:sqlite";
 import { runMigrations } from "../../src/db/migrations";
 import {
   handleListConnections,
@@ -8,7 +8,7 @@ import {
 } from "../../src/routes/connections";
 
 describe("connection routes", () => {
-  let db: Database.Database;
+  let db: Database;
 
   beforeEach(() => {
     db = new Database(":memory:");
@@ -75,7 +75,7 @@ describe("connection routes", () => {
       expect(result.status).toBe(204);
 
       const row = db.prepare("SELECT * FROM connections WHERE id = ?").get("c1");
-      expect(row).toBeUndefined();
+      expect(row).toBeNull();
     });
 
     it("returns 404 for nonexistent connection", () => {

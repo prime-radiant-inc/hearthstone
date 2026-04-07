@@ -1,5 +1,5 @@
 // src/services/email-verification.ts
-import type Database from "better-sqlite3";
+import type { Database } from "bun:sqlite";
 import { randomInt } from "crypto";
 import { generateId } from "../utils";
 
@@ -10,7 +10,7 @@ function generateCode(): string {
 const EXPIRY_MINUTES = 10;
 
 export function createVerification(
-  db: Database.Database,
+  db: Database,
   email: string,
   purpose: "register" | "login"
 ): { code: string } {
@@ -29,7 +29,7 @@ export function createVerification(
 }
 
 export function verifyCode(
-  db: Database.Database,
+  db: Database,
   email: string,
   code: string,
   purpose: "register" | "login"

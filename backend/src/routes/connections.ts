@@ -1,12 +1,12 @@
 // src/routes/connections.ts
-import type Database from "better-sqlite3";
+import type { Database } from "bun:sqlite";
 import { getDriveAuthUrl, exchangeCodeForDrive } from "../services/google-auth";
 import { listDriveFiles } from "../services/google-drive";
 import { config } from "../config";
 import { generateId } from "../utils";
 
 export function handleListConnections(
-  db: Database.Database,
+  db: Database,
   householdId: string
 ): { status: number; body: any } {
   const connections = db
@@ -19,7 +19,7 @@ export function handleListConnections(
 }
 
 export function handleConnectGoogleDrive(
-  db: Database.Database,
+  db: Database,
   householdId: string
 ): { status: number; body: any } {
   const state = Buffer.from(JSON.stringify({ householdId })).toString("base64url");
@@ -30,7 +30,7 @@ export function handleConnectGoogleDrive(
 }
 
 export async function handleGoogleDriveCallback(
-  db: Database.Database,
+  db: Database,
   code: string,
   state: string
 ): Promise<{ status: number; body: any; redirect?: string }> {
@@ -73,7 +73,7 @@ export async function handleGoogleDriveCallback(
 }
 
 export async function handleListDriveFiles(
-  db: Database.Database,
+  db: Database,
   householdId: string,
   connectionId: string
 ): Promise<{ status: number; body: any }> {
@@ -112,7 +112,7 @@ export async function handleListDriveFiles(
 }
 
 export function handleDeleteConnection(
-  db: Database.Database,
+  db: Database,
   householdId: string,
   connectionId: string
 ): { status: number; body: any } {

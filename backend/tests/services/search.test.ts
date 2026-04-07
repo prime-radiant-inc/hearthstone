@@ -1,10 +1,11 @@
+import "../../src/db/setup-sqlite";
 import { describe, it, expect, beforeEach } from "bun:test";
-import Database from "better-sqlite3";
+import { Database } from "bun:sqlite";
 import * as sqliteVec from "sqlite-vec";
 import { runMigrations } from "../../src/db/migrations";
 import { searchChunks } from "../../src/services/search";
 
-function seedWithChunks(db: Database.Database) {
+function seedWithChunks(db: Database) {
   db.prepare("INSERT INTO persons (id, email, created_at) VALUES (?, ?, ?)").run(
     "p1", "owner@test.com", new Date().toISOString()
   );
@@ -28,13 +29,13 @@ function seedWithChunks(db: Database.Database) {
 }
 
 describe("searchChunks", () => {
-  let db: Database.Database;
+  let db: Database;
 
   beforeEach(() => {
     db = new Database(":memory:");
     sqliteVec.load(db);
     runMigrations(db);
-    db.exec(`
+    db.run(`
       CREATE VIRTUAL TABLE IF NOT EXISTS chunk_embeddings USING vec0(
         chunk_id TEXT PRIMARY KEY,
         embedding float[1536]

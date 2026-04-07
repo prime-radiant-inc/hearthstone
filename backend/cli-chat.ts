@@ -1,4 +1,4 @@
-#!/usr/bin/env npx tsx
+#!/usr/bin/env bun
 /**
  * Hearthstone CLI Chat — retrieval strategy experiments
  *
@@ -11,7 +11,8 @@
  *   bun run chat:all       # All modes side-by-side
  */
 
-import Database from "better-sqlite3";
+import "./src/db/setup-sqlite";
+import { Database } from "bun:sqlite";
 import * as sqliteVec from "sqlite-vec";
 import OpenAI from "openai";
 import * as readline from "node:readline";
@@ -106,7 +107,7 @@ function searchChunks(queryEmbedding: Float32Array, limit: number = 5): DocChunk
   const rows = db.prepare(`
     SELECT ce.chunk_id, ce.distance FROM chunk_embeddings ce
     WHERE ce.embedding MATCH ? AND k = ? ORDER BY ce.distance
-  `).all(Buffer.from(queryEmbedding.buffer), limit) as any[];
+  `).all(queryEmbedding, limit) as any[];
 
   const chunks = loadAllChunks();
   const chunkMap = new Map(chunks.map(c => [`${c.documentId}-${c.chunkIndex}`, c]));

@@ -1,4 +1,4 @@
-import type Database from "better-sqlite3";
+import type { Database } from "bun:sqlite";
 import { jwtVerify } from "jose";
 
 export interface OwnerContext {
@@ -7,7 +7,7 @@ export interface OwnerContext {
 }
 
 export async function authenticateOwner(
-  db: Database.Database,
+  db: Database,
   authHeader: string | undefined | null,
   jwtSecret: string
 ): Promise<OwnerContext> {

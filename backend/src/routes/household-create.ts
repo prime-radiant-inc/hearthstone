@@ -1,9 +1,9 @@
 // src/routes/household-create.ts
-import type Database from "better-sqlite3";
+import type { Database } from "bun:sqlite";
 import { generateId } from "../utils";
 
 export function handleCreateHousehold(
-  db: Database.Database,
+  db: Database,
   personId: string,
   body: { name: string }
 ): { status: number; body: any } {

@@ -1,5 +1,5 @@
 // src/routes/auth.ts
-import type Database from "better-sqlite3";
+import type { Database } from "bun:sqlite";
 import { SignJWT } from "jose";
 import { redeemInviteToken } from "../services/tokens";
 import { createVerification, verifyCode } from "../services/email-verification";
@@ -30,7 +30,7 @@ async function issueJwt(
 // --- Registration flow ---
 
 export async function handleRegister(
-  db: Database.Database,
+  db: Database,
   body: { email: string }
 ): Promise<{ status: number; body: any }> {
   const email = body.email?.trim().toLowerCase();
@@ -50,7 +50,7 @@ export async function handleRegister(
 }
 
 export async function handleRegisterVerify(
-  db: Database.Database,
+  db: Database,
   body: { email: string; code: string }
 ): Promise<{ status: number; body: any }> {
   const email = body.email?.trim().toLowerCase();
@@ -88,7 +88,7 @@ export async function handleRegisterVerify(
 }
 
 export async function handleRegisterPasskey(
-  db: Database.Database,
+  db: Database,
   body: { person_id: string; credential: any }
 ): Promise<{ status: number; body: any }> {
   const { person_id, credential } = body;
@@ -153,7 +153,7 @@ export async function handleRegisterPasskey(
 // --- Login flow: passkey ---
 
 export async function handleLoginPasskeyChallenge(
-  db: Database.Database,
+  db: Database,
   body: { email: string }
 ): Promise<{ status: number; body: any }> {
   const email = body.email?.trim().toLowerCase();
@@ -181,7 +181,7 @@ export async function handleLoginPasskeyChallenge(
 }
 
 export async function handleLoginPasskeyVerify(
-  db: Database.Database,
+  db: Database,
   body: { email: string; credential: any }
 ): Promise<{ status: number; body: any }> {
   const email = body.email?.trim().toLowerCase();
@@ -252,7 +252,7 @@ export async function handleLoginPasskeyVerify(
 // --- Login flow: email fallback ---
 
 export async function handleLoginEmail(
-  db: Database.Database,
+  db: Database,
   body: { email: string }
 ): Promise<{ status: number; body: any }> {
   const email = body.email?.trim().toLowerCase();
@@ -272,7 +272,7 @@ export async function handleLoginEmail(
 }
 
 export async function handleLoginEmailVerify(
-  db: Database.Database,
+  db: Database,
   body: { email: string; code: string }
 ): Promise<{ status: number; body: any }> {
   const email = body.email?.trim().toLowerCase();
@@ -315,7 +315,7 @@ export async function handleLoginEmailVerify(
 // --- Invite redeem (unchanged) ---
 
 export async function handleInviteRedeem(
-  db: Database.Database,
+  db: Database,
   body: { invite_token: string }
 ): Promise<{ status: number; body: any }> {
   try {

@@ -1,10 +1,11 @@
-#!/usr/bin/env npx tsx
+#!/usr/bin/env bun
 /**
  * Re-index all documents with current chunker settings.
  * Deletes existing chunks/embeddings and regenerates them.
  */
 
-import Database from "better-sqlite3";
+import "../src/db/setup-sqlite";
+import { Database } from "bun:sqlite";
 import * as sqliteVec from "sqlite-vec";
 import OpenAI from "openai";
 import { resolve } from "node:path";
@@ -90,8 +91,7 @@ async function main() {
       for (let i = 0; i < chunks.length; i++) {
         const chunkId = generateId();
         insertChunk.run(chunkId, doc.id, hid, i, chunks[i].heading, chunks[i].text, now);
-        const vec = new Float32Array(embeddings[i]);
-        insertEmbedding.run(chunkId, Buffer.from(vec.buffer));
+        insertEmbedding.run(chunkId, new Float32Array(embeddings[i]));
       }
     });
     transaction();

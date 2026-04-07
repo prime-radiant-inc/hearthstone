@@ -1,5 +1,5 @@
 // src/routes/documents.ts
-import type Database from "better-sqlite3";
+import type { Database } from "bun:sqlite";
 import { marked } from "marked";
 import { fetchDocAsMarkdown } from "../services/google-drive";
 import { indexDocument, refreshDocument } from "../services/indexer";
@@ -9,7 +9,7 @@ import { docxToMarkdown } from "../services/pandoc";
 import { generateId } from "../utils";
 
 export function handleListDocuments(
-  db: Database.Database,
+  db: Database,
   householdId: string
 ): { status: number; body: any } {
   const docs = db
@@ -22,7 +22,7 @@ export function handleListDocuments(
 }
 
 export async function handleConnectDocument(
-  db: Database.Database,
+  db: Database,
   householdId: string,
   body: { drive_file_id: string; title?: string }
 ): Promise<{ status: number; body: any }> {
@@ -62,7 +62,7 @@ export async function handleConnectDocument(
 }
 
 export async function handleRefreshDocument(
-  db: Database.Database,
+  db: Database,
   householdId: string,
   documentId: string
 ): Promise<{ status: number; body: any }> {
@@ -99,7 +99,7 @@ export async function handleRefreshDocument(
 }
 
 export function handleDeleteDocument(
-  db: Database.Database,
+  db: Database,
   householdId: string,
   documentId: string
 ): { status: number; body: any } {
@@ -120,7 +120,7 @@ export function handleDeleteDocument(
 }
 
 export function handleGetContent(
-  db: Database.Database,
+  db: Database,
   householdId: string,
   documentId: string
 ): { status: number; body: any } {
@@ -249,7 +249,7 @@ function scrollToChunk(index) {
 }
 
 export async function handleUploadDocument(
-  db: Database.Database,
+  db: Database,
   householdId: string,
   title: string,
   docxBuffer: Buffer

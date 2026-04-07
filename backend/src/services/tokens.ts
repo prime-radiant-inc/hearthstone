@@ -1,4 +1,4 @@
-import type Database from "better-sqlite3";
+import type { Database } from "bun:sqlite";
 import { randomBytes } from "crypto";
 import { generateId } from "../utils";
 
@@ -7,7 +7,7 @@ function generateToken(prefix: string): string {
 }
 
 export function generateInviteToken(
-  db: Database.Database,
+  db: Database,
   householdId: string,
   guestId: string
 ): { token: string; expiresAt: string } {
@@ -23,7 +23,7 @@ export function generateInviteToken(
 }
 
 export function redeemInviteToken(
-  db: Database.Database,
+  db: Database,
   token: string
 ): { token: string; guestId: string; householdId: string } {
   const row = db.prepare("SELECT * FROM invite_tokens WHERE token = ?").get(token) as any;
@@ -47,7 +47,7 @@ export function redeemInviteToken(
 }
 
 export function validateSessionToken(
-  db: Database.Database,
+  db: Database,
   token: string
 ): { guestId: string; householdId: string } | null {
   const row = db
@@ -58,7 +58,7 @@ export function validateSessionToken(
   return { guestId: row.guest_id, householdId: row.household_id };
 }
 
-export function revokeGuestTokens(db: Database.Database, guestId: string): string {
+export function revokeGuestTokens(db: Database, guestId: string): string {
   const now = new Date().toISOString();
   db.prepare("UPDATE session_tokens SET revoked_at = ? WHERE guest_id = ? AND revoked_at IS NULL").run(now, guestId);
   db.prepare("UPDATE guests SET status = 'revoked' WHERE id = ?").run(guestId);

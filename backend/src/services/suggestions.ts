@@ -1,8 +1,8 @@
-import type Database from "better-sqlite3";
+import type { Database } from "bun:sqlite";
 import { chatComplete, type ChatMessage } from "./chat-provider";
 import { generateId } from "../utils";
 
-export async function generateSuggestions(db: Database.Database, householdId: string): Promise<string[]> {
+export async function generateSuggestions(db: Database, householdId: string): Promise<string[]> {
   const chunks = db
     .prepare("SELECT text FROM chunks WHERE household_id = ? ORDER BY document_id, chunk_index")
     .all(householdId) as any[];
@@ -45,7 +45,7 @@ export async function generateSuggestions(db: Database.Database, householdId: st
   }
 }
 
-export function getSuggestions(db: Database.Database, householdId: string): string[] {
+export function getSuggestions(db: Database, householdId: string): string[] {
   const row = db.prepare("SELECT chips FROM suggestions WHERE household_id = ?").get(householdId) as any;
   if (!row) return [];
   try {

@@ -1,4 +1,4 @@
-#!/usr/bin/env npx tsx
+#!/usr/bin/env bun
 import { QUESTIONS, type EvalQuestion } from "./questions";
 import { runQuestion, closeDb, type Mode, CHAT_MODEL, type TokenUsage } from "./harness";
 import { judgeResponse, type JudgeResult, JUDGE_MODEL } from "./judge";

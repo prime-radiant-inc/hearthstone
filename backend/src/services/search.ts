@@ -1,4 +1,4 @@
-import type Database from "better-sqlite3";
+import type { Database } from "bun:sqlite";
 
 export interface SearchResult {
   chunkId: string;
@@ -12,7 +12,7 @@ export interface SearchResult {
 }
 
 export function searchChunks(
-  db: Database.Database,
+  db: Database,
   householdId: string,
   queryEmbedding: Float32Array,
   limit: number = 5
@@ -47,7 +47,7 @@ export function searchChunks(
       `
     )
     .all(
-      Buffer.from(queryEmbedding.buffer),
+      queryEmbedding,
       limit,
       householdId,
       limit

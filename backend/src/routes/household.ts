@@ -1,8 +1,8 @@
 // src/routes/household.ts
-import type Database from "better-sqlite3";
+import type { Database } from "bun:sqlite";
 
 export function handleUpdateHousehold(
-  db: Database.Database,
+  db: Database,
   householdId: string,
   body: { name: string }
 ): { status: number; body: any } {

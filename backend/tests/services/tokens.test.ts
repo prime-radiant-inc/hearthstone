@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "bun:test";
-import Database from "better-sqlite3";
+import { Database } from "bun:sqlite";
 import { runMigrations } from "../../src/db/migrations";
 import {
   generateInviteToken,
@@ -8,7 +8,7 @@ import {
   revokeGuestTokens,
 } from "../../src/services/tokens";
 
-function seedHousehold(db: Database.Database) {
+function seedHousehold(db: Database) {
   db.prepare("INSERT INTO persons (id, email, created_at) VALUES (?, ?, ?)").run(
     "p1", "owner@test.com", new Date().toISOString()
   );
@@ -21,7 +21,7 @@ function seedHousehold(db: Database.Database) {
 }
 
 describe("token service", () => {
-  let db: Database.Database;
+  let db: Database;
 
   beforeEach(() => {
     db = new Database(":memory:");

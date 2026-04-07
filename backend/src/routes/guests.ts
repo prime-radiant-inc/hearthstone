@@ -1,11 +1,11 @@
 // src/routes/guests.ts
-import type Database from "better-sqlite3";
+import type { Database } from "bun:sqlite";
 import { generateInviteToken, revokeGuestTokens } from "../services/tokens";
 import { config } from "../config";
 import { generateId } from "../utils";
 
 export function handleListGuests(
-  db: Database.Database,
+  db: Database,
   householdId: string
 ): { status: number; body: any } {
   const guests = db
@@ -16,7 +16,7 @@ export function handleListGuests(
 }
 
 export async function handleCreateGuest(
-  db: Database.Database,
+  db: Database,
   householdId: string,
   body: { name: string | null; email: string | null; phone: string | null }
 ): Promise<{ status: number; body: any }> {
@@ -50,7 +50,7 @@ export async function handleCreateGuest(
 }
 
 export function handleRevokeGuest(
-  db: Database.Database,
+  db: Database,
   householdId: string,
   guestId: string
 ): { status: number; body: any } {
@@ -70,7 +70,7 @@ export function handleRevokeGuest(
 }
 
 export function handleDeleteGuest(
-  db: Database.Database,
+  db: Database,
   householdId: string,
   guestId: string
 ): { status: number; body: any } {

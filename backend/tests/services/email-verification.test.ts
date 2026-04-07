@@ -1,11 +1,11 @@
 // tests/services/email-verification.test.ts
-import { describe, it, expect, beforeEach } from "vitest";
-import Database from "better-sqlite3";
+import { describe, it, expect, beforeEach } from "bun:test";
+import { Database } from "bun:sqlite";
 import { runMigrations } from "../../src/db/migrations";
 import { createVerification, verifyCode } from "../../src/services/email-verification";
 
 describe("email verification service", () => {
-  let db: Database.Database;
+  let db: Database;
 
   beforeEach(() => {
     db = new Database(":memory:");

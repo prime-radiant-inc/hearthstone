@@ -1,4 +1,4 @@
-import type Database from "better-sqlite3";
+import type { Database } from "bun:sqlite";
 import { chunkMarkdown, buildEmbeddingText } from "./chunker";
 import { generateId } from "../utils";
 
@@ -18,7 +18,7 @@ interface RefreshParams {
   embedBatch: (texts: string[]) => Promise<number[][]>;
 }
 
-export async function indexDocument(db: Database.Database, params: IndexParams): Promise<void> {
+export async function indexDocument(db: Database, params: IndexParams): Promise<void> {
   const { documentId, householdId, driveFileId, title, markdown, embedBatch } = params;
   const now = new Date().toISOString();
 
@@ -38,7 +38,7 @@ export async function indexDocument(db: Database.Database, params: IndexParams):
   }
 }
 
-export async function refreshDocument(db: Database.Database, params: RefreshParams): Promise<void> {
+export async function refreshDocument(db: Database, params: RefreshParams): Promise<void> {
   const { documentId, householdId, markdown, embedBatch } = params;
   const now = new Date().toISOString();
 
@@ -64,7 +64,7 @@ export async function refreshDocument(db: Database.Database, params: RefreshPara
 }
 
 async function storeChunks(
-  db: Database.Database,
+  db: Database,
   documentId: string,
   householdId: string,
   markdown: string,
@@ -90,8 +90,7 @@ async function storeChunks(
     for (let i = 0; i < chunks.length; i++) {
       const chunkId = generateId();
       insertChunk.run(chunkId, documentId, householdId, i, chunks[i].heading, chunks[i].text, now);
-      const vec = new Float32Array(embeddings[i]);
-      insertEmbedding.run(chunkId, Buffer.from(vec.buffer));
+      insertEmbedding.run(chunkId, new Float32Array(embeddings[i]));
     }
   });
 

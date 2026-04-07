@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import Database from "better-sqlite3";
+import { describe, it, expect } from "bun:test";
+import { Database } from "bun:sqlite";
 import { runMigrations } from "../../src/db/migrations";
 
 describe("database schema", () => {
@@ -25,7 +25,7 @@ describe("database schema", () => {
 
   it("enforces household_id foreign key on guests", () => {
     const db = new Database(":memory:");
-    db.pragma("foreign_keys = ON");
+    db.run("PRAGMA foreign_keys = ON");
     runMigrations(db);
 
     expect(() => {
@@ -37,7 +37,7 @@ describe("database schema", () => {
 
   it("scopes documents to household_id", () => {
     const db = new Database(":memory:");
-    db.pragma("foreign_keys = ON");
+    db.run("PRAGMA foreign_keys = ON");
     runMigrations(db);
 
     db.prepare("INSERT INTO persons (id, email, created_at) VALUES (?, ?, ?)").run(

@@ -1,4 +1,4 @@
-import type Database from "better-sqlite3";
+import type { Database } from "bun:sqlite";
 import { validateSessionToken } from "../services/tokens";
 
 export interface GuestContext {
@@ -7,7 +7,7 @@ export interface GuestContext {
 }
 
 export function authenticateGuest(
-  db: Database.Database,
+  db: Database,
   authHeader: string | undefined | null
 ): GuestContext {
   if (!authHeader || !authHeader.startsWith("Bearer ")) {

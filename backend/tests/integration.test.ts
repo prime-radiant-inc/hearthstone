@@ -1,6 +1,6 @@
 // tests/integration.test.ts
 import { describe, it, expect, beforeEach } from "bun:test";
-import Database from "better-sqlite3";
+import { Database } from "bun:sqlite";
 import { runMigrations } from "../src/db/migrations";
 import { handleInviteRedeem } from "../src/routes/auth";
 import { handleCreateGuest, handleListGuests, handleRevokeGuest, handleDeleteGuest } from "../src/routes/guests";
@@ -9,7 +9,7 @@ import { handleGetSuggestions } from "../src/routes/chat";
 import { handleListDocuments, handleDeleteDocument, handleGetContent } from "../src/routes/documents";
 
 describe("integration: full guest lifecycle", () => {
-  let db: Database.Database;
+  let db: Database;
 
   beforeEach(() => {
     db = new Database(":memory:");

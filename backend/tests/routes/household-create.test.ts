@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import Database from "better-sqlite3";
+import { Database } from "bun:sqlite";
 import { runMigrations } from "../../src/db/migrations";
 import { handleCreateHousehold } from "../../src/routes/household-create";
 

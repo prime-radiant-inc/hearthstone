@@ -1,11 +1,11 @@
 // tests/routes/documents.test.ts
 import { describe, it, expect, beforeEach } from "bun:test";
-import Database from "better-sqlite3";
+import { Database } from "bun:sqlite";
 import { runMigrations } from "../../src/db/migrations";
 import { handleListDocuments, handleDeleteDocument, handleGetContent } from "../../src/routes/documents";
 
 describe("document routes", () => {
-  let db: Database.Database;
+  let db: Database;
 
   beforeEach(() => {
     db = new Database(":memory:");
@@ -41,7 +41,7 @@ describe("document routes", () => {
       expect(result.status).toBe(204);
 
       const doc = db.prepare("SELECT * FROM documents WHERE id = ?").get("d1");
-      expect(doc).toBeUndefined();
+      expect(doc).toBeNull();
     });
 
     it("returns 404 for nonexistent document", () => {

@@ -1,11 +1,11 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import Database from "better-sqlite3";
+import { describe, it, expect, beforeEach } from "bun:test";
+import { Database } from "bun:sqlite";
 import { runMigrations } from "../../src/db/migrations";
 import { authenticateGuest } from "../../src/middleware/guest-auth";
 import { generateInviteToken, redeemInviteToken, revokeGuestTokens } from "../../src/services/tokens";
 
 describe("guest auth middleware", () => {
-  let db: Database.Database;
+  let db: Database;
 
   beforeEach(() => {
     db = new Database(":memory:");

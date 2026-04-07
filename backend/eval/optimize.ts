@@ -1,4 +1,4 @@
-#!/usr/bin/env npx tsx
+#!/usr/bin/env bun
 /**
  * Prompt optimizer for Hearthstone eval.
  *

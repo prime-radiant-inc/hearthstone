@@ -1,4 +1,4 @@
-import type Database from "better-sqlite3";
+import type { Database } from "bun:sqlite";
 import { embed } from "../services/embeddings";
 import { chat, type ChatMessage } from "../services/chat-provider";
 import { searchChunks } from "../services/search";
@@ -11,7 +11,7 @@ interface ChatRequest {
 }
 
 export async function handleChat(
-  db: Database.Database,
+  db: Database,
   householdId: string,
   body: ChatRequest
 ): Promise<Response> {
@@ -97,7 +97,7 @@ export async function handleChat(
 }
 
 export function handleGetSuggestions(
-  db: Database.Database,
+  db: Database,
   householdId: string
 ): { status: number; body: any } {
   const suggestions = getSuggestions(db, householdId);
@@ -105,7 +105,7 @@ export function handleGetSuggestions(
 }
 
 export async function handleChatPreview(
-  db: Database.Database,
+  db: Database,
   householdId: string,
   body: ChatRequest
 ): Promise<Response> {

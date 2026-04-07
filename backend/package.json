@@ -4,28 +4,25 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "npx tsx --watch src/index.ts",
-    "test": "vitest run",
-    "chat:rag": "npx tsx cli-chat.ts --mode rag",
-    "chat:full": "npx tsx cli-chat.ts --mode full",
-    "chat:both": "npx tsx cli-chat.ts --mode both",
-    "eval": "npx tsx eval/run.ts",
-    "eval:dry": "npx tsx eval/run.ts --dry-run",
-    "optimize": "npx tsx eval/optimize.ts"
+    "dev": "bun --watch src/index.ts",
+    "test": "bun test",
+    "chat:rag": "bun cli-chat.ts --mode rag",
+    "chat:full": "bun cli-chat.ts --mode full",
+    "chat:both": "bun cli-chat.ts --mode both",
+    "eval": "bun eval/run.ts",
+    "eval:dry": "bun eval/run.ts --dry-run",
+    "optimize": "bun eval/optimize.ts",
+    "reindex": "bun eval/reindex.ts"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.13",
     "@types/bun": "latest",
-    "bun-types": "^1.3.11",
-    "tsx": "^4.21.0",
-    "vitest": "^4.1.2"
+    "bun-types": "^1.3.11"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "dependencies": {
     "@simplewebauthn/server": "^13.3.0",
-    "better-sqlite3": "^12.8.0",
     "google-auth-library": "^10.6.2",
     "googleapis": "^171.4.0",
     "jose": "^6.2.2",
