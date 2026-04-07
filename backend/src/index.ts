@@ -33,6 +33,7 @@ import {
 } from "./routes/connections";
 import { handleChat, handleGetSuggestions, handleChatPreview } from "./routes/chat";
 import { handlePinRedeem } from "./routes/pin-auth";
+import { handleListOwners, handleInviteOwner, handleRemoveOwner } from "./routes/owners";
 
 function json(body: any, status: number = 200): Response {
   if (status === 204) return new Response(null, { status: 204 });
@@ -257,6 +258,27 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       if (method === "DELETE" && deleteGuestParams) {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         const result = handleDeleteGuest(getDb(), owner.householdId, deleteGuestParams.id);
+        return json(result.body, result.status);
+      }
+
+      // --- Owner management routes ---
+      if (method === "GET" && pathname === "/household/owners") {
+        const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        const result = handleListOwners(getDb(), owner.householdId);
+        return json(result.body, result.status);
+      }
+
+      if (method === "POST" && pathname === "/household/owners") {
+        const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        const body = await req.json();
+        const result = handleInviteOwner(getDb(), owner.householdId, owner.personId, body);
+        return json(result.body, result.status);
+      }
+
+      const removeOwnerParams = parsePathParams("/household/owners/:id", pathname);
+      if (method === "DELETE" && removeOwnerParams) {
+        const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        const result = handleRemoveOwner(getDb(), owner.householdId, removeOwnerParams.id);
         return json(result.body, result.status);
       }
 
