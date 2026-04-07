@@ -324,6 +324,10 @@ export async function handleInviteRedeem(
       .prepare("SELECT id, name, household_id FROM guests WHERE id = ?")
       .get(result.guestId) as any;
 
+    const household = db
+      .prepare("SELECT name FROM households WHERE id = ?")
+      .get(guest.household_id) as any;
+
     return {
       status: 200,
       body: {
@@ -333,6 +337,7 @@ export async function handleInviteRedeem(
           name: guest.name,
           household_id: guest.household_id,
         },
+        household_name: household?.name || "",
       },
     };
   } catch (err: any) {

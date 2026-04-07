@@ -69,6 +69,33 @@ export function handleRevokeGuest(
   return { status: 200, body: { guest_id: guestId, revoked_at: revokedAt } };
 }
 
+export function handleReinviteGuest(
+  db: Database,
+  householdId: string,
+  guestId: string
+): { status: number; body: any } {
+  const guest = db
+    .prepare("SELECT * FROM guests WHERE id = ? AND household_id = ?")
+    .get(guestId, householdId) as any;
+
+  if (!guest) {
+    return { status: 404, body: { message: "Guest not found" } };
+  }
+
+  // For revoked guests, reactivate them
+  if (guest.status === "revoked") {
+    db.prepare("UPDATE guests SET status = 'pending' WHERE id = ?").run(guestId);
+  }
+
+  const invite = generateInviteToken(db, householdId, guestId);
+  const magicLink = `${config.appBaseUrl}/join/${invite.token}`;
+
+  return {
+    status: 200,
+    body: { magic_link: magicLink, invite_token: invite.token },
+  };
+}
+
 export function handleDeleteGuest(
   db: Database,
   householdId: string,

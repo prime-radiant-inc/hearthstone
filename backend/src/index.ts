@@ -14,7 +14,7 @@ import {
 } from "./routes/auth";
 import { handleUpdateHousehold } from "./routes/household";
 import { handleCreateHousehold } from "./routes/household-create";
-import { handleListGuests, handleCreateGuest, handleRevokeGuest, handleDeleteGuest } from "./routes/guests";
+import { handleListGuests, handleCreateGuest, handleRevokeGuest, handleReinviteGuest, handleDeleteGuest } from "./routes/guests";
 import {
   handleListDocuments,
   handleConnectDocument,
@@ -183,6 +183,13 @@ async function handleRequest(req: Request): Promise<Response> {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         const body = await req.json();
         const result = await handleCreateGuest(getDb(), owner.householdId, body);
+        return json(result.body, result.status);
+      }
+
+      const reinviteParams = parsePathParams("/guests/:id/reinvite", pathname);
+      if (method === "POST" && reinviteParams) {
+        const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        const result = handleReinviteGuest(getDb(), owner.householdId, reinviteParams.id);
         return json(result.body, result.status);
       }
 

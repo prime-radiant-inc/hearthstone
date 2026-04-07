@@ -6,6 +6,7 @@ enum InviteErrorType {
 
 struct InviteErrorView: View {
     let errorType: InviteErrorType
+    let onDismiss: () -> Void
 
     var body: some View {
         VStack(spacing: 0) {
@@ -32,7 +33,7 @@ struct InviteErrorView: View {
                 .padding(.horizontal, 40)
                 .padding(.bottom, 36)
 
-            Button(buttonTitle) { }
+            Button(buttonTitle) { onDismiss() }
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundColor(Theme.charcoalSoft)
                 .padding(.horizontal, 32)

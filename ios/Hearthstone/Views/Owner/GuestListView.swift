@@ -148,17 +148,23 @@ private struct GuestCard: View {
             HStack(spacing: 8) {
                 switch guest.status {
                 case .active:
-                    GuestActionButton(title: "Resend link", style: .normal) {}
+                    GuestActionButton(title: "Resend link", style: .normal) {
+                        Task { await viewModel.reinvite(guestId: guest.id) }
+                    }
                     GuestActionButton(title: "Revoke", style: .danger) {
                         Task { await viewModel.revoke(guestId: guest.id) }
                     }
                 case .pending:
-                    GuestActionButton(title: "Resend invite", style: .normal) {}
+                    GuestActionButton(title: "Resend invite", style: .normal) {
+                        Task { await viewModel.reinvite(guestId: guest.id) }
+                    }
                     GuestActionButton(title: "Revoke", style: .danger) {
                         Task { await viewModel.revoke(guestId: guest.id) }
                     }
                 case .revoked:
-                    GuestActionButton(title: "Re-invite", style: .restore) {}
+                    GuestActionButton(title: "Re-invite", style: .restore) {
+                        Task { await viewModel.reinvite(guestId: guest.id) }
+                    }
                     GuestActionButton(title: "Remove", style: .danger) {
                         Task { await viewModel.remove(guestId: guest.id) }
                     }

@@ -24,9 +24,15 @@ struct HearthstoneApp: App {
                 case .guestChat(let householdName):
                     ChatView(viewModel: ChatViewModel(), householdName: householdName)
                 case .inviteError(let errorType):
-                    InviteErrorView(errorType: errorType)
-                case .accessRevoked:
-                    AccessRevokedView()
+                    InviteErrorView(errorType: errorType) {
+                        if errorType == .alreadyUsed {
+                            router.checkAuth()
+                        } else {
+                            router.signOut()
+                        }
+                    }
+                case .accessRevoked(let householdName):
+                    AccessRevokedView(householdName: householdName)
                 }
             }
             .onOpenURL { url in
@@ -49,11 +55,19 @@ final class AppRouter: ObservableObject {
         case ownerDashboard(householdName: String, ownerName: String)
         case guestChat(householdName: String)
         case inviteError(InviteErrorType)
-        case accessRevoked
+        case accessRevoked(householdName: String)
     }
 
     init() {
         checkAuth()
+        NotificationCenter.default.addObserver(forName: .guestSessionRevoked, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in
+                let name = UserDefaults.standard.string(forKey: "guestHouseholdName") ?? ""
+                KeychainService.shared.guestToken = nil
+                UserDefaults.standard.removeObject(forKey: "guestHouseholdName")
+                self?.state = .accessRevoked(householdName: name)
+            }
+        }
     }
 
     func checkAuth() {
@@ -74,7 +88,8 @@ final class AppRouter: ObservableObject {
                 }
             }
         } else if KeychainService.shared.guestToken != nil {
-            state = .guestChat(householdName: "")
+            let name = UserDefaults.standard.string(forKey: "guestHouseholdName") ?? ""
+            state = .guestChat(householdName: name)
         } else {
             state = .welcome
         }
@@ -95,7 +110,8 @@ final class AppRouter: ObservableObject {
             do {
                 let response = try await APIClient.shared.redeemInvite(token: token)
                 KeychainService.shared.guestToken = response.sessionToken
-                state = .guestChat(householdName: "")
+                UserDefaults.standard.set(response.householdName, forKey: "guestHouseholdName")
+                state = .guestChat(householdName: response.householdName)
             } catch let error as APIError {
                 if case .server(410, let message) = error {
                     if message.contains("expired") {

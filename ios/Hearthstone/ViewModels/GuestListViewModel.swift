@@ -25,6 +25,15 @@ final class GuestListViewModel: ObservableObject {
         }
     }
 
+    func reinvite(guestId: String) async {
+        do {
+            _ = try await APIClient.shared.reinviteGuest(id: guestId)
+            await load()
+        } catch {
+            self.error = error.localizedDescription
+        }
+    }
+
     func remove(guestId: String) async {
         do {
             try await APIClient.shared.deleteGuest(id: guestId)

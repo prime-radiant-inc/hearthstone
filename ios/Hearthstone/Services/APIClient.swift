@@ -1,5 +1,9 @@
 import Foundation
 
+extension Notification.Name {
+    static let guestSessionRevoked = Notification.Name("guestSessionRevoked")
+}
+
 // MARK: - AnyCodable
 
 /// Minimal wrapper for round-tripping arbitrary JSON from the server (e.g. WebAuthn registration options).
@@ -113,6 +117,9 @@ final class APIClient {
         let http = response as! HTTPURLResponse
 
         guard (200...299).contains(http.statusCode) else {
+            if http.statusCode == 401 && auth == .guest {
+                NotificationCenter.default.post(name: .guestSessionRevoked, object: nil)
+            }
             if let serverErr = try? decoder.decode(ServerError.self, from: data) {
                 throw APIError.server(http.statusCode, serverErr.message)
             }
@@ -187,10 +194,12 @@ final class APIClient {
     struct InviteRedeemResponse: Decodable {
         let sessionToken: String
         let guest: Guest
+        let householdName: String
 
         enum CodingKeys: String, CodingKey {
             case sessionToken = "session_token"
             case guest
+            case householdName = "household_name"
         }
     }
 
@@ -259,6 +268,19 @@ final class APIClient {
 
     func revokeGuest(id: String) async throws {
         try await callVoid(method: "POST", path: "/guests/\(id)/revoke", auth: .owner)
+    }
+
+    struct ReinviteResponse: Decodable {
+        let magicLink: String
+        let inviteToken: String
+        enum CodingKeys: String, CodingKey {
+            case magicLink = "magic_link"
+            case inviteToken = "invite_token"
+        }
+    }
+
+    func reinviteGuest(id: String) async throws -> ReinviteResponse {
+        return try await call(method: "POST", path: "/guests/\(id)/reinvite", auth: .owner)
     }
 
     func deleteGuest(id: String) async throws {

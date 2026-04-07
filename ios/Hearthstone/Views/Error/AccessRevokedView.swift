@@ -1,11 +1,13 @@
 import SwiftUI
 
 struct AccessRevokedView: View {
+    let householdName: String
+
     var body: some View {
         VStack(spacing: 0) {
             // Dark header
             VStack(alignment: .leading, spacing: 2) {
-                Text("Anderson Household")
+                Text(householdName.isEmpty ? "Household" : householdName)
                     .font(Theme.heading(20))
                 Text("Guest Access")
                     .font(.system(size: 13))
