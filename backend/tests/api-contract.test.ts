@@ -281,7 +281,7 @@ describe("API Contract: POST /auth/pin/redeem (owner)", () => {
     expect(result.status).toBe(200);
     hasExactKeys(result.body, ["token", "role", "person", "household"]);
     expect(result.body.role).toBe("owner");
-    hasExactKeys(result.body.person, ["id", "email"]);
+    hasExactKeys(result.body.person, ["id", "email", "name"]);
     hasExactKeys(result.body.household, ["id", "name", "created_at"]);
   });
 });

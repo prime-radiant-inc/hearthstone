@@ -25,16 +25,22 @@ export async function handlePinRedeem(
     const result = redeemPin(db, body.pin.trim());
 
     if (result.role === "owner") {
-      const person = db.prepare("SELECT id, email FROM persons WHERE id = ?").get(result.personId) as any;
+      const person = db.prepare("SELECT id, email, name FROM persons WHERE id = ?").get(result.personId) as any;
       const household = db.prepare("SELECT id, name, created_at FROM households WHERE id = ?").get(result.householdId) as any;
       const token = await issueOwnerJwt(result.personId, result.householdId, jwtSecret);
+
+      // Ensure the person is a member of the household
+      db.prepare(`
+        INSERT OR IGNORE INTO household_members (id, household_id, person_id, role, created_at)
+        VALUES (?, ?, ?, 'owner', ?)
+      `).run(generateId(), result.householdId, result.personId, new Date().toISOString());
 
       return {
         status: 200,
         body: {
           token,
           role: "owner",
-          person: { id: person.id, email: person.email },
+          person: { id: person.id, email: person.email, name: person.name || "" },
           household: { id: household.id, name: household.name, created_at: household.created_at },
         },
       };
