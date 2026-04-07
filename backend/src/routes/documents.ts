@@ -1,5 +1,6 @@
 // src/routes/documents.ts
 import type { Database } from "bun:sqlite";
+import type { Context } from "../tracing";
 import { marked } from "marked";
 import { fetchDocAsMarkdown } from "../services/google-drive";
 import { indexDocument, refreshDocument } from "../services/indexer";
@@ -24,7 +25,8 @@ export function handleListDocuments(
 export async function handleConnectDocument(
   db: Database,
   householdId: string,
-  body: { drive_file_id: string; title?: string }
+  body: { drive_file_id: string; title?: string },
+  ctx?: Context
 ): Promise<{ status: number; body: any }> {
   if (!body.drive_file_id) {
     return { status: 422, body: { message: "Missing drive_file_id" } };
@@ -41,7 +43,7 @@ export async function handleConnectDocument(
   const documentId = generateId();
 
   try {
-    const { title, markdown } = await fetchDocAsMarkdown(connection.refresh_token, body.drive_file_id);
+    const { title, markdown } = await fetchDocAsMarkdown(connection.refresh_token, body.drive_file_id, ctx);
 
     await indexDocument(db, {
       documentId,
@@ -50,7 +52,7 @@ export async function handleConnectDocument(
       title: body.title || title,
       markdown,
       embedBatch,
-    });
+    }, ctx);
 
     generateSuggestions(db, householdId).catch(() => {});
 
@@ -64,7 +66,8 @@ export async function handleConnectDocument(
 export async function handleRefreshDocument(
   db: Database,
   householdId: string,
-  documentId: string
+  documentId: string,
+  ctx?: Context
 ): Promise<{ status: number; body: any }> {
   const doc = db
     .prepare("SELECT * FROM documents WHERE id = ? AND household_id = ?")
@@ -81,14 +84,14 @@ export async function handleRefreshDocument(
   }
 
   try {
-    const { markdown } = await fetchDocAsMarkdown(connection.refresh_token, doc.drive_file_id);
+    const { markdown } = await fetchDocAsMarkdown(connection.refresh_token, doc.drive_file_id, ctx);
 
     await refreshDocument(db, {
       documentId,
       householdId,
       markdown,
       embedBatch,
-    });
+    }, ctx);
 
     generateSuggestions(db, householdId).catch(() => {});
 
@@ -252,7 +255,8 @@ export async function handleUploadDocument(
   db: Database,
   householdId: string,
   title: string,
-  docxBuffer: Buffer
+  docxBuffer: Buffer,
+  ctx?: Context
 ): Promise<{ status: number; body: any }> {
   if (!title?.trim()) {
     return { status: 422, body: { message: "Title is required" } };
@@ -273,7 +277,7 @@ export async function handleUploadDocument(
       title: title.trim(),
       markdown,
       embedBatch,
-    });
+    }, ctx);
 
     // Regenerate suggestion chips
     generateSuggestions(db, householdId).catch(() => {});

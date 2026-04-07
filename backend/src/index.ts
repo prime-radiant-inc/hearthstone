@@ -1,5 +1,4 @@
-import { tracer, SpanStatusCode, context } from "./tracing"; // must be first import
-import { trace as traceApi } from "@opentelemetry/api";
+import { tracer, SpanStatusCode, startSpan, spanContext, type Context } from "./tracing"; // must be first import
 import { getDb } from "./db/connection";
 import { config } from "./config";
 import { authenticateOwner } from "./middleware/owner-auth";
@@ -141,7 +140,7 @@ function matchRoute(method: string, pathname: string): string {
   return pathname;
 }
 
-async function handleRequest(req: Request): Promise<Response> {
+async function handleRequest(req: Request, ctx?: Context): Promise<Response> {
     const url = new URL(req.url);
     const { pathname } = url;
     const method = req.method;
@@ -312,7 +311,7 @@ async function handleRequest(req: Request): Promise<Response> {
         const body = Buffer.from(await req.arrayBuffer());
         const { title, file } = parseMultipart(body, boundary);
 
-        const result = await handleUploadDocument(getDb(), owner.householdId, title, file);
+        const result = await handleUploadDocument(getDb(), owner.householdId, title, file, ctx);
         return json(result.body, result.status);
       }
 
@@ -325,14 +324,14 @@ async function handleRequest(req: Request): Promise<Response> {
       if (method === "POST" && pathname === "/documents") {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         const body = await req.json();
-        const result = await handleConnectDocument(getDb(), owner.householdId, body);
+        const result = await handleConnectDocument(getDb(), owner.householdId, body, ctx);
         return json(result.body, result.status);
       }
 
       const refreshDocParams = parsePathParams("/documents/:id/refresh", pathname);
       if (method === "POST" && refreshDocParams) {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
-        const result = await handleRefreshDocument(getDb(), owner.householdId, refreshDocParams.id);
+        const result = await handleRefreshDocument(getDb(), owner.householdId, refreshDocParams.id, ctx);
         return json(result.body, result.status);
       }
 
@@ -366,7 +365,7 @@ async function handleRequest(req: Request): Promise<Response> {
       if (method === "POST" && pathname === "/chat") {
         const guest = authenticateGuest(getDb(), req.headers.get("authorization"));
         const body = await req.json();
-        return handleChat(getDb(), guest.householdId, body);
+        return handleChat(getDb(), guest.householdId, body, ctx);
       }
 
       if (method === "GET" && pathname === "/chat/suggestions") {
@@ -389,7 +388,7 @@ async function handleRequest(req: Request): Promise<Response> {
       if (method === "POST" && pathname === "/chat/preview") {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         const body = await req.json();
-        return handleChatPreview(getDb(), owner.householdId, body);
+        return handleChatPreview(getDb(), owner.householdId, body, ctx);
       }
 
       return json({ message: "Not found" }, 404);
@@ -414,14 +413,13 @@ async function tracedFetch(req: Request): Promise<Response> {
   span.setAttribute("http.url", url.pathname);
   span.setAttribute("http.route", route);
 
-  // Explicitly bind the span to context so child spans created in
-  // handleRequest (and its callees) are parented correctly.
-  // Bun's AsyncLocalStorage doesn't reliably propagate across awaits,
-  // so we use context.with() to carry the active span manually.
-  const ctx = traceApi.setSpan(context.active(), span);
+  // Pass the span's context explicitly to handleRequest and all downstream
+  // services. Bun's AsyncLocalStorage loses context across await boundaries,
+  // so we thread it manually instead of relying on startActiveSpan.
+  const ctx = spanContext(span);
 
   try {
-    const response = await context.with(ctx, () => handleRequest(req));
+    const response = await handleRequest(req, ctx);
     span.setAttribute("http.status_code", response.status);
     if (response.status >= 500) {
       span.setStatus({ code: SpanStatusCode.ERROR, message: `HTTP ${response.status}` });

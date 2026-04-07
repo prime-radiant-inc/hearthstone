@@ -4,6 +4,7 @@ import { chat, type ChatMessage } from "../services/chat-provider";
 import { searchChunks } from "../services/search";
 import { getSuggestions } from "../services/suggestions";
 import { RAG_SYSTEM } from "../services/prompt";
+import type { Context } from "../tracing";
 
 interface ChatRequest {
   message: string;
@@ -13,9 +14,10 @@ interface ChatRequest {
 export async function handleChat(
   db: Database,
   householdId: string,
-  body: ChatRequest
+  body: ChatRequest,
+  ctx?: Context
 ): Promise<Response> {
-  const queryEmbedding = await embed(body.message);
+  const queryEmbedding = await embed(body.message, ctx);
   const queryVec = new Float32Array(queryEmbedding);
 
   const results = searchChunks(db, householdId, queryVec, 5);
@@ -49,7 +51,7 @@ export async function handleChat(
       const encoder = new TextEncoder();
       let fullResponse = "";
       try {
-        for await (const delta of chat(messages)) {
+        for await (const delta of chat(messages, ctx)) {
           fullResponse += delta;
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ delta })}\n\n`));
         }
@@ -107,7 +109,8 @@ export function handleGetSuggestions(
 export async function handleChatPreview(
   db: Database,
   householdId: string,
-  body: ChatRequest
+  body: ChatRequest,
+  ctx?: Context
 ): Promise<Response> {
-  return handleChat(db, householdId, body);
+  return handleChat(db, householdId, body, ctx);
 }

@@ -44,5 +44,20 @@ if (ENDPOINT) {
 /** Shared tracer instance. Returns a noop tracer when the SDK isn't configured. */
 export const tracer: Tracer = trace.getTracer("hearthstone-backend");
 
+/**
+ * Create a child span with explicit parent context.
+ * Bun's AsyncLocalStorage doesn't propagate across await boundaries,
+ * so we pass the parent context manually instead of relying on startActiveSpan.
+ */
+export function startSpan(name: string, parentCtx?: Context): Span {
+  const ctx = parentCtx ?? context.active();
+  return tracer.startSpan(name, {}, ctx);
+}
+
+/** Build a context with the given span set as active. Pass to child startSpan calls. */
+export function spanContext(span: Span): Context {
+  return trace.setSpan(context.active(), span);
+}
+
 export { SpanStatusCode, context };
 export type { Span, Context };
