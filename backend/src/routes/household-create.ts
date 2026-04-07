@@ -18,6 +18,10 @@ export function handleCreateHousehold(
     id, personId, body.name.trim(), now
   );
 
+  db.prepare(
+    "INSERT INTO household_members (id, household_id, person_id, role, created_at) VALUES (?, ?, ?, 'owner', ?)"
+  ).run(generateId(), id, personId, now);
+
   return {
     status: 200,
     body: { id, name: body.name.trim(), created_at: now },
