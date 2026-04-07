@@ -2,7 +2,7 @@
 // Import this file first in index.ts so the SDK is initialized before anything runs.
 // When OTEL_EXPORTER_OTLP_ENDPOINT is unset, everything is a no-op.
 
-import { trace, type Tracer, SpanStatusCode, type Span } from "@opentelemetry/api";
+import { trace, context, type Tracer, type Context, SpanStatusCode, type Span } from "@opentelemetry/api";
 
 const ENDPOINT = process.env.OTEL_EXPORTER_OTLP_ENDPOINT;
 
@@ -44,5 +44,5 @@ if (ENDPOINT) {
 /** Shared tracer instance. Returns a noop tracer when the SDK isn't configured. */
 export const tracer: Tracer = trace.getTracer("hearthstone-backend");
 
-export { SpanStatusCode };
-export type { Span };
+export { SpanStatusCode, context };
+export type { Span, Context };

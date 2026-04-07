@@ -1,4 +1,5 @@
-import { tracer, SpanStatusCode } from "./tracing"; // must be first import
+import { tracer, SpanStatusCode, context } from "./tracing"; // must be first import
+import { trace as traceApi } from "@opentelemetry/api";
 import { getDb } from "./db/connection";
 import { config } from "./config";
 import { authenticateOwner } from "./middleware/owner-auth";
@@ -408,26 +409,31 @@ async function tracedFetch(req: Request): Promise<Response> {
   const url = new URL(req.url);
   const route = matchRoute(req.method, url.pathname);
 
-  return tracer.startActiveSpan(`${req.method} ${route}`, async (span) => {
-    span.setAttribute("http.method", req.method);
-    span.setAttribute("http.url", url.pathname);
-    span.setAttribute("http.route", route);
+  const span = tracer.startSpan(`${req.method} ${route}`);
+  span.setAttribute("http.method", req.method);
+  span.setAttribute("http.url", url.pathname);
+  span.setAttribute("http.route", route);
 
-    try {
-      const response = await handleRequest(req);
-      span.setAttribute("http.status_code", response.status);
-      if (response.status >= 500) {
-        span.setStatus({ code: SpanStatusCode.ERROR, message: `HTTP ${response.status}` });
-      }
-      return response;
-    } catch (err: any) {
-      span.setStatus({ code: SpanStatusCode.ERROR, message: err?.message || "unknown" });
-      span.recordException(err);
-      throw err;
-    } finally {
-      span.end();
+  // Explicitly bind the span to context so child spans created in
+  // handleRequest (and its callees) are parented correctly.
+  // Bun's AsyncLocalStorage doesn't reliably propagate across awaits,
+  // so we use context.with() to carry the active span manually.
+  const ctx = traceApi.setSpan(context.active(), span);
+
+  try {
+    const response = await context.with(ctx, () => handleRequest(req));
+    span.setAttribute("http.status_code", response.status);
+    if (response.status >= 500) {
+      span.setStatus({ code: SpanStatusCode.ERROR, message: `HTTP ${response.status}` });
     }
-  });
+    return response;
+  } catch (err: any) {
+    span.setStatus({ code: SpanStatusCode.ERROR, message: err?.message || "unknown" });
+    span.recordException(err);
+    throw err;
+  } finally {
+    span.end();
+  }
 }
 
 Bun.serve({ port: config.port, fetch: tracedFetch });
