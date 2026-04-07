@@ -36,6 +36,7 @@
 		B0B35FEFC16C499171256985 /* ChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC47B1DB3BC3C8AEB9CB62E2 /* ChatViewModel.swift */; };
 		B11C65BF6167E93105F0E182 /* Document.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8FC1D2FA013BB586A464ADA /* Document.swift */; };
 		B2C3D4E5F60123456789AB01 /* PINEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F601234567890A /* PINEntryView.swift */; };
+		AA05000000000000000005B1 /* QRScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA05000000000000000005A1 /* QRScannerView.swift */; };
 		B2C3D4E5F6A7B8C9D0E1F2A3 /* DriveFilePickerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F2 /* DriveFilePickerViewModel.swift */; };
 		B3C7012EC5EE28B776AB5C3F /* ChatMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = F54456FA5D506B133989EEAD /* ChatMessage.swift */; };
 		BEA9C2F91F8B43EBB78DC21C /* DriveFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E20C4A529634EF4AA4FA796 /* DriveFile.swift */; };
@@ -79,6 +80,7 @@
 		88AA192FF5FDDE7224F434FC /* GuestListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestListView.swift; sourceTree = "<group>"; };
 		911D8BD2218D321FFACC6783 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F601234567890A /* PINEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PINEntryView.swift; sourceTree = "<group>"; };
+		AA05000000000000000005A1 /* QRScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRScannerView.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F6A7B8C9D0E1F2 /* DriveFilePickerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveFilePickerViewModel.swift; sourceTree = "<group>"; };
 		A575226351EBD6A26DB29462 /* Hearthstone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hearthstone.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB4504D789BCA1AA870DFA83 /* SuggestionChips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuggestionChips.swift; sourceTree = "<group>"; };
@@ -138,6 +140,7 @@
 			children = (
 				CE3D7F4ED477BB3A9D6AC4EA /* HouseholdSetupView.swift */,
 				A1B2C3D4E5F601234567890A /* PINEntryView.swift */,
+				AA05000000000000000005A1 /* QRScannerView.swift */,
 				722C9536F2D45780DDF60666 /* VerifyCodeView.swift */,
 				EDFF0389459109EAA5A09A74 /* WelcomeView.swift */,
 			);
@@ -363,6 +366,7 @@
 				7108A78F317AA431BA9F0046 /* VerifyCodeView.swift in Sources */,
 				5E6D6335D619725F1A7B0005 /* WelcomeView.swift in Sources */,
 				B2C3D4E5F60123456789AB01 /* PINEntryView.swift in Sources */,
+				AA05000000000000000005B1 /* QRScannerView.swift in Sources */,
 				AA03000000000000000003B1 /* SidebarOverlay.swift in Sources */,
 				AA04000000000000000004B1 /* SidebarView.swift in Sources */,
 			);
