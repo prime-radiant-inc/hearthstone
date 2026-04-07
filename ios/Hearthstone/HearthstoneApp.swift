@@ -31,7 +31,9 @@ struct HearthstoneApp: App {
                     HouseholdSetupFlow(router: router)
                 case .ownerDashboard(let householdName, let ownerName):
                     NavigationStack {
-                        DashboardView(householdName: householdName, ownerName: ownerName)
+                        DashboardView(householdName: householdName, ownerName: ownerName, onSignOut: {
+                            router.signOut()
+                        })
                     }
                 case .guestChat(let householdName):
                     ChatView(viewModel: ChatViewModel(), householdName: householdName)
