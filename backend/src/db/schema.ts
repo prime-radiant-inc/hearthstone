@@ -110,4 +110,13 @@ export const SCHEMA_SQL = `
     used_at TEXT,
     created_at TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS household_members (
+    id TEXT PRIMARY KEY,
+    household_id TEXT NOT NULL REFERENCES households(id),
+    person_id TEXT NOT NULL REFERENCES persons(id),
+    role TEXT NOT NULL CHECK(role IN ('owner')),
+    created_at TEXT NOT NULL,
+    UNIQUE(household_id, person_id)
+  );
 `;

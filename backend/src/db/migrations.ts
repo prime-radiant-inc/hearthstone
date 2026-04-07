@@ -26,4 +26,35 @@ export function runMigrations(db: Database): void {
       created_at TEXT NOT NULL
     );
   `);
+
+  // Add household_members table
+  db.run(`
+    CREATE TABLE IF NOT EXISTS household_members (
+      id TEXT PRIMARY KEY,
+      household_id TEXT NOT NULL REFERENCES households(id),
+      person_id TEXT NOT NULL REFERENCES persons(id),
+      role TEXT NOT NULL CHECK(role IN ('owner')),
+      created_at TEXT NOT NULL,
+      UNIQUE(household_id, person_id)
+    );
+  `);
+
+  // Migrate existing owner_id data into household_members
+  const households = db.prepare("SELECT id, owner_id, created_at FROM households").all() as any[];
+  for (const h of households) {
+    const exists = db.prepare(
+      "SELECT id FROM household_members WHERE household_id = ? AND person_id = ?"
+    ).get(h.id, h.owner_id);
+    if (!exists) {
+      db.prepare(
+        "INSERT INTO household_members (id, household_id, person_id, role, created_at) VALUES (?, ?, ?, 'owner', ?)"
+      ).run(crypto.randomUUID(), h.id, h.owner_id, h.created_at);
+    }
+  }
+
+  // Add name column to persons if not present
+  const personCols = db.prepare("PRAGMA table_info(persons)").all() as any[];
+  if (!personCols.some((c: any) => c.name === "name")) {
+    db.run("ALTER TABLE persons ADD COLUMN name TEXT NOT NULL DEFAULT ''");
+  }
 }
