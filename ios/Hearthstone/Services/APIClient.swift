@@ -417,6 +417,23 @@ final class APIClient {
         return try await call(method: "GET", path: "/documents/\(id)/content", auth: auth)
     }
 
+    // MARK: - Owner endpoints
+
+    struct InviteOwnerResponse: Decodable {
+        let pin: String
+        let expiresAt: String
+        enum CodingKeys: String, CodingKey {
+            case pin
+            case expiresAt = "expires_at"
+        }
+    }
+
+    func inviteOwner(name: String, email: String) async throws -> InviteOwnerResponse {
+        struct Body: Encodable { let name: String; let email: String }
+        return try await call(method: "POST", path: "/household/owners", auth: .owner,
+                              body: Body(name: name, email: email))
+    }
+
     // MARK: - Chat endpoints
 
     func getSuggestions(asOwner: Bool = false) async throws -> SuggestionsResponse {
