@@ -49,6 +49,8 @@
 		F33BDECE29CD924BC3776F49 /* InviteErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CFFD695DB89CD17DF3B96C1 /* InviteErrorView.swift */; };
 		FBDCAA2BF756B5DD7B198BC4 /* GuestListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7AF9F5111428B104E32108 /* GuestListViewModel.swift */; };
 		AAAA000000000000000000C1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AAAA000000000000000000A1 /* Assets.xcassets */; };
+		AA01000000000000000001B1 /* HouseSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01000000000000000001A1 /* HouseSession.swift */; };
+		AA02000000000000000002B1 /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA02000000000000000002A1 /* SessionStore.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -95,6 +97,8 @@
 		FB09FB0849CA8E2DCA07AED5 /* Person.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Person.swift; sourceTree = "<group>"; };
 		FBD36E61ABE11EF9988D51C7 /* SourceDocumentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceDocumentView.swift; sourceTree = "<group>"; };
 		FDD098C398E3401F959D0287 /* SSEClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSEClient.swift; sourceTree = "<group>"; };
+		AA01000000000000000001A1 /* HouseSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseSession.swift; sourceTree = "<group>"; };
+		AA02000000000000000002A1 /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -112,6 +116,7 @@
 		44719FC759FFF6F26627A94F /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				AA01000000000000000001A1 /* HouseSession.swift */,
 				F54456FA5D506B133989EEAD /* ChatMessage.swift */,
 				D2EE14D81019E0E37D8489D8 /* Connection.swift */,
 				C8FC1D2FA013BB586A464ADA /* Document.swift */,
@@ -162,6 +167,7 @@
 			children = (
 				BE4EE6D15E820ECB1A26F3A3 /* APIClient.swift */,
 				EDD84A7F97E32C1775351C2C /* KeychainService.swift */,
+				AA02000000000000000002A1 /* SessionStore.swift */,
 				FDD098C398E3401F959D0287 /* SSEClient.swift */,
 			);
 			path = Services;
@@ -327,7 +333,9 @@
 				CE52493836C4597D23E0D480 /* Household.swift in Sources */,
 				3253596E11C04A8BCB6EA422 /* HouseholdSetupView.swift in Sources */,
 				F33BDECE29CD924BC3776F49 /* InviteErrorView.swift in Sources */,
+				AA01000000000000000001B1 /* HouseSession.swift in Sources */,
 				52E8F72D0B9D0D7A5FA42471 /* KeychainService.swift in Sources */,
+				AA02000000000000000002B1 /* SessionStore.swift in Sources */,
 				91D2682B4D7AA463A931E8B3 /* MessageBubble.swift in Sources */,
 				4A49FA39AE916008A6E3F830 /* OwnerPreviewView.swift in Sources */,
 				D78164B826CC21F981D31847 /* Person.swift in Sources */,
