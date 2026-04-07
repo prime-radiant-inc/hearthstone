@@ -15,7 +15,7 @@ final class ChatViewModel: ObservableObject {
     }
 
     func loadSuggestions() async {
-        guard messages.isEmpty else { return }
+        guard messages.isEmpty, !isPreview else { return }
         do {
             suggestions = try await APIClient.shared.getSuggestions().suggestions
         } catch { }
