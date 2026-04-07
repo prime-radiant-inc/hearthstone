@@ -6,6 +6,7 @@ struct PINEntryView: View {
     @State private var pin = ""
     @State private var isLoading = false
     @State private var error: String?
+    @State private var showScanner = false
 
     var body: some View {
         ZStack {
@@ -74,6 +75,18 @@ struct PINEntryView: View {
                         .padding(.top, 12)
                 }
 
+                Button {
+                    showScanner = true
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "qrcode.viewfinder")
+                        Text("Scan QR Code")
+                    }
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(Theme.hearth)
+                }
+                .padding(.top, 20)
+
                 Spacer()
 
                 HearthButton(title: "Continue", isLoading: isLoading) {
@@ -90,6 +103,12 @@ struct PINEntryView: View {
                     .lineSpacing(3)
 
                 Spacer()
+            }
+        }
+        .sheet(isPresented: $showScanner) {
+            QRScannerView { scannedPin in
+                pin = scannedPin
+                showScanner = false
             }
         }
     }
