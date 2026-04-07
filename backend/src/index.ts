@@ -31,6 +31,7 @@ import {
   handleListDriveFiles,
 } from "./routes/connections";
 import { handleChat, handleGetSuggestions, handleChatPreview } from "./routes/chat";
+import { handlePinRedeem } from "./routes/pin-auth";
 
 function json(body: any, status: number = 200): Response {
   if (status === 204) return new Response(null, { status: 204 });
@@ -145,6 +146,12 @@ async function handleRequest(req: Request): Promise<Response> {
       if (method === "POST" && pathname === "/auth/invite/redeem") {
         const body = await req.json();
         const result = await handleInviteRedeem(getDb(), body);
+        return json(result.body, result.status);
+      }
+
+      if (method === "POST" && pathname === "/auth/pin/redeem") {
+        const body = await req.json();
+        const result = await handlePinRedeem(getDb(), body, config.jwtSecret);
         return json(result.body, result.status);
       }
 
