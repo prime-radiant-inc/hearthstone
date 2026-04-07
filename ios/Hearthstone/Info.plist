@@ -15,5 +15,7 @@
 	</array>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSCameraUsageDescription</key>
+	<string>Hearthstone uses the camera to scan invite QR codes.</string>
 </dict>
 </plist>
