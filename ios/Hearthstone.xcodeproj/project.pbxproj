@@ -51,6 +51,7 @@
 		AAAA000000000000000000C1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AAAA000000000000000000A1 /* Assets.xcassets */; };
 		AA01000000000000000001B1 /* HouseSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA01000000000000000001A1 /* HouseSession.swift */; };
 		AA02000000000000000002B1 /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA02000000000000000002A1 /* SessionStore.swift */; };
+		AA03000000000000000003B1 /* SidebarOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA03000000000000000003A1 /* SidebarOverlay.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -99,6 +100,7 @@
 		FDD098C398E3401F959D0287 /* SSEClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSEClient.swift; sourceTree = "<group>"; };
 		AA01000000000000000001A1 /* HouseSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseSession.swift; sourceTree = "<group>"; };
 		AA02000000000000000002A1 /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
+		AA03000000000000000003A1 /* SidebarOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarOverlay.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -181,8 +183,17 @@
 				A459DE1678F3C75DB4D72E23 /* Error */,
 				2DD1377B1F07C7D952599FDE /* Guest */,
 				80C7D14F2641BE29E81C0F0F /* Owner */,
+				AA03000000000000000003C1 /* Sidebar */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		AA03000000000000000003C1 /* Sidebar */ = {
+			isa = PBXGroup;
+			children = (
+				AA03000000000000000003A1 /* SidebarOverlay.swift */,
+			);
+			path = Sidebar;
 			sourceTree = "<group>";
 		};
 		A459DE1678F3C75DB4D72E23 /* Error */ = {
@@ -349,6 +360,7 @@
 				7108A78F317AA431BA9F0046 /* VerifyCodeView.swift in Sources */,
 				5E6D6335D619725F1A7B0005 /* WelcomeView.swift in Sources */,
 				B2C3D4E5F60123456789AB01 /* PINEntryView.swift in Sources */,
+				AA03000000000000000003B1 /* SidebarOverlay.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

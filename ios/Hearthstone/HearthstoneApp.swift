@@ -11,43 +11,30 @@ struct HearthstoneApp: App {
         WindowGroup {
             Group {
                 switch router.state {
-                case .loading:
-                    LoadingView()
-                case .welcome:
-                    AuthFlow(router: router)
-                case .pinEntry:
-                    PINEntryView(
-                        onOwnerAuth: { token, person, household in
-                            KeychainService.shared.ownerToken = token
-                            router.state = .ownerDashboard(householdName: household.name, ownerName: person.email)
-                        },
-                        onGuestAuth: { token, householdName in
-                            KeychainService.shared.guestToken = token
-                            UserDefaults.standard.set(householdName, forKey: "guestHouseholdName")
-                            router.state = .guestChat(householdName: householdName)
-                        }
-                    )
-                case .needsHousehold:
-                    HouseholdSetupFlow(router: router)
-                case .ownerDashboard(let householdName, let ownerName):
-                    NavigationStack {
-                        DashboardView(householdName: householdName, ownerName: ownerName, onSignOut: {
-                            router.signOut()
-                        })
+                case .empty:
+                    PINEntryView { session, token in
+                        router.addSession(session, token: token)
                     }
-                case .guestChat(let householdName):
-                    ChatView(viewModel: ChatViewModel(), householdName: householdName)
-                case .inviteError(let errorType):
-                    InviteErrorView(errorType: errorType) {
-                        if errorType == .alreadyUsed {
-                            router.checkAuth()
+                case .active(let session):
+                    SidebarOverlay(router: router) {
+                        if session.role == .owner {
+                            NavigationStack {
+                                DashboardView(
+                                    householdName: session.householdName,
+                                    ownerName: ""
+                                )
+                            }
                         } else {
-                            router.signOut()
+                            ChatView(
+                                viewModel: ChatViewModel(),
+                                householdName: session.householdName
+                            )
                         }
                     }
-                case .accessRevoked(let householdName):
-                    AccessRevokedView(householdName: householdName)
                 }
+            }
+            .sheet(item: $router.showAccessRevoked) { name in
+                AccessRevokedView(householdName: name)
             }
             .onOpenURL { url in
                 router.handleUniversalLink(url)
@@ -60,58 +47,62 @@ struct HearthstoneApp: App {
 
 @MainActor
 final class AppRouter: ObservableObject {
-    @Published var state: AppState = .loading
+    @Published var state: AppState = .empty
+    @Published var showAccessRevoked: String? = nil
 
-    enum AppState {
-        case loading
-        case welcome
-        case pinEntry
-        case needsHousehold(email: String)
-        case ownerDashboard(householdName: String, ownerName: String)
-        case guestChat(householdName: String)
-        case inviteError(InviteErrorType)
-        case accessRevoked(householdName: String)
+    let store = SessionStore.shared
+
+    enum AppState: Equatable {
+        case empty
+        case active(HouseSession)
+
+        static func == (lhs: AppState, rhs: AppState) -> Bool {
+            switch (lhs, rhs) {
+            case (.empty, .empty): return true
+            case (.active(let a), .active(let b)): return a.id == b.id
+            default: return false
+            }
+        }
     }
 
     init() {
-        checkAuth()
+        syncState()
         NotificationCenter.default.addObserver(forName: .guestSessionRevoked, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in
-                let name = UserDefaults.standard.string(forKey: "guestHouseholdName") ?? ""
-                KeychainService.shared.guestToken = nil
-                UserDefaults.standard.removeObject(forKey: "guestHouseholdName")
-                self?.state = .accessRevoked(householdName: name)
+                guard let self else { return }
+                if let active = self.store.activeSession, active.role == .guest {
+                    let name = active.householdName
+                    self.store.remove(id: active.id)
+                    if self.store.sessions.isEmpty {
+                        self.showAccessRevoked = name
+                    }
+                    self.syncState()
+                }
             }
         }
     }
 
-    func checkAuth() {
-        if KeychainService.shared.ownerToken != nil {
-            state = .loading
-            Task {
-                do {
-                    let me = try await APIClient.shared.getMe()
-                    if let household = me.household {
-                        state = .ownerDashboard(householdName: household.name, ownerName: me.person.email)
-                    } else {
-                        state = .needsHousehold(email: me.person.email)
-                    }
-                } catch {
-                    // Token invalid — clear and start fresh
-                    KeychainService.shared.ownerToken = nil
-                    state = .pinEntry
-                }
-            }
-        } else if KeychainService.shared.guestToken != nil {
-            let name = UserDefaults.standard.string(forKey: "guestHouseholdName") ?? ""
-            state = .guestChat(householdName: name)
+    func syncState() {
+        if let session = store.activeSession {
+            state = .active(session)
         } else {
-            state = .pinEntry
+            state = .empty
         }
+    }
+
+    func addSession(_ session: HouseSession, token: String) {
+        store.add(session: session, token: token)
+        syncState()
+    }
+
+    func signOutAll() {
+        store.removeAll()
+        KeychainService.shared.clearAll()
+        UserDefaults.standard.removeObject(forKey: "guestHouseholdName")
+        syncState()
     }
 
     func handleUniversalLink(_ url: URL) {
-        // hearthstone.app/join/{hsi_token}
         guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
               components.path.hasPrefix("/join/") else { return }
 
@@ -119,145 +110,26 @@ final class AppRouter: ObservableObject {
         guard pathParts.count >= 2 else { return }
         let token = String(pathParts[1])
 
-        state = .loading
-
         Task {
             do {
                 let response = try await APIClient.shared.redeemInvite(token: token)
-                KeychainService.shared.guestToken = response.sessionToken
-                UserDefaults.standard.set(response.householdName, forKey: "guestHouseholdName")
-                state = .guestChat(householdName: response.householdName)
-            } catch let error as APIError {
-                if case .server(410, let message) = error {
-                    if message.contains("expired") {
-                        state = .inviteError(.expired)
-                    } else {
-                        state = .inviteError(.alreadyUsed)
-                    }
-                } else if case .server(404, _) = error {
-                    state = .inviteError(.notFound)
-                } else {
-                    state = .inviteError(.notFound)
-                }
+                let session = HouseSession(
+                    id: UUID().uuidString,
+                    householdId: response.guest.householdId,
+                    householdName: response.householdName,
+                    role: .guest,
+                    addedAt: Date()
+                )
+                addSession(session, token: response.sessionToken)
             } catch {
-                state = .inviteError(.notFound)
+                // Invite errors handled later
             }
         }
-    }
-
-    func signOut() {
-        KeychainService.shared.clearAll()
-        UserDefaults.standard.removeObject(forKey: "guestHouseholdName")
-        state = .pinEntry
     }
 }
 
-// MARK: - Auth Flow Container
+// MARK: - String Identifiable
 
-struct AuthFlow: View {
-    @ObservedObject var router: AppRouter
-    @StateObject private var viewModel = AuthViewModel()
-
-    var body: some View {
-        Group {
-            switch viewModel.step {
-            case .welcome:
-                WelcomeView(viewModel: viewModel)
-            case .verifyCode:
-                VerifyCodeView(viewModel: viewModel)
-            case .setupHousehold:
-                HouseholdSetupView(viewModel: viewModel)
-            case .done:
-                Color.clear.onAppear { router.checkAuth() }
-            }
-        }
-        .animation(.easeInOut(duration: 0.3), value: viewModel.step)
-    }
-}
-
-// MARK: - Household Setup Flow (for users who have an account but no household)
-
-struct HouseholdSetupFlow: View {
-    @ObservedObject var router: AppRouter
-    @State private var householdName = ""
-    @State private var isLoading = false
-    @State private var error: String?
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: 6) {
-                ForEach(0..<3, id: \.self) { i in
-                    Capsule()
-                        .fill(i < 2 ? Theme.hearth : Theme.creamDeep)
-                        .frame(height: 4)
-                }
-            }
-            .padding(.bottom, 36)
-
-            Text("Welcome")
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundColor(Theme.hearth)
-                .padding(.bottom, 8)
-
-            Text("Name your household")
-                .font(Theme.heading(28))
-                .foregroundColor(Theme.charcoal)
-                .padding(.bottom, 10)
-
-            Text("This is what your guests will see when they open the app. You can change it anytime.")
-                .font(.system(size: 15))
-                .foregroundColor(Theme.charcoalSoft)
-                .lineSpacing(4)
-                .padding(.bottom, 40)
-
-            HearthTextField(
-                label: "Household Name",
-                placeholder: "e.g. The Anderson Home",
-                text: $householdName
-            )
-
-            if let error {
-                Text(error)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(Theme.rose)
-                    .padding(.top, 12)
-            }
-
-            Spacer()
-
-            HearthButton(title: "Continue", isLoading: isLoading) {
-                Task {
-                    guard !householdName.isEmpty else { return }
-                    isLoading = true
-                    error = nil
-                    do {
-                        _ = try await APIClient.shared.createHousehold(name: householdName)
-                        router.checkAuth()
-                    } catch {
-                        self.error = error.localizedDescription
-                    }
-                    isLoading = false
-                }
-            }
-            .padding(.bottom, 16)
-        }
-        .padding(24)
-        .background(Theme.cream)
-    }
-}
-
-// MARK: - Loading View
-
-struct LoadingView: View {
-    var body: some View {
-        VStack(spacing: 16) {
-            ProgressView()
-                .tint(Theme.hearth)
-            Text("Hearthstone")
-                .font(Theme.heading(20))
-                .foregroundColor(Theme.hearth)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Theme.cream)
-    }
+extension String: @retroactive Identifiable {
+    public var id: String { self }
 }

@@ -5,7 +5,6 @@ import SwiftUI
 struct DashboardView: View {
     @State var householdName: String
     let ownerName: String
-    var onSignOut: (() -> Void)?
 
     @StateObject private var viewModel = DashboardViewModel()
     @State private var showDocuments = false
@@ -39,8 +38,7 @@ struct DashboardView: View {
                             isSavingName = false
                             isEditingName = false
                         }
-                    },
-                    onSignOut: onSignOut
+                    }
                 )
 
                 StatRow(
@@ -122,7 +120,6 @@ private struct HeroHeader: View {
     @Binding var editedName: String
     let isSaving: Bool
     let onSave: () -> Void
-    var onSignOut: (() -> Void)?
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -130,14 +127,6 @@ private struct HeroHeader: View {
                 .fill(Color.white.opacity(0.06))
                 .frame(width: 140, height: 140)
                 .offset(x: 30, y: -30)
-
-            if let onSignOut {
-                Button("Sign Out") { onSignOut() }
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(.white.opacity(0.7))
-                    .padding(.top, 8)
-                    .padding(.trailing, 24)
-            }
 
             VStack(alignment: .leading, spacing: 4) {
                 Text("YOUR HOUSEHOLD")
