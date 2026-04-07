@@ -379,7 +379,10 @@ final class APIClient {
     }
 
     func uploadDocument(title: String, docxData: Data) async throws -> Document {
-        var req = URLRequest(url: URL(string: baseURL + "/documents/upload")!)
+        guard let url = URL(string: baseURL + "/documents/upload") else {
+            throw URLError(.badURL)
+        }
+        var req = URLRequest(url: url)
         req.httpMethod = "POST"
 
         let boundary = UUID().uuidString

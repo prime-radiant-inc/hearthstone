@@ -60,7 +60,7 @@ struct PINEntryView: View {
                             .stroke(Theme.creamDeep, lineWidth: 1.5)
                     )
                     .padding(.horizontal, 80)
-                    .onChange(of: pin) { newValue in
+                    .onChange(of: pin) { _, newValue in
                         let filtered = String(newValue.prefix(6).filter(\.isNumber))
                         if filtered != newValue { pin = filtered }
                         if filtered.count == 6 {

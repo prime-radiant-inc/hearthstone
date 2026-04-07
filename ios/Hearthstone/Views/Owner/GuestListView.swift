@@ -94,7 +94,7 @@ struct GuestListView: View {
                 }
             }
         }
-        .navigationBarHidden(true)
+        .toolbar(.hidden, for: .navigationBar)
         .task { await viewModel.load() }
         .sheet(isPresented: $showAddGuest) {
             AddGuestView(onSuccess: {

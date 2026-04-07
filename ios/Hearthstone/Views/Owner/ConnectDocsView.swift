@@ -152,7 +152,7 @@ struct ConnectDocsView: View {
             await connVM.load()
             await docsVM.load()
         }
-        .onChange(of: connVM.newConnectionId) { connectionId in
+        .onChange(of: connVM.newConnectionId) { _, connectionId in
             if connectionId != nil {
                 showFilePicker = true
             }

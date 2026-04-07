@@ -5,7 +5,6 @@ struct ChatView: View {
     let householdName: String
 
     @State private var selectedSource: ChatSource?
-    @State private var scrollProxy: ScrollViewProxy?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -93,14 +92,14 @@ struct ChatView: View {
                 }
             }
             .background(Theme.creamWarm)
-            .onChange(of: viewModel.messages.count) { _ in
+            .onChange(of: viewModel.messages.count) { _, _ in
                 if let lastId = viewModel.messages.last?.id {
                     withAnimation {
                         proxy.scrollTo(lastId, anchor: .bottom)
                     }
                 }
             }
-            .onChange(of: viewModel.messages.last?.content) { _ in
+            .onChange(of: viewModel.messages.last?.content) { _, _ in
                 if let lastId = viewModel.messages.last?.id {
                     proxy.scrollTo(lastId, anchor: .bottom)
                 }

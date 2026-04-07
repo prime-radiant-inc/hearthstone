@@ -8,8 +8,10 @@ final class DashboardViewModel: ObservableObject {
     @Published var pendingGuestCount = 0
     @Published var isSetupComplete = false
     @Published var hasConnections = false
+    @Published var error: String?
 
     func load() async {
+        self.error = nil
         do {
             let guests = try await APIClient.shared.listGuests()
             activeGuestCount = guests.filter { $0.status == .active }.count
@@ -23,7 +25,7 @@ final class DashboardViewModel: ObservableObject {
 
             isSetupComplete = !docs.isEmpty && !guests.isEmpty
         } catch {
-            // Dashboard still shows with zeros
+            self.error = error.localizedDescription
         }
     }
 }

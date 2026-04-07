@@ -9,8 +9,6 @@
 /* Begin PBXBuildFile section */
 		030EAB73DED596CB0BA20F1D /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 344516F0243473D20A7D8C8C /* ChatView.swift */; };
 		082449A153B3AB3254F4942F /* DocumentsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51984069D3ED00CEDEA26B78 /* DocumentsViewModel.swift */; };
-		B2C3D4E5F6A7B8C9D0E1F2A3 /* DriveFilePickerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F2 /* DriveFilePickerViewModel.swift */; };
-		D4E5F6A7B8C9D0E1F2A3B4C5 /* DriveFilePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D4E5F6A7B8C9D0E1F2A3B4 /* DriveFilePickerView.swift */; };
 		12CAFF2212CB9DDC30AA44D4 /* HearthButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D13E91C8F48290878E5C386 /* HearthButton.swift */; };
 		12D9F0AACD5B4A4D32A5E264 /* StatusBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AB0F06146DFB3EF1D159CDF /* StatusBadge.swift */; };
 		17B3613E09E957F555D69E68 /* SuggestionChips.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB4504D789BCA1AA870DFA83 /* SuggestionChips.swift */; };
@@ -26,7 +24,6 @@
 		5083441DA7742299EF84AB81 /* SSEClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDD098C398E3401F959D0287 /* SSEClient.swift */; };
 		52E8F72D0B9D0D7A5FA42471 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDD84A7F97E32C1775351C2C /* KeychainService.swift */; };
 		5E6D6335D619725F1A7B0005 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDFF0389459109EAA5A09A74 /* WelcomeView.swift */; };
-		B2C3D4E5F60123456789AB01 /* PINEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F601234567890A /* PINEntryView.swift */; };
 		61688CC2624117D0895B5BC9 /* GuestListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88AA192FF5FDDE7224F434FC /* GuestListView.swift */; };
 		6AEF81B92627FEB704C7EA2C /* SourceDocumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBD36E61ABE11EF9988D51C7 /* SourceDocumentView.swift */; };
 		7108A78F317AA431BA9F0046 /* VerifyCodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 722C9536F2D45780DDF60666 /* VerifyCodeView.swift */; };
@@ -35,35 +32,37 @@
 		7B07E3ACE9272D7FA428DC25 /* HearthTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27683AA32579AAAA8D655960 /* HearthTextField.swift */; };
 		8207F2214F4F1B1DEC1360FF /* HearthstoneApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637898B473FDD1C99019571D /* HearthstoneApp.swift */; };
 		8A5DA70B1A534E9699E50363 /* AddGuestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D01C211535289B4F0A07CE9 /* AddGuestView.swift */; };
-		E2F3A4B5C6D7E8F9A0B1C2D3 /* GuestPINView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A8B2C1D4E5F6A7B8C9D0E1 /* GuestPINView.swift */; };
 		91D2682B4D7AA463A931E8B3 /* MessageBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35B54811E9568D04E41E1D40 /* MessageBubble.swift */; };
 		B0B35FEFC16C499171256985 /* ChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC47B1DB3BC3C8AEB9CB62E2 /* ChatViewModel.swift */; };
 		B11C65BF6167E93105F0E182 /* Document.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8FC1D2FA013BB586A464ADA /* Document.swift */; };
-		BEA9C2F91F8B43EBB78DC21C /* DriveFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E20C4A529634EF4AA4FA796 /* DriveFile.swift */; };
+		B2C3D4E5F60123456789AB01 /* PINEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F601234567890A /* PINEntryView.swift */; };
+		B2C3D4E5F6A7B8C9D0E1F2A3 /* DriveFilePickerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F2 /* DriveFilePickerViewModel.swift */; };
 		B3C7012EC5EE28B776AB5C3F /* ChatMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = F54456FA5D506B133989EEAD /* ChatMessage.swift */; };
+		BEA9C2F91F8B43EBB78DC21C /* DriveFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E20C4A529634EF4AA4FA796 /* DriveFile.swift */; };
 		C2B9FF563F53803629F0D4B3 /* DashboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7508202142FDC4B09A8F1239 /* DashboardViewModel.swift */; };
 		CB814B680110FA221E81687B /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 911D8BD2218D321FFACC6783 /* Theme.swift */; };
 		CE52493836C4597D23E0D480 /* Household.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6281E5FF7DCC0E72163CE472 /* Household.swift */; };
+		D4E5F6A7B8C9D0E1F2A3B4C5 /* DriveFilePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D4E5F6A7B8C9D0E1F2A3B4 /* DriveFilePickerView.swift */; };
 		D78164B826CC21F981D31847 /* Person.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB09FB0849CA8E2DCA07AED5 /* Person.swift */; };
+		E2F3A4B5C6D7E8F9A0B1C2D3 /* GuestPINView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A8B2C1D4E5F6A7B8C9D0E1 /* GuestPINView.swift */; };
 		F23F482C8426F52978B49299 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6664253F4BA2C390AB56D00 /* DashboardView.swift */; };
 		F33BDECE29CD924BC3776F49 /* InviteErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CFFD695DB89CD17DF3B96C1 /* InviteErrorView.swift */; };
 		FBDCAA2BF756B5DD7B198BC4 /* GuestListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA7AF9F5111428B104E32108 /* GuestListViewModel.swift */; };
+		AAAA000000000000000000C1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AAAA000000000000000000A1 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		AAAA000000000000000000A1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		066D70BA714F154CA16063BD /* ConnectDocsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectDocsView.swift; sourceTree = "<group>"; };
 		0AB0F06146DFB3EF1D159CDF /* StatusBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBadge.swift; sourceTree = "<group>"; };
 		1CFFD695DB89CD17DF3B96C1 /* InviteErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteErrorView.swift; sourceTree = "<group>"; };
 		1D01C211535289B4F0A07CE9 /* AddGuestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddGuestView.swift; sourceTree = "<group>"; };
-		F3A8B2C1D4E5F6A7B8C9D0E1 /* GuestPINView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestPINView.swift; sourceTree = "<group>"; };
 		270789DC8776F9F1F8983D00 /* Suggestion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Suggestion.swift; sourceTree = "<group>"; };
 		27683AA32579AAAA8D655960 /* HearthTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HearthTextField.swift; sourceTree = "<group>"; };
 		344516F0243473D20A7D8C8C /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
 		35B54811E9568D04E41E1D40 /* MessageBubble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageBubble.swift; sourceTree = "<group>"; };
 		3D3DA8695C636234B1C9F517 /* AccessRevokedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessRevokedView.swift; sourceTree = "<group>"; };
 		51984069D3ED00CEDEA26B78 /* DocumentsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentsViewModel.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F6A7B8C9D0E1F2 /* DriveFilePickerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveFilePickerViewModel.swift; sourceTree = "<group>"; };
-		C3D4E5F6A7B8C9D0E1F2A3B4 /* DriveFilePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveFilePickerView.swift; sourceTree = "<group>"; };
 		5D13E91C8F48290878E5C386 /* HearthButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HearthButton.swift; sourceTree = "<group>"; };
 		6281E5FF7DCC0E72163CE472 /* Household.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Household.swift; sourceTree = "<group>"; };
 		637898B473FDD1C99019571D /* HearthstoneApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HearthstoneApp.swift; sourceTree = "<group>"; };
@@ -72,23 +71,26 @@
 		70C443F691027605AC072729 /* ProgressDots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressDots.swift; sourceTree = "<group>"; };
 		722C9536F2D45780DDF60666 /* VerifyCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerifyCodeView.swift; sourceTree = "<group>"; };
 		7508202142FDC4B09A8F1239 /* DashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardViewModel.swift; sourceTree = "<group>"; };
+		7E20C4A529634EF4AA4FA796 /* DriveFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveFile.swift; sourceTree = "<group>"; };
 		88AA192FF5FDDE7224F434FC /* GuestListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestListView.swift; sourceTree = "<group>"; };
 		911D8BD2218D321FFACC6783 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
-		A575226351EBD6A26DB29462 /* Hearthstone.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Hearthstone.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1B2C3D4E5F601234567890A /* PINEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PINEntryView.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6A7B8C9D0E1F2 /* DriveFilePickerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveFilePickerViewModel.swift; sourceTree = "<group>"; };
+		A575226351EBD6A26DB29462 /* Hearthstone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hearthstone.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB4504D789BCA1AA870DFA83 /* SuggestionChips.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuggestionChips.swift; sourceTree = "<group>"; };
 		ACB03D07BB9EF9F7E63B840F /* OwnerPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OwnerPreviewView.swift; sourceTree = "<group>"; };
 		B6664253F4BA2C390AB56D00 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		BC47B1DB3BC3C8AEB9CB62E2 /* ChatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViewModel.swift; sourceTree = "<group>"; };
 		BE4EE6D15E820ECB1A26F3A3 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		C13A6D4C6E55200DD77A249E /* Guest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Guest.swift; sourceTree = "<group>"; };
+		C3D4E5F6A7B8C9D0E1F2A3B4 /* DriveFilePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveFilePickerView.swift; sourceTree = "<group>"; };
 		C8FC1D2FA013BB586A464ADA /* Document.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Document.swift; sourceTree = "<group>"; };
-		7E20C4A529634EF4AA4FA796 /* DriveFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveFile.swift; sourceTree = "<group>"; };
 		CA7AF9F5111428B104E32108 /* GuestListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestListViewModel.swift; sourceTree = "<group>"; };
 		CE3D7F4ED477BB3A9D6AC4EA /* HouseholdSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdSetupView.swift; sourceTree = "<group>"; };
 		D2EE14D81019E0E37D8489D8 /* Connection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
 		EDD84A7F97E32C1775351C2C /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
 		EDFF0389459109EAA5A09A74 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F601234567890A /* PINEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PINEntryView.swift; sourceTree = "<group>"; };
+		F3A8B2C1D4E5F6A7B8C9D0E1 /* GuestPINView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestPINView.swift; sourceTree = "<group>"; };
 		F54456FA5D506B133989EEAD /* ChatMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessage.swift; sourceTree = "<group>"; };
 		FB09FB0849CA8E2DCA07AED5 /* Person.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Person.swift; sourceTree = "<group>"; };
 		FBD36E61ABE11EF9988D51C7 /* SourceDocumentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceDocumentView.swift; sourceTree = "<group>"; };
@@ -222,6 +224,7 @@
 		D7D02EC4CBF6936A156D910A /* Hearthstone */ = {
 			isa = PBXGroup;
 			children = (
+				AAAA000000000000000000A1 /* Assets.xcassets */,
 				637898B473FDD1C99019571D /* HearthstoneApp.swift */,
 				911D8BD2218D321FFACC6783 /* Theme.swift */,
 				44719FC759FFF6F26627A94F /* Models */,
@@ -240,6 +243,7 @@
 			buildConfigurationList = 94C60E79FEAD4D9BC638D355 /* Build configuration list for PBXNativeTarget "Hearthstone" */;
 			buildPhases = (
 				A9AEE2E4C834B54F8B1F854E /* Sources */,
+				AAAA000000000000000000B1 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -260,8 +264,6 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1600;
-				TargetAttributes = {
-				};
 			};
 			buildConfigurationList = 87EAF25010B3FE0562708450 /* Build configuration list for PBXProject "Hearthstone" */;
 			developmentRegion = en;
@@ -281,6 +283,17 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		AAAA000000000000000000B1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AAAA000000000000000000C1 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		A9AEE2E4C834B54F8B1F854E /* Sources */ = {
@@ -396,6 +409,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = V335W4S58A;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Hearthstone/Info.plist;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -404,9 +419,10 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = app.hearthstone.ios;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -479,6 +495,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = V335W4S58A;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Hearthstone/Info.plist;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -487,9 +505,10 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = app.hearthstone.ios;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
