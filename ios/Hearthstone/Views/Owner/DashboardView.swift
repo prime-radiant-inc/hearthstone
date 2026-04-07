@@ -10,6 +10,7 @@ struct DashboardView: View {
     @State private var showDocuments = false
     @State private var showGuestList = false
     @State private var showOwnerPreview = false
+    @State private var showInviteOwner = false
     @State private var isEditingName = false
     @State private var editedName = ""
     @State private var isSavingName = false
@@ -66,7 +67,8 @@ struct DashboardView: View {
                     guestSubtitle: guestSubtitle,
                     onDocumentsTap: { showDocuments = true },
                     onGuestsTap: { showGuestList = true },
-                    onPreviewTap: { showOwnerPreview = true }
+                    onPreviewTap: { showOwnerPreview = true },
+                    onInviteOwnerTap: { showInviteOwner = true }
                 )
                 .padding(.top, 24)
             }
@@ -81,6 +83,9 @@ struct DashboardView: View {
         }
         .sheet(isPresented: $showOwnerPreview) {
             OwnerPreviewView(householdName: householdName)
+        }
+        .sheet(isPresented: $showInviteOwner) {
+            InviteOwnerView()
         }
         .onChange(of: showDocuments) { _, isShowing in
             if !isShowing { Task { await viewModel.load() } }
@@ -321,6 +326,7 @@ private struct ManageSection: View {
     let onDocumentsTap: () -> Void
     let onGuestsTap: () -> Void
     let onPreviewTap: () -> Void
+    let onInviteOwnerTap: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -344,6 +350,14 @@ private struct ManageSection: View {
                 title: "Guests",
                 subtitle: guestSubtitle,
                 onTap: onGuestsTap
+            )
+
+            ManageRow(
+                icon: "🔑",
+                iconBackground: Color(red: 1.0, green: 0.953, blue: 0.863),
+                title: "Invite Owner",
+                subtitle: "Give someone owner access",
+                onTap: onInviteOwnerTap
             )
 
             ManageRow(

@@ -37,6 +37,7 @@
 		B11C65BF6167E93105F0E182 /* Document.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8FC1D2FA013BB586A464ADA /* Document.swift */; };
 		B2C3D4E5F60123456789AB01 /* PINEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F601234567890A /* PINEntryView.swift */; };
 		AA05000000000000000005B1 /* QRScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA05000000000000000005A1 /* QRScannerView.swift */; };
+		AA06000000000000000006B1 /* InviteOwnerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA06000000000000000006A1 /* InviteOwnerView.swift */; };
 		B2C3D4E5F6A7B8C9D0E1F2A3 /* DriveFilePickerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F2 /* DriveFilePickerViewModel.swift */; };
 		B3C7012EC5EE28B776AB5C3F /* ChatMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = F54456FA5D506B133989EEAD /* ChatMessage.swift */; };
 		BEA9C2F91F8B43EBB78DC21C /* DriveFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E20C4A529634EF4AA4FA796 /* DriveFile.swift */; };
@@ -105,6 +106,7 @@
 		AA02000000000000000002A1 /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
 		AA03000000000000000003A1 /* SidebarOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarOverlay.swift; sourceTree = "<group>"; };
 		AA04000000000000000004A1 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
+		AA06000000000000000006A1 /* InviteOwnerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteOwnerView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -164,6 +166,7 @@
 				B6664253F4BA2C390AB56D00 /* DashboardView.swift */,
 				C3D4E5F6A7B8C9D0E1F2A3B4 /* DriveFilePickerView.swift */,
 				88AA192FF5FDDE7224F434FC /* GuestListView.swift */,
+				AA06000000000000000006A1 /* InviteOwnerView.swift */,
 				ACB03D07BB9EF9F7E63B840F /* OwnerPreviewView.swift */,
 			);
 			path = Owner;
@@ -350,6 +353,7 @@
 				CE52493836C4597D23E0D480 /* Household.swift in Sources */,
 				3253596E11C04A8BCB6EA422 /* HouseholdSetupView.swift in Sources */,
 				F33BDECE29CD924BC3776F49 /* InviteErrorView.swift in Sources */,
+				AA06000000000000000006B1 /* InviteOwnerView.swift in Sources */,
 				AA01000000000000000001B1 /* HouseSession.swift in Sources */,
 				52E8F72D0B9D0D7A5FA42471 /* KeychainService.swift in Sources */,
 				AA02000000000000000002B1 /* SessionStore.swift in Sources */,
