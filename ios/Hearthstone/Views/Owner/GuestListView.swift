@@ -101,6 +101,15 @@ struct GuestListView: View {
                 Task { await viewModel.load() }
             })
         }
+        .sheet(item: $viewModel.reinviteResult) { result in
+            GuestPINView(
+                guestName: result.guestName,
+                pin: result.pin,
+                expiresAt: result.expiresAt
+            ) {
+                viewModel.reinviteResult = nil
+            }
+        }
     }
 
     private var guestCountSubtitle: String {
