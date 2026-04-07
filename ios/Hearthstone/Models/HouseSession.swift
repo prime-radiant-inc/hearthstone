@@ -10,6 +10,7 @@ struct HouseSession: Identifiable, Codable, Equatable {
     let householdId: String
     var householdName: String
     let role: HouseRole
+    var personName: String?
     let addedAt: Date
 
     static func == (lhs: HouseSession, rhs: HouseSession) -> Bool {

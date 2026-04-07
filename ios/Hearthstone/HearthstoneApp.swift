@@ -21,7 +21,7 @@ struct HearthstoneApp: App {
                             NavigationStack {
                                 DashboardView(
                                     householdName: session.householdName,
-                                    ownerName: ""
+                                    ownerName: session.personName ?? ""
                                 )
                             }
                         } else {

@@ -105,6 +105,7 @@ struct PINEntryView: View {
                 householdId: response.household?.id ?? response.guest?.householdId ?? "",
                 householdName: response.household?.name ?? response.householdName ?? "",
                 role: response.role == "owner" ? .owner : .guest,
+                personName: response.person?.email,
                 addedAt: Date()
             )
             onAuthenticated(session, response.token)
