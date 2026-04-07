@@ -235,14 +235,14 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       if (method === "POST" && pathname === "/guests") {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         const body = await req.json();
-        const result = await handleCreateGuest(getDb(), owner.householdId, body);
+        const result = await handleCreateGuest(getDb(), owner.householdId, owner.personId, body);
         return json(result.body, result.status);
       }
 
       const reinviteParams = parsePathParams("/guests/:id/reinvite", pathname);
       if (method === "POST" && reinviteParams) {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
-        const result = handleReinviteGuest(getDb(), owner.householdId, reinviteParams.id);
+        const result = handleReinviteGuest(getDb(), owner.householdId, owner.personId, reinviteParams.id);
         return json(result.body, result.status);
       }
 

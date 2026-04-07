@@ -19,6 +19,7 @@ export function handleListGuests(
 export async function handleCreateGuest(
   db: Database,
   householdId: string,
+  personId: string,
   body: { name: string | null; email: string | null }
 ): Promise<{ status: number; body: any }> {
   if (!body.name || !body.name.trim()) {
@@ -34,10 +35,9 @@ export async function handleCreateGuest(
     "INSERT INTO guests (id, household_id, name, contact, contact_type, status, created_at) VALUES (?, ?, ?, ?, ?, 'pending', ?)"
   ).run(guestId, householdId, body.name.trim(), contact, contactType, now);
 
-  const household = db.prepare("SELECT owner_id FROM households WHERE id = ?").get(householdId) as any;
   const { pin, expiresAt } = createAuthPin(db, {
     role: "guest",
-    personId: household.owner_id,
+    personId,
     householdId,
     guestId,
   });
@@ -75,6 +75,7 @@ export function handleRevokeGuest(
 export function handleReinviteGuest(
   db: Database,
   householdId: string,
+  personId: string,
   guestId: string
 ): { status: number; body: any } {
   const guest = db
@@ -89,10 +90,9 @@ export function handleReinviteGuest(
     db.prepare("UPDATE guests SET status = 'pending' WHERE id = ?").run(guestId);
   }
 
-  const household = db.prepare("SELECT owner_id FROM households WHERE id = ?").get(householdId) as any;
   const { pin, expiresAt } = createAuthPin(db, {
     role: "guest",
-    personId: household.owner_id,
+    personId,
     householdId,
     guestId,
   });

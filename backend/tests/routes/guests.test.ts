@@ -17,11 +17,14 @@ describe("guest routes", () => {
     db.prepare("INSERT INTO households (id, owner_id, name, created_at) VALUES (?, ?, ?, ?)").run(
       "h1", "p1", "Test Home", new Date().toISOString()
     );
+    db.prepare("INSERT INTO household_members (id, household_id, person_id, role, created_at) VALUES (?, ?, ?, 'owner', ?)").run(
+      "hm1", "h1", "p1", new Date().toISOString()
+    );
   });
 
   describe("POST /guests", () => {
     it("creates a guest with pending status and returns pin", async () => {
-      const result = await handleCreateGuest(db, "h1", {
+      const result = await handleCreateGuest(db, "h1", "p1", {
         name: "Maria",
         email: "maria@test.com",
       });
@@ -33,7 +36,7 @@ describe("guest routes", () => {
     });
 
     it("returns 422 when name is missing", async () => {
-      const result = await handleCreateGuest(db, "h1", {
+      const result = await handleCreateGuest(db, "h1", "p1", {
         name: "",
         email: "maria@test.com",
       });
@@ -43,8 +46,8 @@ describe("guest routes", () => {
 
   describe("GET /guests", () => {
     it("lists all guests for the household", async () => {
-      await handleCreateGuest(db, "h1", { name: "Maria", email: "maria@test.com" });
-      await handleCreateGuest(db, "h1", { name: "James", email: "james@test.com" });
+      await handleCreateGuest(db, "h1", "p1", { name: "Maria", email: "maria@test.com" });
+      await handleCreateGuest(db, "h1", "p1", { name: "James", email: "james@test.com" });
       const result = handleListGuests(db, "h1");
       expect(result.body.guests).toHaveLength(2);
     });
@@ -52,7 +55,7 @@ describe("guest routes", () => {
 
   describe("POST /guests/:id/revoke", () => {
     it("revokes an active guest", async () => {
-      const created = await handleCreateGuest(db, "h1", { name: "Maria", email: "maria@test.com" });
+      const created = await handleCreateGuest(db, "h1", "p1", { name: "Maria", email: "maria@test.com" });
       const guestId = created.body.guest.id;
 
       // Activate the guest by redeeming the PIN
@@ -64,7 +67,7 @@ describe("guest routes", () => {
     });
 
     it("returns 409 for already-revoked guest", async () => {
-      const created = await handleCreateGuest(db, "h1", { name: "Maria", email: "maria@test.com" });
+      const created = await handleCreateGuest(db, "h1", "p1", { name: "Maria", email: "maria@test.com" });
       const guestId = created.body.guest.id;
       redeemPin(db, created.body.pin);
 
@@ -76,7 +79,7 @@ describe("guest routes", () => {
 
   describe("DELETE /guests/:id", () => {
     it("deletes a revoked guest", async () => {
-      const created = await handleCreateGuest(db, "h1", { name: "Maria", email: "maria@test.com" });
+      const created = await handleCreateGuest(db, "h1", "p1", { name: "Maria", email: "maria@test.com" });
       const guestId = created.body.guest.id;
       redeemPin(db, created.body.pin);
       handleRevokeGuest(db, "h1", guestId);
@@ -86,7 +89,7 @@ describe("guest routes", () => {
     });
 
     it("returns 409 if guest is still active", async () => {
-      const created = await handleCreateGuest(db, "h1", { name: "Maria", email: "maria@test.com" });
+      const created = await handleCreateGuest(db, "h1", "p1", { name: "Maria", email: "maria@test.com" });
       const guestId = created.body.guest.id;
       redeemPin(db, created.body.pin);
 

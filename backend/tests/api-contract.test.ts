@@ -36,6 +36,7 @@ function seedOwner(db: Database): string {
   const now = new Date().toISOString();
   db.prepare("INSERT INTO persons (id, email, created_at) VALUES (?, ?, ?)").run("p1", "owner@test.com", now);
   db.prepare("INSERT INTO households (id, owner_id, name, created_at) VALUES (?, ?, ?, ?)").run("h1", "p1", "Test Home", now);
+  db.prepare("INSERT INTO household_members (id, household_id, person_id, role, created_at) VALUES (?, ?, ?, 'owner', ?)").run("hm1", "h1", "p1", now);
   return "h1";
 }
 
@@ -159,7 +160,7 @@ describe("API Contract: POST /guests", () => {
 
   it("response has { guest: { id, name, status }, pin, expires_at }", async () => {
     const hid = seedOwner(db);
-    const result = await handleCreateGuest(db, hid, { name: "Maria", email: "maria@test.com" });
+    const result = await handleCreateGuest(db, hid, "p1", { name: "Maria", email: "maria@test.com" });
     expect(result.status).toBe(200);
     hasExactKeys(result.body, ["guest", "pin", "expires_at"]);
     hasExactKeys(result.body.guest, ["id", "name", "status"]);
@@ -187,7 +188,7 @@ describe("API Contract: POST /guests/:id/reinvite", () => {
   it("response has { pin, expires_at }", () => {
     const hid = seedOwner(db);
     seedGuest(db, hid, "pending");
-    const result = handleReinviteGuest(db, hid, "g1");
+    const result = handleReinviteGuest(db, hid, "p1", "g1");
     expect(result.status).toBe(200);
     hasExactKeys(result.body, ["pin", "expires_at"]);
     expect(result.body.pin).toMatch(/^\d{6}$/);
