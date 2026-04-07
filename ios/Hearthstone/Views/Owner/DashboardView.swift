@@ -154,18 +154,13 @@ private struct HeroHeader: View {
                         }
                     }
                 } else {
-                    HStack(spacing: 6) {
-                        Text(householdName)
-                            .font(Theme.heading(26))
-                            .fontWeight(.semibold)
-                        Image(systemName: "pencil")
-                            .font(.system(size: 14))
-                            .opacity(0.6)
-                    }
-                    .onTapGesture {
-                        editedName = householdName
-                        isEditing = true
-                    }
+                    Text(householdName)
+                        .font(Theme.heading(26))
+                        .fontWeight(.semibold)
+                        .onLongPressGesture {
+                            editedName = householdName
+                            isEditing = true
+                        }
                 }
 
                 Text("Welcome back, \(ownerName)")
