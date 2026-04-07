@@ -21,19 +21,27 @@ export async function authenticateOwner(
     const encoder = new TextEncoder();
     const { payload } = await jwtVerify(token, encoder.encode(jwtSecret));
     const personId = payload.personId as string;
+    const householdId = payload.householdId as string;
 
     if (!personId) throw new Error("unauthorized");
 
     const person = db.prepare("SELECT id FROM persons WHERE id = ?").get(personId);
     if (!person) throw new Error("unauthorized");
 
-    // Always look up household by owner_id — handles JWTs issued before
-    // household creation without needing to re-issue tokens
-    const household = db
-      .prepare("SELECT id FROM households WHERE owner_id = ?")
-      .get(personId) as any;
+    // Check membership in the specific household from the JWT
+    if (householdId) {
+      const member = db.prepare(
+        "SELECT id FROM household_members WHERE person_id = ? AND household_id = ? AND role = 'owner'"
+      ).get(personId, householdId);
+      if (member) return { personId, householdId };
+    }
 
-    return { personId, householdId: household?.id ?? "" };
+    // Fallback: find any household this person owns (for legacy JWTs without householdId)
+    const member = db.prepare(
+      "SELECT household_id FROM household_members WHERE person_id = ? AND role = 'owner' LIMIT 1"
+    ).get(personId) as any;
+
+    return { personId, householdId: member?.household_id ?? "" };
   } catch {
     throw new Error("unauthorized");
   }

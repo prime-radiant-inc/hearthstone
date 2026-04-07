@@ -25,6 +25,9 @@ describe("owner auth middleware", () => {
     db.prepare("INSERT INTO households (id, owner_id, name, created_at) VALUES (?, ?, ?, ?)").run(
       "h1", "p1", "Test Home", new Date().toISOString()
     );
+    db.prepare("INSERT INTO household_members (id, household_id, person_id, role, created_at) VALUES (?, ?, ?, 'owner', ?)").run(
+      "hm1", "h1", "p1", new Date().toISOString()
+    );
   });
 
   it("returns person and household for valid JWT", async () => {
