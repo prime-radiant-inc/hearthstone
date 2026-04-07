@@ -24,7 +24,7 @@ final class KeychainService {
         }
     }
 
-    private func save(key: String, value: String) {
+    func save(key: String, value: String) {
         let data = Data(value.utf8)
         delete(key: key)
         let query: [String: Any] = [
@@ -36,7 +36,7 @@ final class KeychainService {
         SecItemAdd(query as CFDictionary, nil)
     }
 
-    private func read(key: String) -> String? {
+    func read(key: String) -> String? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: key,
@@ -49,7 +49,7 @@ final class KeychainService {
         return String(data: data, encoding: .utf8)
     }
 
-    private func delete(key: String) {
+    func delete(key: String) {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: key,
