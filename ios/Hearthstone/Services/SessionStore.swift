@@ -24,6 +24,59 @@ final class SessionStore: ObservableObject {
 
     private init() {
         load()
+        migrateFromLegacyIfNeeded()
+    }
+
+    private func migrateFromLegacyIfNeeded() {
+        guard sessions.isEmpty else { return }
+
+        if let ownerToken = KeychainService.shared.read(key: "hearthstone_owner_jwt") {
+            let session = HouseSession(
+                id: UUID().uuidString,
+                householdId: "migrated-owner",
+                householdName: "My House",
+                role: .owner,
+                addedAt: Date()
+            )
+            add(session: session, token: ownerToken)
+            KeychainService.shared.delete(key: "hearthstone_owner_jwt")
+
+            Task {
+                do {
+                    let me = try await APIClient.shared.getMe()
+                    if let household = me.household {
+                        if let idx = sessions.firstIndex(where: { $0.role == .owner && $0.householdId == "migrated-owner" }) {
+                            let old = sessions[idx]
+                            let updated = HouseSession(
+                                id: old.id,
+                                householdId: household.id,
+                                householdName: household.name,
+                                role: .owner,
+                                addedAt: old.addedAt
+                            )
+                            sessions[idx] = updated
+                            persist()
+                        }
+                    }
+                } catch {
+                    // Migration succeeded with placeholder name
+                }
+            }
+        }
+
+        if let guestToken = KeychainService.shared.read(key: "hearthstone_guest_hss") {
+            let householdName = UserDefaults.standard.string(forKey: "guestHouseholdName") ?? "Guest House"
+            let session = HouseSession(
+                id: UUID().uuidString,
+                householdId: "migrated-guest",
+                householdName: householdName,
+                role: .guest,
+                addedAt: Date()
+            )
+            add(session: session, token: guestToken)
+            KeychainService.shared.delete(key: "hearthstone_guest_hss")
+            UserDefaults.standard.removeObject(forKey: "guestHouseholdName")
+        }
     }
 
     private func load() {
