@@ -7,8 +7,8 @@ enum GuestStatus: String, Codable {
 struct Guest: Codable, Identifiable {
     let id: String
     let name: String
-    let contact: String
-    let contactType: String
+    let contact: String?
+    let contactType: String?
     let status: GuestStatus
     let createdAt: String
 
