@@ -8,6 +8,7 @@ RUN bun install --frozen-lockfile --production
 
 # Final image
 FROM base
+RUN apt-get update && apt-get install -y pandoc && rm -rf /var/lib/apt/lists/*
 COPY --from=install /app/node_modules ./node_modules
 COPY . .
 
