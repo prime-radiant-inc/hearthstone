@@ -12,7 +12,9 @@
     "eval": "bun eval/run.ts",
     "eval:dry": "bun eval/run.ts --dry-run",
     "optimize": "bun eval/optimize.ts",
-    "reindex": "bun eval/reindex.ts"
+    "reindex": "bun eval/reindex.ts",
+    "create-household": "bun cli/create-household.ts",
+    "owner-pin": "bun cli/owner-pin.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
