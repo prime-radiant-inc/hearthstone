@@ -11,7 +11,7 @@ export function handleUpdateHousehold(
   }
 
   db.prepare("UPDATE households SET name = ? WHERE id = ?").run(body.name.trim(), householdId);
-  const household = db.prepare("SELECT id, name FROM households WHERE id = ?").get(householdId) as any;
+  const household = db.prepare("SELECT id, name, created_at FROM households WHERE id = ?").get(householdId) as any;
 
-  return { status: 200, body: { id: household.id, name: household.name } };
+  return { status: 200, body: { id: household.id, name: household.name, created_at: household.created_at } };
 }
