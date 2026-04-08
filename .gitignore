@@ -23,8 +23,13 @@ backend/dist/
 backend/coverage/
 backend/*.lcov
 backend/*.tsbuildinfo
-backend/eval/results/*.json
-!backend/eval/results/*-comparison.json
+backend/eval/results/
+backend/eval/questions.ts
+backend/eval/prompt.txt
+backend/eval/prompt.backup.txt
+
+# Personal reference documents
+refdocs/
 
 # iOS
 ios/Hearthstone.xcodeproj/project.xcworkspace/xcuserdata/
