@@ -47,23 +47,24 @@ describe("chunkMarkdown", () => {
     expect(chunks).toHaveLength(0);
   });
 
-  it("preserves heading hierarchy", () => {
+  it("preserves heading hierarchy (H1/H2 only)", () => {
     const md = `# Top\n${pad("Intro.")}\n## Sub A\n${pad("Content A.")}\n### Sub Sub\n${pad("Deep content.")}\n## Sub B\n${pad("Content B.")}`;
     const chunks = chunkMarkdown(md);
-    expect(chunks).toHaveLength(4);
+    // H3 "Sub Sub" is NOT a split point — its content stays in the "Sub A" chunk
+    expect(chunks).toHaveLength(3);
   });
 
-  it("stores breadcrumb path in heading field", () => {
+  it("stores breadcrumb path in heading field (H3 content stays in parent)", () => {
     const md = `# House Manual\n\n${pad("General info.")}\n\n## Kids & Family\n\n${pad("Family overview.")}\n\n### Bedtime Routines\n\n${pad("Bath at 7:30, one story of her choosing.")}`;
     const chunks = chunkMarkdown(md);
 
-    expect(chunks).toHaveLength(3);
+    // H3 "Bedtime Routines" is treated as body text, so its content merges into "Kids & Family"
+    expect(chunks).toHaveLength(2);
     expect(chunks[0].heading).toBe("House Manual");
     expect(chunks[0].text).toContain("General info.");
     expect(chunks[1].heading).toBe("House Manual > Kids & Family");
     expect(chunks[1].text).toContain("Family overview.");
-    expect(chunks[2].heading).toBe("House Manual > Kids & Family > Bedtime Routines");
-    expect(chunks[2].text).toContain("Bath at 7:30");
+    expect(chunks[1].text).toContain("Bath at 7:30");
   });
 
   it("chunk with no heading above it gets empty heading", () => {

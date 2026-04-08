@@ -62,8 +62,11 @@ function splitOnHeadings(markdown: string): Section[] {
   }
 
   for (const line of lines) {
-    const headingMatch = line.match(/^(#{1,6})\s+(.*)/);
+    const headingMatch = line.match(/^(#{1,2})\s+(.*)/);
     if (headingMatch) {
+      // Only split on H1 and H2. H3+ are treated as body text —
+      // they're often just bold labels in Google Docs that pandoc
+      // promoted to headings.
       flush();
       currentBody = [];
 
