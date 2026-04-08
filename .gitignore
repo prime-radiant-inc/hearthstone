@@ -22,6 +22,7 @@ backend/coverage/
 backend/*.lcov
 backend/*.tsbuildinfo
 backend/eval/results/*.json
+!backend/eval/results/*-comparison.json
 
 # iOS
 ios/Hearthstone.xcodeproj/project.xcworkspace/xcuserdata/
