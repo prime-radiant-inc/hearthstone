@@ -11,6 +11,7 @@
     "chat:both": "bun cli-chat.ts --mode both",
     "eval": "bun eval/run.ts",
     "eval:dry": "bun eval/run.ts --dry-run",
+    "eval:compare": "bun eval/compare-models.ts",
     "optimize": "bun eval/optimize.ts",
     "reindex": "bun eval/reindex.ts",
     "create-household": "bun cli/create-household.ts",
