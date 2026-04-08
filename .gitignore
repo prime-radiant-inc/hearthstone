@@ -1,2 +1,40 @@
+# macOS
+.DS_Store
+
+# Editor
+*.swp
+*~
+
+# Brainstorm / Superpowers working directories
 .brainstorm
 .superpowers/
+
+# Backend
+backend/node_modules/
+backend/.env
+backend/.env.*.local
+backend/*.db
+backend/*.db-wal
+backend/*.db-shm
+backend/out/
+backend/dist/
+backend/coverage/
+backend/*.lcov
+backend/*.tsbuildinfo
+backend/eval/results/*.json
+
+# iOS
+ios/Hearthstone.xcodeproj/project.xcworkspace/xcuserdata/
+ios/Hearthstone.xcodeproj/xcuserdata/
+ios/icon-candidates/
+ios/DerivedData/
+
+# Xcode
+*.xcuserstate
+xcuserdata/
+DerivedData/
+build/
+
+# IDE
+.idea/
+.cache/
