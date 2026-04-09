@@ -69,6 +69,73 @@ struct EdgePanOverlay: UIViewRepresentable {
     }
 }
 
+// MARK: - Pan-to-Close Overlay (covers sidebar when open)
+
+/// Full-area pan gesture for closing the sidebar. Uses UIPanGestureRecognizer so it
+/// works over the sidebar's List/buttons without being swallowed by SwiftUI gestures.
+struct PanCloseOverlay: UIViewRepresentable {
+    var onChanged: (CGFloat) -> Void
+    var onEnded: (CGFloat, CGFloat) -> Void
+
+    func makeUIView(context: Context) -> PassthroughPanView {
+        let view = PassthroughPanView()
+        view.backgroundColor = .clear
+        let gesture = UIPanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handlePan(_:)))
+        view.addGestureRecognizer(gesture)
+        return view
+    }
+
+    /// Passes through taps (hitTest returns nil) but the pan gesture still fires
+    /// because gesture recognizers are checked before hitTest filtering.
+    class PassthroughPanView: UIView {
+        override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+            // Return nil so taps pass through to sidebar buttons underneath.
+            // The UIPanGestureRecognizer still works because UIKit evaluates
+            // gesture recognizers on the view hierarchy before hit testing.
+            return nil
+        }
+
+        override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+            // Must return true so gesture recognizers on this view receive touches.
+            return true
+        }
+    }
+
+    func updateUIView(_ uiView: PassthroughPanView, context: Context) {
+        context.coordinator.onChanged = onChanged
+        context.coordinator.onEnded = onEnded
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onChanged: onChanged, onEnded: onEnded)
+    }
+
+    class Coordinator: NSObject {
+        var onChanged: (CGFloat) -> Void
+        var onEnded: (CGFloat, CGFloat) -> Void
+
+        init(onChanged: @escaping (CGFloat) -> Void, onEnded: @escaping (CGFloat, CGFloat) -> Void) {
+            self.onChanged = onChanged
+            self.onEnded = onEnded
+        }
+
+        @objc func handlePan(_ recognizer: UIPanGestureRecognizer) {
+            guard let view = recognizer.view else { return }
+            let translation = recognizer.translation(in: view).x
+            let velocity = recognizer.velocity(in: view).x
+
+            switch recognizer.state {
+            case .changed:
+                onChanged(translation)
+            case .ended, .cancelled:
+                onEnded(translation, velocity)
+            default:
+                break
+            }
+        }
+    }
+}
+
 // MARK: - SidebarOverlay
 
 struct SidebarOverlay<Content: View>: View {
@@ -93,8 +160,26 @@ struct SidebarOverlay<Content: View>: View {
             }
 
             HStack(spacing: 0) {
-                SidebarView(router: router, onClose: { close() })
-                    .frame(width: sidebarWidth)
+                ZStack {
+                    SidebarView(router: router, onClose: { close() })
+
+                    // Pan-to-close overlay sits on top of the sidebar content
+                    if isOpen {
+                        PanCloseOverlay { translation in
+                            let drag = min(0, translation)
+                            dragOffset = sidebarWidth + drag
+                        } onEnded: { translation, velocity in
+                            if translation < -60 || velocity < -300 {
+                                close()
+                            } else {
+                                withAnimation(.spring(response: 0.35, dampingFraction: 0.86)) {
+                                    dragOffset = 0
+                                }
+                            }
+                        }
+                    }
+                }
+                .frame(width: sidebarWidth)
 
                 Spacer(minLength: 0)
             }
@@ -116,26 +201,6 @@ struct SidebarOverlay<Content: View>: View {
                 .ignoresSafeArea()
             }
         }
-        .gesture(
-            // Close gesture: drag left when sidebar is open
-            DragGesture(minimumDistance: 20)
-                .onChanged { value in
-                    guard isOpen else { return }
-                    let drag = min(0, value.translation.width)
-                    dragOffset = sidebarWidth + drag
-                }
-                .onEnded { value in
-                    guard isOpen else { return }
-                    let velocity = value.predictedEndTranslation.width - value.translation.width
-                    if value.translation.width < -60 || velocity < -300 {
-                        close()
-                    } else {
-                        withAnimation(.spring(response: 0.35, dampingFraction: 0.86)) {
-                            dragOffset = 0
-                        }
-                    }
-                }
-        )
         .animation(.spring(response: 0.35, dampingFraction: 0.86), value: isOpen)
     }
 
