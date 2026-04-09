@@ -5,6 +5,8 @@ struct ChatView: View {
     let householdName: String
 
     @State private var selectedSource: ChatSource?
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -17,7 +19,7 @@ struct ChatView: View {
             }
             inputBar
         }
-        .background(Theme.cream)
+        .background(theme.cream)
         .sheet(item: $selectedSource) { source in
             SourceDocumentView(documentId: source.documentId, documentTitle: source.title, chunkIndex: source.chunkIndex)
         }
@@ -40,7 +42,7 @@ struct ChatView: View {
         HStack(spacing: 12) {
             ZStack {
                 Circle()
-                    .fill(Theme.hearth)
+                    .fill(theme.hearth)
                     .frame(width: 40, height: 40)
                 Text("H")
                     .font(Theme.heading(18))
@@ -50,10 +52,10 @@ struct ChatView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(householdName)
                     .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(Theme.charcoal)
+                    .foregroundColor(theme.charcoal)
                 Text("Ask me anything about the house")
                     .font(.system(size: 13))
-                    .foregroundColor(Theme.stone)
+                    .foregroundColor(theme.stone)
             }
 
             Spacer()
@@ -61,10 +63,10 @@ struct ChatView: View {
         .padding(.horizontal, 20)
         .padding(.top, 8)
         .padding(.bottom, 14)
-        .background(Theme.cream)
+        .background(theme.cream)
         .overlay(
             Rectangle()
-                .fill(Theme.creamDeep)
+                .fill(theme.creamDeep)
                 .frame(height: 1),
             alignment: .bottom
         )
@@ -91,7 +93,7 @@ struct ChatView: View {
                     .padding(.vertical, 16)
                 }
             }
-            .background(Theme.creamWarm)
+            .background(theme.creamWarm)
             .onChange(of: viewModel.messages.count) { _, _ in
                 if let lastId = viewModel.messages.last?.id {
                     withAnimation {
@@ -116,10 +118,10 @@ struct ChatView: View {
                 .font(.system(size: 48))
             Text("What do you need to know?")
                 .font(Theme.heading(20))
-                .foregroundColor(Theme.charcoal)
+                .foregroundColor(theme.charcoal)
             Text("Ask about WiFi, home systems, kids routines, emergency contacts, and more.")
                 .font(.system(size: 14))
-                .foregroundColor(Theme.stone)
+                .foregroundColor(theme.stone)
                 .multilineTextAlignment(.center)
                 .lineSpacing(3)
                 .frame(maxWidth: 260)
@@ -136,13 +138,13 @@ struct ChatView: View {
         HStack(spacing: 10) {
             TextField("Ask about the house...", text: $viewModel.inputText)
                 .font(.system(size: 15))
-                .foregroundColor(Theme.charcoal)
+                .foregroundColor(theme.charcoal)
                 .padding(.horizontal, 18)
                 .padding(.vertical, 12)
-                .background(Theme.creamWarm)
+                .background(theme.creamWarm)
                 .overlay(
                     Capsule()
-                        .stroke(Theme.creamDeep, lineWidth: 1.5)
+                        .stroke(theme.creamDeep, lineWidth: 1.5)
                 )
                 .clipShape(Capsule())
                 .onSubmit {
@@ -154,10 +156,10 @@ struct ChatView: View {
             } label: {
                 ZStack {
                     Circle()
-                        .fill(canSend ? Theme.hearth : Theme.creamDeep)
+                        .fill(canSend ? theme.hearth : theme.creamDeep)
                         .frame(width: 42, height: 42)
                         .shadow(
-                            color: canSend ? Theme.hearth.opacity(0.3) : .clear,
+                            color: canSend ? theme.hearth.opacity(0.3) : .clear,
                             radius: 4,
                             x: 0,
                             y: 2
@@ -173,10 +175,10 @@ struct ChatView: View {
         .padding(.horizontal, 16)
         .padding(.top, 12)
         .padding(.bottom, 34)
-        .background(Theme.cream)
+        .background(theme.cream)
         .overlay(
             Rectangle()
-                .fill(Theme.creamDeep)
+                .fill(theme.creamDeep)
                 .frame(height: 1),
             alignment: .top
         )

@@ -4,6 +4,9 @@ struct MessageBubble: View {
     let message: ChatMessage
     let onSourceTap: (ChatSource) -> Void
 
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
+
     var body: some View {
         HStack {
             if message.role == .user { Spacer(minLength: 48) }
@@ -24,13 +27,13 @@ struct MessageBubble: View {
         Text(LocalizedStringKey(message.content))
             .font(.system(size: 15))
             .lineSpacing(4)
-            .foregroundColor(message.role == .user ? .white : Theme.charcoal)
+            .foregroundColor(message.role == .user ? .white : theme.charcoal)
             .padding(.horizontal, 18)
             .padding(.vertical, 14)
             .background(
                 message.role == .user
                     ? Theme.hearth
-                    : Color.white
+                    : theme.creamWarm
             )
             .clipShape(
                 message.role == .user
@@ -39,7 +42,7 @@ struct MessageBubble: View {
             )
             .shadow(
                 color: message.role == .assistant
-                    ? Color(red: 44/255, green: 37/255, blue: 32/255).opacity(0.06)
+                    ? theme.shadowLight
                     : .clear,
                 radius: 3,
                 x: 0,
@@ -64,10 +67,10 @@ struct MessageBubble: View {
                         Text(source.title)
                             .font(.system(size: 13, weight: .medium))
                     }
-                    .foregroundColor(Theme.hearth)
+                    .foregroundColor(theme.hearth)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .background(Theme.hearth.opacity(0.08))
+                    .background(theme.hearth.opacity(0.08))
                     .clipShape(RoundedRectangle(cornerRadius: 8))
                 }
                 .buttonStyle(.plain)

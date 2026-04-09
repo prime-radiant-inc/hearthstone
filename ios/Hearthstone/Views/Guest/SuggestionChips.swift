@@ -4,6 +4,9 @@ struct SuggestionChips: View {
     let suggestions: [String]
     let onTap: (String) -> Void
 
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
+
     var body: some View {
         FlowLayout(spacing: 8) {
             ForEach(suggestions, id: \.self) { suggestion in
@@ -12,13 +15,13 @@ struct SuggestionChips: View {
                 } label: {
                     Text(suggestion)
                         .font(.system(size: 14))
-                        .foregroundColor(Theme.charcoalSoft)
+                        .foregroundColor(theme.charcoalSoft)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 10)
-                        .background(Color.white)
+                        .background(theme.creamWarm)
                         .overlay(
                             Capsule()
-                                .stroke(Theme.creamDeep, lineWidth: 1.5)
+                                .stroke(theme.creamDeep, lineWidth: 1.5)
                         )
                         .clipShape(Capsule())
                 }
@@ -80,5 +83,4 @@ struct FlowLayout: Layout {
         suggestions: ["WiFi password?", "Kids bedtime?", "Thermostat?", "Emergency contacts"],
         onTap: { _ in }
     )
-    .background(Theme.creamWarm)
 }

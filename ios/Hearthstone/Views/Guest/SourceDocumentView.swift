@@ -10,6 +10,8 @@ struct SourceDocumentView: View {
     var chunkIndex: Int?
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
     @State private var htmlContent: String?
     @State private var isLoading = true
     @State private var error: String?
@@ -23,11 +25,11 @@ struct SourceDocumentView: View {
                 } else if let error = error {
                     VStack(spacing: 16) {
                         Text(error)
-                            .foregroundColor(Theme.charcoalSoft)
+                            .foregroundColor(theme.charcoalSoft)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 32)
                         Button("Try Again") { Task { await loadContent() } }
-                            .foregroundColor(Theme.hearth)
+                            .foregroundColor(theme.hearth)
                             .fontWeight(.semibold)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -35,13 +37,13 @@ struct SourceDocumentView: View {
                     WebView(html: htmlContent, scrollToChunk: chunkIndex)
                 }
             }
-            .background(Theme.cream)
+            .background(theme.cream)
             .navigationTitle(documentTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }
-                        .foregroundColor(Theme.hearth)
+                        .foregroundColor(theme.hearth)
                         .fontWeight(.semibold)
                 }
             }
