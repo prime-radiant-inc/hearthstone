@@ -32,7 +32,7 @@ struct MessageBubble: View {
             .padding(.vertical, 14)
             .background(
                 message.role == .user
-                    ? Theme.hearth
+                    ? theme.hearth
                     : theme.creamWarm
             )
             .clipShape(
@@ -127,5 +127,5 @@ private struct RoundedCorners: Shape {
         )
     }
     .padding()
-    .background(Theme.creamWarm)
+    .background(Color(red: 245/255, green: 237/255, blue: 224/255))
 }
