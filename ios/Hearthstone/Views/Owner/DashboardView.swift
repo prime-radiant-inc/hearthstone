@@ -194,8 +194,8 @@ private struct HeroHeader: View {
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
+            .ignoresSafeArea(edges: .top)
         )
-        .clipped()
     }
 }
 

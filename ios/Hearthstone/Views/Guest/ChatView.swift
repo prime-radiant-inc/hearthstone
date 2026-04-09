@@ -12,19 +12,11 @@ struct ChatView: View {
         VStack(spacing: 0) {
             chatHeader
             messageArea
-            if viewModel.messages.isEmpty {
-                SuggestionChips(suggestions: viewModel.suggestions) { suggestion in
-                    Task { await viewModel.send(suggestion) }
-                }
-            }
             inputBar
         }
         .background(theme.cream)
         .sheet(item: $selectedSource) { source in
             SourceDocumentView(documentId: source.documentId, documentTitle: source.title, chunkIndex: source.chunkIndex)
-        }
-        .task {
-            await viewModel.loadSuggestions()
         }
         .alert("Error", isPresented: Binding(
             get: { viewModel.error != nil },
@@ -174,7 +166,7 @@ struct ChatView: View {
         }
         .padding(.horizontal, 16)
         .padding(.top, 12)
-        .padding(.bottom, 34)
+        .padding(.bottom, 16)
         .background(theme.cream)
         .overlay(
             Rectangle()

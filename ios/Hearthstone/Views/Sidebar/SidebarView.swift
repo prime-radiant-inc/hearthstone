@@ -10,6 +10,16 @@ struct SidebarView: View {
 
     private var store: SessionStore { router.store }
 
+    /// Owners first, then alphabetical by household name
+    private var sortedSessions: [HouseSession] {
+        store.sessions.sorted { a, b in
+            if a.role != b.role {
+                return a.role == .owner
+            }
+            return a.householdName.localizedCaseInsensitiveCompare(b.householdName) == .orderedAscending
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("YOUR HOUSES")
@@ -21,7 +31,7 @@ struct SidebarView: View {
                 .padding(.bottom, 12)
 
             List {
-                ForEach(store.sessions) { session in
+                ForEach(sortedSessions) { session in
                     HouseRow(
                         session: session,
                         isActive: session.id == store.activeSessionId,
