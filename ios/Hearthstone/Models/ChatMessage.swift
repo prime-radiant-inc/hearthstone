@@ -1,12 +1,19 @@
 import Foundation
 
-struct ChatMessage: Identifiable {
-    let id = UUID()
+struct ChatMessage: Identifiable, Codable {
+    let id: UUID
     let role: Role
     var content: String
     var sources: [ChatSource]
 
-    enum Role {
+    init(role: Role, content: String, sources: [ChatSource]) {
+        self.id = UUID()
+        self.role = role
+        self.content = content
+        self.sources = sources
+    }
+
+    enum Role: String, Codable {
         case user, assistant
     }
 }

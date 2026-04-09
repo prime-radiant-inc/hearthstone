@@ -51,6 +51,26 @@ struct ChatView: View {
             }
 
             Spacer()
+
+            if !viewModel.messages.isEmpty {
+                Button {
+                    viewModel.clearChat()
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 11, weight: .bold))
+                        Text("New Chat")
+                            .font(.system(size: 12, weight: .semibold))
+                    }
+                    .foregroundColor(theme.stone)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 14)
+                            .stroke(theme.creamDeep, lineWidth: 1)
+                    )
+                }
+            }
         }
         .padding(.horizontal, 20)
         .padding(.top, 8)
@@ -184,11 +204,7 @@ struct ChatView: View {
 
 #Preview("Empty State") {
     ChatView(
-        viewModel: {
-            let vm = ChatViewModel()
-            vm.suggestions = ["WiFi password?", "Kids bedtime?", "Thermostat?", "Emergency contacts"]
-            return vm
-        }(),
+        viewModel: ChatViewModel(),
         householdName: "Anderson Household"
     )
 }

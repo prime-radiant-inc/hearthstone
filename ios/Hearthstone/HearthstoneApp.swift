@@ -26,7 +26,7 @@ struct HearthstoneApp: App {
                             }
                         } else {
                             ChatView(
-                                viewModel: ChatViewModel(),
+                                viewModel: ChatViewModel(householdId: session.householdId),
                                 householdName: session.householdName
                             )
                         }
