@@ -3,33 +3,31 @@ import SwiftUI
 struct HouseholdSetupView: View {
     @ObservedObject var viewModel: AuthViewModel
 
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Progress dots (step 2 of 3)
             ProgressDots(active: 2, total: 3)
                 .padding(.bottom, 36)
 
-            // Subtitle
             Text("Welcome")
                 .font(.system(size: 15, weight: .semibold))
-                .foregroundColor(Theme.hearth)
+                .foregroundColor(theme.hearth)
                 .padding(.bottom, 8)
 
-            // Heading
             Text("Name your household")
                 .font(Theme.heading(28))
-                .foregroundColor(Theme.charcoal)
+                .foregroundColor(theme.charcoal)
                 .lineLimit(2)
                 .padding(.bottom, 10)
 
-            // Description
             Text("This is what your guests will see when they open the app. You can change it anytime.")
                 .font(.system(size: 15))
-                .foregroundColor(Theme.charcoalSoft)
+                .foregroundColor(theme.charcoalSoft)
                 .lineSpacing(4)
                 .padding(.bottom, 40)
 
-            // Household name field
             HearthTextField(
                 label: "Household Name",
                 placeholder: "The Anderson Home",
@@ -37,21 +35,18 @@ struct HouseholdSetupView: View {
             )
             .padding(.bottom, 8)
 
-            // Hint
             Text("e.g. \"The Anderson Home\", \"123 Oak Street\", \"Beach House\"")
                 .font(.system(size: 13))
-                .foregroundColor(Theme.stone)
+                .foregroundColor(theme.stone)
                 .padding(.bottom, 24)
 
-            // Error
             if let error = viewModel.error {
                 Text(error)
                     .font(.system(size: 14))
-                    .foregroundColor(Theme.rose)
+                    .foregroundColor(theme.rose)
                     .padding(.bottom, 12)
             }
 
-            // Illustration
             Spacer()
             Text("🏡")
                 .font(.system(size: 64))
@@ -59,7 +54,6 @@ struct HouseholdSetupView: View {
                 .frame(maxWidth: .infinity, alignment: .center)
             Spacer()
 
-            // Continue button
             HearthButton(title: "Continue", isLoading: viewModel.isLoading) {
                 Task { await viewModel.createHousehold() }
             }
@@ -68,7 +62,7 @@ struct HouseholdSetupView: View {
         .padding(.horizontal, 24)
         .padding(.top, 20)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Theme.cream.ignoresSafeArea())
+        .background(theme.cream.ignoresSafeArea())
     }
 }
 

@@ -8,10 +8,13 @@ struct PINEntryView: View {
     @State private var error: String?
     @State private var showScanner = false
 
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
+
     var body: some View {
         ZStack {
             LinearGradient(
-                colors: [Theme.cream, Theme.creamWarm],
+                colors: [theme.cream, theme.creamWarm],
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -24,13 +27,13 @@ struct PINEntryView: View {
                     RoundedRectangle(cornerRadius: 24)
                         .fill(
                             LinearGradient(
-                                colors: [Theme.hearth, Theme.hearthDark],
+                                colors: [theme.hearth, theme.hearthDark],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
                         )
                         .frame(width: 88, height: 88)
-                        .shadow(color: Theme.hearth.opacity(0.3), radius: 10, y: 6)
+                        .shadow(color: theme.hearth.opacity(0.3), radius: 10, y: 6)
                     Text("🏠")
                         .font(.system(size: 44))
                 }
@@ -38,26 +41,26 @@ struct PINEntryView: View {
 
                 Text("Hearthstone")
                     .font(Theme.heading(32))
-                    .foregroundColor(Theme.charcoal)
+                    .foregroundColor(theme.charcoal)
                     .padding(.bottom, 10)
 
                 Text("Enter your access code")
                     .font(.system(size: 16))
-                    .foregroundColor(Theme.charcoalSoft)
+                    .foregroundColor(theme.charcoalSoft)
                     .padding(.bottom, 40)
 
                 TextField("000000", text: $pin)
                     .keyboardType(.numberPad)
                     .multilineTextAlignment(.center)
                     .font(.system(size: 32, weight: .semibold, design: .monospaced))
-                    .foregroundColor(Theme.charcoal)
+                    .foregroundColor(theme.charcoal)
                     .frame(maxWidth: 200)
                     .padding(.vertical, 16)
-                    .background(Color.white)
+                    .background(theme.creamWarm)
                     .clipShape(RoundedRectangle(cornerRadius: Theme.radiusMedium))
                     .overlay(
                         RoundedRectangle(cornerRadius: Theme.radiusMedium)
-                            .stroke(Theme.creamDeep, lineWidth: 1.5)
+                            .stroke(theme.creamDeep, lineWidth: 1.5)
                     )
                     .padding(.horizontal, 80)
                     .onChange(of: pin) { _, newValue in
@@ -71,7 +74,7 @@ struct PINEntryView: View {
                 if let error {
                     Text(error)
                         .font(.system(size: 14))
-                        .foregroundColor(Theme.rose)
+                        .foregroundColor(theme.rose)
                         .padding(.top, 12)
                 }
 
@@ -83,7 +86,7 @@ struct PINEntryView: View {
                         Text("Scan QR Code")
                     }
                     .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(Theme.hearth)
+                    .foregroundColor(theme.hearth)
                 }
                 .padding(.top, 20)
 
@@ -98,7 +101,7 @@ struct PINEntryView: View {
 
                 Text("Get your code from the homeowner\nor check your server's terminal.")
                     .font(.system(size: 12))
-                    .foregroundColor(Theme.stone)
+                    .foregroundColor(theme.stone)
                     .multilineTextAlignment(.center)
                     .lineSpacing(3)
 
