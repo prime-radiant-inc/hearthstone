@@ -5,6 +5,9 @@ struct HearthButton: View {
     var isLoading: Bool = false
     let action: () -> Void
 
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: 8) {
@@ -18,11 +21,11 @@ struct HearthButton: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 18)
             .background(
-                LinearGradient(colors: [Theme.hearth, Theme.hearthDark], startPoint: .topLeading, endPoint: .bottomTrailing)
+                LinearGradient(colors: [theme.hearth, theme.hearthDark], startPoint: .topLeading, endPoint: .bottomTrailing)
             )
             .foregroundColor(.white)
             .clipShape(RoundedRectangle(cornerRadius: 14))
-            .shadow(color: Theme.hearth.opacity(0.3), radius: 7, y: 4)
+            .shadow(color: theme.hearth.opacity(0.3), radius: 7, y: 4)
         }
         .disabled(isLoading)
     }

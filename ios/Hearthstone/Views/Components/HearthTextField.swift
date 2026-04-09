@@ -7,21 +7,24 @@ struct HearthTextField: View {
     var keyboardType: UIKeyboardType = .default
     var autocapitalization: TextInputAutocapitalization = .sentences
 
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(label.uppercased())
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(Theme.charcoalSoft)
+                .foregroundColor(theme.charcoalSoft)
                 .tracking(0.8)
 
             TextField(placeholder, text: $text)
                 .font(.system(size: 17))
                 .padding(16)
-                .background(Color.white)
+                .background(theme.creamWarm)
                 .clipShape(RoundedRectangle(cornerRadius: Theme.radiusMedium))
                 .overlay(
                     RoundedRectangle(cornerRadius: Theme.radiusMedium)
-                        .stroke(Theme.creamDeep, lineWidth: 1.5)
+                        .stroke(theme.creamDeep, lineWidth: 1.5)
                 )
                 .keyboardType(keyboardType)
                 .textInputAutocapitalization(autocapitalization)
