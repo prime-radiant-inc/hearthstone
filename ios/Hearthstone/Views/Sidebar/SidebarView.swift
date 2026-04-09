@@ -5,13 +5,16 @@ struct SidebarView: View {
     let onClose: () -> Void
     @State private var showPINEntry = false
 
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
+
     private var store: SessionStore { router.store }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("YOUR HOUSES")
                 .font(.system(size: 11, weight: .bold))
-                .foregroundColor(Color(red: 0.61, green: 0.56, blue: 0.51))
+                .foregroundColor(theme.sidebarTextMuted)
                 .kerning(1)
                 .padding(.horizontal, 16)
                 .padding(.top, 60)
@@ -48,7 +51,7 @@ struct SidebarView: View {
             .scrollContentBackground(.hidden)
 
             Divider()
-                .background(Color(red: 0.24, green: 0.20, blue: 0.18))
+                .background(theme.sidebarDivider)
                 .padding(.vertical, 8)
 
             Button {
@@ -60,10 +63,10 @@ struct SidebarView: View {
                         .fontWeight(.semibold)
                 }
                 .font(.system(size: 14))
-                .foregroundColor(Color(red: 0.71, green: 0.44, blue: 0.18))
+                .foregroundColor(theme.sidebarAccent)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 10)
-                .background(Color(red: 0.24, green: 0.20, blue: 0.18))
+                .background(theme.sidebarSurface)
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             }
             .padding(.horizontal, 12)
@@ -74,13 +77,13 @@ struct SidebarView: View {
             } label: {
                 Text("Sign Out of All")
                     .font(.system(size: 13))
-                    .foregroundColor(Color(red: 0.61, green: 0.56, blue: 0.51))
+                    .foregroundColor(theme.sidebarTextMuted)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
             }
         }
         .frame(maxHeight: .infinity)
-        .background(Color(red: 0.17, green: 0.14, blue: 0.13))
+        .background(theme.sidebarBackground)
         .sheet(isPresented: $showPINEntry) {
             PINEntryView { session, token in
                 router.addSession(session, token: token)
@@ -96,6 +99,9 @@ struct HouseRow: View {
     let isActive: Bool
     let onTap: () -> Void
 
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
+
     var body: some View {
         Button(action: onTap) {
             HStack(spacing: 10) {
@@ -105,21 +111,21 @@ struct HouseRow: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(session.householdName)
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(isActive ? Color(red: 0.94, green: 0.90, blue: 0.83) : Color(red: 0.83, green: 0.77, blue: 0.66))
+                        .foregroundColor(isActive ? theme.sidebarText : theme.sidebarTextInactive)
 
                     Text(session.role == .owner ? "OWNER" : "GUEST")
                         .font(.system(size: 9, weight: .bold))
-                        .foregroundColor(isActive ? Color(red: 0.71, green: 0.44, blue: 0.18) : Color(red: 0.61, green: 0.56, blue: 0.51))
+                        .foregroundColor(isActive ? theme.sidebarAccent : theme.sidebarTextMuted)
                 }
 
                 Spacer()
             }
             .padding(10)
-            .background(Color(red: 0.24, green: 0.20, blue: 0.18))
+            .background(theme.sidebarSurface)
             .overlay(alignment: .leading) {
                 if isActive {
                     Rectangle()
-                        .fill(Color(red: 0.71, green: 0.44, blue: 0.18))
+                        .fill(theme.sidebarAccent)
                         .frame(width: 3)
                 }
             }
