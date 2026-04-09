@@ -97,6 +97,9 @@ function parseMultipart(body: Buffer, boundary: string): { title: string; file: 
 /** Match a logical route pattern for the given pathname (used for span attributes). */
 function matchRoute(method: string, pathname: string): string {
   const staticRoutes = [
+    "GET /",
+    "GET /tos",
+    "GET /privacy",
     "POST /auth/register",
     "POST /auth/register/verify",
     "POST /auth/register/passkey",
@@ -141,12 +144,111 @@ function matchRoute(method: string, pathname: string): string {
   return pathname;
 }
 
+function html(body: string, status: number = 200): Response {
+  return new Response(body, {
+    status,
+    headers: { "Content-Type": "text/html; charset=utf-8" },
+  });
+}
+
+const landingPage = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hearthstone</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #faf9f6;
+      color: #3d3529;
+      padding: 2rem;
+    }
+    .logo { font-size: 4rem; margin-bottom: 0.5rem; }
+    h1 { font-size: 2rem; font-weight: 600; margin-bottom: 0.75rem; }
+    .tagline {
+      font-size: 1.15rem;
+      color: #6b6358;
+      max-width: 420px;
+      text-align: center;
+      line-height: 1.5;
+      margin-bottom: 2rem;
+    }
+    footer {
+      margin-top: 3rem;
+      font-size: 0.85rem;
+      color: #9b9488;
+    }
+    footer a {
+      color: #9b9488;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    footer a:hover { color: #6b6358; }
+  </style>
+</head>
+<body>
+  <div class="logo">🏠</div>
+  <h1>Hearthstone</h1>
+  <p class="tagline">
+    Your household knowledge hub. Connect your docs, invite your
+    people, and let anyone ask questions about how things work at home.
+  </p>
+  <footer>
+    <a href="/tos">Terms of Service</a> · <a href="/privacy">Privacy Policy</a>
+  </footer>
+</body>
+</html>`;
+
+const legalPage = (title: string) => `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${title} — Hearthstone</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #faf9f6;
+      color: #3d3529;
+      padding: 2rem;
+    }
+    h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem; }
+    p { color: #6b6358; line-height: 1.5; max-width: 420px; text-align: center; }
+    a { color: #6b6358; text-underline-offset: 2px; }
+    a:hover { color: #3d3529; }
+  </style>
+</head>
+<body>
+  <h1>${title}</h1>
+  <p>None. This is a hobby/research project for friends and associates.</p>
+  <p style="margin-top: 1.5rem;"><a href="/">← Back</a></p>
+</body>
+</html>`;
+
 async function handleRequest(ctx: Context | undefined, req: Request): Promise<Response> {
     const url = new URL(req.url);
     const { pathname } = url;
     const method = req.method;
 
     try {
+      // --- Static pages ---
+      if (method === "GET" && pathname === "/") return html(landingPage);
+      if (method === "GET" && pathname === "/tos") return html(legalPage("Terms of Service"));
+      if (method === "GET" && pathname === "/privacy") return html(legalPage("Privacy Policy"));
+
       // --- Auth routes (no auth required) ---
       if (method === "POST" && pathname === "/auth/register") {
         const body = await req.json();
@@ -311,7 +413,7 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       const connFilesParams = parsePathParams("/connections/:id/files", pathname);
       if (method === "GET" && connFilesParams) {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
-        const result = await handleListDriveFiles(getDb(), owner.householdId, connFilesParams.id);
+        const result = await handleListDriveFiles(ctx, getDb(), owner.householdId, connFilesParams.id);
         return json(result.body, result.status);
       }
 
