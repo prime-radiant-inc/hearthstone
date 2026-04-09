@@ -6,6 +6,9 @@ struct DashboardView: View {
     @State var householdName: String
     let ownerName: String
 
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
+
     @StateObject private var viewModel = DashboardViewModel()
     @State private var showDocuments = false
     @State private var showGuestList = false
@@ -73,7 +76,7 @@ struct DashboardView: View {
                 .padding(.top, 24)
             }
         }
-        .background(Theme.cream.ignoresSafeArea())
+        .background(theme.cream.ignoresSafeArea())
         .task { await viewModel.load() }
         .sheet(isPresented: $showDocuments) {
             ConnectDocsView()
@@ -127,6 +130,9 @@ private struct HeroHeader: View {
     @Binding var editedName: String
     let isSaving: Bool
     let onSave: () -> Void
+
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -184,7 +190,7 @@ private struct HeroHeader: View {
         .foregroundColor(.white)
         .background(
             LinearGradient(
-                colors: [Theme.hearth, Theme.hearthDark],
+                colors: [theme.hearth, theme.hearthDark],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
@@ -220,23 +226,26 @@ private struct StatCard: View {
     let number: Int
     let label: String
 
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text("\(number)")
                 .font(Theme.heading(32))
                 .fontWeight(.semibold)
-                .foregroundColor(Theme.charcoal)
+                .foregroundColor(theme.charcoal)
                 .lineLimit(1)
 
             Text(label)
                 .font(.system(size: 13))
-                .foregroundColor(Theme.stone)
+                .foregroundColor(theme.stone)
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white)
+        .background(theme.creamWarm)
         .clipShape(RoundedRectangle(cornerRadius: Theme.radiusMedium))
-        .shadow(color: Theme.charcoal.opacity(0.08), radius: 6, x: 0, y: 4)
+        .shadow(color: theme.shadow, radius: 6, x: 0, y: 4)
     }
 }
 
@@ -247,22 +256,25 @@ private struct OnboardingChecklist: View {
     let hasDocuments: Bool
     let hasGuests: Bool
 
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 6) {
                 Text("✦")
                     .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(Theme.goldBadgeText)
+                    .foregroundColor(theme.goldBadgeText)
                 Text("Getting started")
                     .font(.system(size: 14, weight: .bold))
-                    .foregroundColor(Theme.goldBadgeText)
+                    .foregroundColor(theme.goldBadgeText)
             }
             .padding(.bottom, 14)
 
             ChecklistRow(label: "Create your household", isDone: true)
-            Divider().background(Theme.goldBadge).padding(.vertical, 2)
+            Divider().background(theme.goldBadge).padding(.vertical, 2)
             ChecklistRow(label: "Connect your documents", isDone: hasDocuments || hasConnections)
-            Divider().background(Theme.goldBadge).padding(.vertical, 2)
+            Divider().background(theme.goldBadge).padding(.vertical, 2)
             ChecklistRow(label: "Invite your first guest", isDone: hasGuests)
         }
         .padding(.horizontal, 20)
@@ -270,8 +282,8 @@ private struct OnboardingChecklist: View {
         .background(
             LinearGradient(
                 colors: [
-                    Color(red: 1.0, green: 0.988, blue: 0.945),
-                    Color(red: 1.0, green: 0.973, blue: 0.902)
+                    theme.onboardingGradientStart,
+                    theme.onboardingGradientEnd
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -279,7 +291,7 @@ private struct OnboardingChecklist: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: Theme.radiusLarge)
-                .stroke(Theme.goldBadge, lineWidth: 1.5)
+                .stroke(theme.goldBadge, lineWidth: 1.5)
         )
         .clipShape(RoundedRectangle(cornerRadius: Theme.radiusLarge))
     }
@@ -289,14 +301,17 @@ private struct ChecklistRow: View {
     let label: String
     let isDone: Bool
 
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
+
     var body: some View {
         HStack(spacing: 12) {
             ZStack {
                 Circle()
-                    .fill(isDone ? Theme.hearth : Color.clear)
+                    .fill(isDone ? theme.hearth : Color.clear)
                     .frame(width: 26, height: 26)
                 Circle()
-                    .stroke(isDone ? Color.clear : Theme.goldBadge, lineWidth: 2)
+                    .stroke(isDone ? Color.clear : theme.goldBadge, lineWidth: 2)
                     .frame(width: 26, height: 26)
                 if isDone {
                     Text("✓")
@@ -305,14 +320,14 @@ private struct ChecklistRow: View {
                 } else {
                     Text("•")
                         .font(.system(size: 14, weight: .bold))
-                        .foregroundColor(Theme.goldBadgeText)
+                        .foregroundColor(theme.goldBadgeText)
                 }
             }
 
             Text(label)
                 .font(.system(size: 14))
-                .foregroundColor(isDone ? Theme.stone : Theme.charcoalSoft)
-                .strikethrough(isDone, color: Theme.stone)
+                .foregroundColor(isDone ? theme.stone : theme.charcoalSoft)
+                .strikethrough(isDone, color: theme.stone)
         }
         .padding(.vertical, 8)
     }
@@ -328,17 +343,20 @@ private struct ManageSection: View {
     let onPreviewTap: () -> Void
     let onInviteOwnerTap: () -> Void
 
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("MANAGE")
                 .font(.system(size: 11, weight: .bold))
                 .kerning(1.2)
-                .foregroundColor(Theme.stone)
+                .foregroundColor(theme.stone)
                 .padding(.bottom, 12)
 
             ManageRow(
                 icon: "📄",
-                iconBackground: Color(red: 1.0, green: 0.953, blue: 0.863),
+                iconBackground: theme.iconBackgroundWarm,
                 title: "Documents",
                 subtitle: documentSubtitle,
                 onTap: onDocumentsTap
@@ -346,7 +364,7 @@ private struct ManageSection: View {
 
             ManageRow(
                 icon: "👥",
-                iconBackground: Theme.sageLight,
+                iconBackground: theme.sageLight,
                 title: "Guests",
                 subtitle: guestSubtitle,
                 onTap: onGuestsTap
@@ -354,7 +372,7 @@ private struct ManageSection: View {
 
             ManageRow(
                 icon: "🔑",
-                iconBackground: Color(red: 1.0, green: 0.953, blue: 0.863),
+                iconBackground: theme.iconBackgroundWarm,
                 title: "Invite Owner",
                 subtitle: "Give someone owner access",
                 onTap: onInviteOwnerTap
@@ -362,7 +380,7 @@ private struct ManageSection: View {
 
             ManageRow(
                 icon: "💬",
-                iconBackground: Color(red: 0.910, green: 0.890, blue: 0.941),
+                iconBackground: theme.iconBackgroundCool,
                 title: "Preview as Guest",
                 subtitle: "See what your guests see",
                 onTap: onPreviewTap
@@ -380,6 +398,9 @@ private struct ManageRow: View {
     let subtitle: String
     let onTap: () -> Void
 
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
+
     var body: some View {
         Button(action: onTap) {
             HStack(spacing: 14) {
@@ -394,23 +415,23 @@ private struct ManageRow: View {
                 VStack(alignment: .leading, spacing: 1) {
                     Text(title)
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(Theme.charcoal)
+                        .foregroundColor(theme.charcoal)
                     Text(subtitle)
                         .font(.system(size: 13))
-                        .foregroundColor(Theme.stone)
+                        .foregroundColor(theme.stone)
                 }
 
                 Spacer()
 
                 Image(systemName: "chevron.right")
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(Theme.creamDeep)
+                    .foregroundColor(theme.creamDeep)
             }
             .padding(.horizontal, 18)
             .padding(.vertical, 16)
-            .background(Color.white)
+            .background(theme.creamWarm)
             .clipShape(RoundedRectangle(cornerRadius: Theme.radiusMedium))
-            .shadow(color: Theme.charcoal.opacity(0.06), radius: 2, x: 0, y: 1)
+            .shadow(color: theme.shadowLight, radius: 2, x: 0, y: 1)
         }
         .padding(.bottom, 10)
     }

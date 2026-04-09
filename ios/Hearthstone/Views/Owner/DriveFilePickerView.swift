@@ -2,6 +2,9 @@ import SwiftUI
 
 struct DriveFilePickerView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
+
     @StateObject private var viewModel: DriveFilePickerViewModel
     var onReconnect: (() -> Void)?
 
@@ -15,10 +18,10 @@ struct DriveFilePickerView: View {
             Group {
                 if viewModel.isLoading {
                     VStack(spacing: 12) {
-                        ProgressView().tint(Theme.hearth)
+                        ProgressView().tint(theme.hearth)
                         Text("Loading your documents...")
                             .font(.system(size: 14))
-                            .foregroundColor(Theme.stone)
+                            .foregroundColor(theme.stone)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if let error = viewModel.error, viewModel.files.isEmpty {
@@ -26,7 +29,7 @@ struct DriveFilePickerView: View {
                         Text(viewModel.isAuthError ? "🔑" : "⚠️").font(.system(size: 40))
                         Text(error)
                             .font(.system(size: 14))
-                            .foregroundColor(Theme.rose)
+                            .foregroundColor(theme.rose)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 40)
                         if viewModel.isAuthError {
@@ -38,14 +41,14 @@ struct DriveFilePickerView: View {
                             .foregroundColor(.white)
                             .padding(.horizontal, 20)
                             .padding(.vertical, 10)
-                            .background(Theme.hearth)
+                            .background(theme.hearth)
                             .clipShape(Capsule())
                         } else {
                             Button("Retry") {
                                 Task { await viewModel.load() }
                             }
                             .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(Theme.hearth)
+                            .foregroundColor(theme.hearth)
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -54,10 +57,10 @@ struct DriveFilePickerView: View {
                         Text("📄").font(.system(size: 40))
                         Text("No Google Docs found")
                             .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(Theme.charcoalSoft)
+                            .foregroundColor(theme.charcoalSoft)
                         Text("Create a Google Doc in your Drive and it will appear here.")
                             .font(.system(size: 14))
-                            .foregroundColor(Theme.stone)
+                            .foregroundColor(theme.stone)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 40)
                     }
@@ -77,13 +80,13 @@ struct DriveFilePickerView: View {
                     .listStyle(.plain)
                 }
             }
-            .background(Theme.cream)
+            .background(theme.cream)
             .navigationTitle("Select Documents")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }
-                        .foregroundColor(Theme.hearth)
+                        .foregroundColor(theme.hearth)
                         .fontWeight(.semibold)
                 }
             }
@@ -108,6 +111,9 @@ struct DriveFileRow: View {
     let isConnected: Bool
     let onConnect: () -> Void
 
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
+
     var body: some View {
         HStack(spacing: 12) {
             Text("📄").font(.system(size: 18))
@@ -115,22 +121,22 @@ struct DriveFileRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(file.name)
                     .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(Theme.charcoal)
+                    .foregroundColor(theme.charcoal)
 
                 Text(formattedDate)
                     .font(.system(size: 12))
-                    .foregroundColor(Theme.stone)
+                    .foregroundColor(theme.stone)
             }
 
             Spacer()
 
             if isConnected {
                 Image(systemName: "checkmark.circle.fill")
-                    .foregroundColor(Theme.sage)
+                    .foregroundColor(theme.sage)
                     .font(.system(size: 20))
             } else if isConnecting {
                 ProgressView()
-                    .tint(Theme.hearth)
+                    .tint(theme.hearth)
             } else {
                 Button {
                     onConnect()
@@ -140,7 +146,7 @@ struct DriveFileRow: View {
                         .foregroundColor(.white)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 6)
-                        .background(Theme.hearth)
+                        .background(theme.hearth)
                         .clipShape(Capsule())
                 }
                 .buttonStyle(.plain)

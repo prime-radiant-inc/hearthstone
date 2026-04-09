@@ -4,6 +4,9 @@ struct OwnerPreviewView: View {
     var householdName: String = ""
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
+
     @StateObject private var viewModel = ChatViewModel(isPreview: true)
 
     var body: some View {
@@ -29,8 +32,8 @@ struct OwnerPreviewView: View {
             .background(
                 LinearGradient(
                     colors: [
-                        Color(red: 92/255, green: 82/255, blue: 74/255),
-                        Color(red: 61/255, green: 53/255, blue: 48/255)
+                        theme.previewBannerStart,
+                        theme.previewBannerEnd
                     ],
                     startPoint: .leading,
                     endPoint: .trailing

@@ -2,6 +2,8 @@ import SwiftUI
 
 struct InviteOwnerView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
 
     @State private var name = ""
     @State private var email = ""
@@ -12,7 +14,7 @@ struct InviteOwnerView: View {
 
     var body: some View {
         ZStack {
-            Theme.cream.ignoresSafeArea()
+            theme.cream.ignoresSafeArea()
 
             if let pin = resultPin, let expiry = resultExpiry {
                 GuestPINView(
@@ -33,20 +35,20 @@ struct InviteOwnerView: View {
             HStack {
                 Text("Invite Owner")
                     .font(Theme.heading(22))
-                    .foregroundColor(Theme.charcoal)
+                    .foregroundColor(theme.charcoal)
 
                 Spacer()
 
                 Button("Cancel") { dismiss() }
                     .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(Theme.hearth)
+                    .foregroundColor(theme.hearth)
             }
             .padding(.horizontal, 24)
             .padding(.top, 28)
             .padding(.bottom, 24)
 
             Divider()
-                .background(Theme.creamDeep)
+                .background(theme.creamDeep)
 
             ScrollView {
                 VStack(spacing: 20) {
@@ -67,7 +69,7 @@ struct InviteOwnerView: View {
                     if let error {
                         Text(error)
                             .font(.system(size: 13))
-                            .foregroundColor(Theme.rose)
+                            .foregroundColor(theme.rose)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
 

@@ -7,41 +7,44 @@ struct GuestPINView: View {
     let expiresAt: String
     let onDone: () -> Void
 
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
+
     var body: some View {
         VStack(spacing: 0) {
             HStack {
                 Text("Guest Invited")
                     .font(Theme.heading(22))
-                    .foregroundColor(Theme.charcoal)
+                    .foregroundColor(theme.charcoal)
                 Spacer()
                 Button("Done") { onDone() }
                     .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(Theme.hearth)
+                    .foregroundColor(theme.hearth)
             }
             .padding(.horizontal, 24)
             .padding(.top, 28)
             .padding(.bottom, 24)
 
-            Divider().background(Theme.creamDeep)
+            Divider().background(theme.creamDeep)
 
             ScrollView {
                 VStack(spacing: 24) {
                     Text("Share this code with \(guestName)")
                         .font(.system(size: 16))
-                        .foregroundColor(Theme.charcoalSoft)
+                        .foregroundColor(theme.charcoalSoft)
                         .multilineTextAlignment(.center)
 
                     Text(pin)
                         .font(.system(size: 40, weight: .bold, design: .monospaced))
-                        .foregroundColor(Theme.charcoal)
+                        .foregroundColor(theme.charcoal)
                         .kerning(8)
                         .padding(.vertical, 20)
                         .frame(maxWidth: .infinity)
-                        .background(Color.white)
+                        .background(theme.creamWarm)
                         .clipShape(RoundedRectangle(cornerRadius: Theme.radiusMedium))
                         .overlay(
                             RoundedRectangle(cornerRadius: Theme.radiusMedium)
-                                .stroke(Theme.creamDeep, lineWidth: 1.5)
+                                .stroke(theme.creamDeep, lineWidth: 1.5)
                         )
 
                     if let qrImage = generateQR(from: pin) {
@@ -51,17 +54,17 @@ struct GuestPINView: View {
                             .scaledToFit()
                             .frame(width: 180, height: 180)
                             .padding(16)
-                            .background(Color.white)
+                            .background(theme.creamWarm)
                             .clipShape(RoundedRectangle(cornerRadius: Theme.radiusMedium))
                     }
 
                     Text("Expires \(formattedExpiry)")
                         .font(.system(size: 13))
-                        .foregroundColor(Theme.stone)
+                        .foregroundColor(theme.stone)
 
                     Text("The guest enters this code in the Hearthstone app — or scans the QR code.")
                         .font(.system(size: 14))
-                        .foregroundColor(Theme.charcoalSoft)
+                        .foregroundColor(theme.charcoalSoft)
                         .multilineTextAlignment(.center)
                         .lineSpacing(3)
                         .padding(.horizontal, 20)
@@ -70,7 +73,7 @@ struct GuestPINView: View {
                 .padding(.vertical, 24)
             }
         }
-        .background(Theme.cream)
+        .background(theme.cream)
     }
 
     private var formattedExpiry: String {

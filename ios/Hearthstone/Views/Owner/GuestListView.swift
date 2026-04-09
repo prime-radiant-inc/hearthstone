@@ -4,10 +4,12 @@ struct GuestListView: View {
     @StateObject private var viewModel = GuestListViewModel()
     @State private var showAddGuest = false
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
 
     var body: some View {
         ZStack {
-            Theme.cream.ignoresSafeArea()
+            theme.cream.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 // Navigation bar
@@ -19,7 +21,7 @@ struct GuestListView: View {
                             Text("Dashboard")
                                 .font(.system(size: 16, weight: .medium))
                         }
-                        .foregroundColor(Theme.hearth)
+                        .foregroundColor(theme.hearth)
                     }
 
                     Spacer()
@@ -27,7 +29,7 @@ struct GuestListView: View {
                     Button(action: { showAddGuest = true }) {
                         Text("+ Add Guest")
                             .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(Theme.hearth)
+                            .foregroundColor(theme.hearth)
                     }
                 }
                 .padding(.horizontal, 20)
@@ -39,25 +41,25 @@ struct GuestListView: View {
                     HStack {
                         Text("Guests")
                             .font(Theme.heading(26))
-                            .foregroundColor(Theme.charcoal)
+                            .foregroundColor(theme.charcoal)
                         Spacer()
                     }
                     if !viewModel.guests.isEmpty {
                         Text(guestCountSubtitle)
                             .font(.system(size: 14))
-                            .foregroundColor(Theme.stone)
+                            .foregroundColor(theme.stone)
                     }
                 }
                 .padding(.horizontal, 20)
                 .padding(.bottom, 16)
 
                 Divider()
-                    .background(Theme.creamDeep)
+                    .background(theme.creamDeep)
 
                 if viewModel.isLoading && viewModel.guests.isEmpty {
                     Spacer()
                     ProgressView()
-                        .tint(Theme.hearth)
+                        .tint(theme.hearth)
                     Spacer()
                 } else if viewModel.guests.isEmpty {
                     Spacer()
@@ -66,10 +68,10 @@ struct GuestListView: View {
                             .font(.system(size: 40))
                         Text("No guests yet")
                             .font(Theme.heading(18))
-                            .foregroundColor(Theme.charcoal)
+                            .foregroundColor(theme.charcoal)
                         Text("Tap \"+ Add Guest\" to invite someone.")
                             .font(.system(size: 14))
-                            .foregroundColor(Theme.stone)
+                            .foregroundColor(theme.stone)
                     }
                     Spacer()
                 } else {
@@ -88,7 +90,7 @@ struct GuestListView: View {
                 if let error = viewModel.error {
                     Text(error)
                         .font(.system(size: 13))
-                        .foregroundColor(Theme.rose)
+                        .foregroundColor(theme.rose)
                         .padding(.horizontal, 20)
                         .padding(.bottom, 12)
                 }
@@ -128,6 +130,9 @@ private struct GuestCard: View {
     let guest: Guest
     @ObservedObject var viewModel: GuestListViewModel
 
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             // Top row: avatar + name/contact + meta
@@ -137,10 +142,10 @@ private struct GuestCard: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(guest.name)
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(Theme.charcoal)
+                        .foregroundColor(theme.charcoal)
                     Text(guest.contact ?? "")
                         .font(.system(size: 13))
-                        .foregroundColor(Theme.charcoalSoft)
+                        .foregroundColor(theme.charcoalSoft)
                 }
 
                 Spacer()
@@ -149,7 +154,7 @@ private struct GuestCard: View {
                     StatusBadge(status: guest.status)
                     Text(relativeTime(from: guest.createdAt))
                         .font(.system(size: 11))
-                        .foregroundColor(Theme.stone)
+                        .foregroundColor(theme.stone)
                 }
             }
 
@@ -181,9 +186,9 @@ private struct GuestCard: View {
             }
         }
         .padding(16)
-        .background(Color.white)
+        .background(theme.creamWarm)
         .clipShape(RoundedRectangle(cornerRadius: Theme.radiusLarge))
-        .shadow(color: Theme.charcoal.opacity(0.06), radius: 4, y: 2)
+        .shadow(color: theme.shadowLight, radius: 4, y: 2)
         .opacity(guest.status == .revoked ? 0.65 : 1.0)
     }
 
@@ -215,6 +220,9 @@ private struct GuestAvatar: View {
     let name: String
     let status: GuestStatus
 
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
+
     var body: some View {
         let initials = avatarInitials(name)
         let (bg, fg) = avatarColors(name: name, status: status)
@@ -238,13 +246,13 @@ private struct GuestAvatar: View {
 
     private func avatarColors(name: String, status: GuestStatus) -> (Color, Color) {
         if status == .revoked {
-            return (Theme.grayBadge, Theme.grayBadgeText)
+            return (theme.grayBadge, theme.grayBadgeText)
         }
         let hash = name.unicodeScalars.reduce(0) { $0 + Int($1.value) }
         switch hash % 3 {
-        case 0: return (Theme.goldBadge, Theme.goldBadgeText)        // amber
-        case 1: return (Theme.greenBadge, Theme.greenBadgeText)       // green
-        default: return (Theme.roseLight, Theme.rose)                 // rose
+        case 0: return (theme.goldBadge, theme.goldBadgeText)        // amber
+        case 1: return (theme.greenBadge, theme.greenBadgeText)       // green
+        default: return (theme.roseLight, theme.rose)                 // rose
         }
     }
 }
@@ -257,6 +265,9 @@ private struct GuestActionButton: View {
     let title: String
     let style: GuestActionStyle
     let action: () -> Void
+
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
 
     var body: some View {
         Button(action: action) {
@@ -276,25 +287,25 @@ private struct GuestActionButton: View {
 
     private var foregroundColor: Color {
         switch style {
-        case .normal: return Theme.charcoalSoft
-        case .danger: return Theme.rose
-        case .restore: return Theme.sage
+        case .normal: return theme.charcoalSoft
+        case .danger: return theme.rose
+        case .restore: return theme.sage
         }
     }
 
     private var backgroundColor: Color {
         switch style {
-        case .normal: return Theme.creamWarm
-        case .danger: return Theme.roseLight
-        case .restore: return Theme.sageLight
+        case .normal: return theme.creamWarm
+        case .danger: return theme.roseLight
+        case .restore: return theme.sageLight
         }
     }
 
     private var borderColor: Color {
         switch style {
-        case .normal: return Theme.creamDeep
-        case .danger: return Theme.rose.opacity(0.3)
-        case .restore: return Theme.sage.opacity(0.3)
+        case .normal: return theme.creamDeep
+        case .danger: return theme.rose.opacity(0.3)
+        case .restore: return theme.sage.opacity(0.3)
         }
     }
 }

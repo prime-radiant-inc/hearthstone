@@ -2,6 +2,9 @@ import SwiftUI
 
 struct ConnectDocsView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
+
     @StateObject private var docsVM = DocumentsViewModel()
     @StateObject private var connVM = ConnectionsViewModel()
     @State private var showFilePicker = false
@@ -29,7 +32,7 @@ struct ConnectDocsView: View {
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
-                        .background(Theme.hearth)
+                        .background(theme.hearth)
                         .foregroundColor(.white)
                         .clipShape(RoundedRectangle(cornerRadius: Theme.radiusMedium))
                     }
@@ -49,21 +52,21 @@ struct ConnectDocsView: View {
                             showDisconnectConfirm = true
                         } label: {
                             Image(systemName: "xmark.circle.fill")
-                                .foregroundColor(Theme.stone)
+                                .foregroundColor(theme.stone)
                                 .font(.system(size: 16))
                         }
                         .buttonStyle(.plain)
                     }
                     .font(.system(size: 13))
-                    .foregroundColor(Theme.goldBadgeText)
+                    .foregroundColor(theme.goldBadgeText)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 10)
                     .background(
-                        LinearGradient(colors: [Color(red: 1, green: 0.99, blue: 0.95), Color(red: 1, green: 0.97, blue: 0.9)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                        LinearGradient(colors: [theme.connectedBannerStart, theme.connectedBannerEnd], startPoint: .topLeading, endPoint: .bottomTrailing)
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 8))
-                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.goldBadge, lineWidth: 1))
+                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(theme.goldBadge, lineWidth: 1))
                     .padding(.horizontal, 24)
                     .padding(.vertical, 12)
 
@@ -77,7 +80,7 @@ struct ConnectDocsView: View {
                                 .fontWeight(.semibold)
                         }
                         .font(.system(size: 15))
-                        .foregroundColor(Theme.hearth)
+                        .foregroundColor(theme.hearth)
                     }
                     .padding(.horizontal, 24)
                     .padding(.bottom, 12)
@@ -90,10 +93,10 @@ struct ConnectDocsView: View {
                         Text("📄").font(.system(size: 40))
                         Text("No documents connected")
                             .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(Theme.charcoalSoft)
+                            .foregroundColor(theme.charcoalSoft)
                         Text("Connect your Google Drive and select documents to make them searchable by your guests.")
                             .font(.system(size: 14))
-                            .foregroundColor(Theme.stone)
+                            .foregroundColor(theme.stone)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 40)
                     }
@@ -115,14 +118,14 @@ struct ConnectDocsView: View {
                                     } label: {
                                         Label("Refresh", systemImage: "arrow.clockwise")
                                     }
-                                    .tint(Theme.sage)
+                                    .tint(theme.sage)
                                 }
                         }
                     }
                     .listStyle(.plain)
                 }
             }
-            .background(Theme.cream)
+            .background(theme.cream)
             .navigationTitle("Documents")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -136,10 +139,10 @@ struct ConnectDocsView: View {
                             }
                         } label: {
                             if isRefreshingAll {
-                                ProgressView().tint(Theme.hearth)
+                                ProgressView().tint(theme.hearth)
                             } else {
                                 Image(systemName: "arrow.clockwise")
-                                    .foregroundColor(Theme.hearth)
+                                    .foregroundColor(theme.hearth)
                             }
                         }
                         .disabled(isRefreshingAll)
@@ -147,7 +150,7 @@ struct ConnectDocsView: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }
-                        .foregroundColor(Theme.hearth)
+                        .foregroundColor(theme.hearth)
                         .fontWeight(.semibold)
                 }
             }
@@ -209,6 +212,9 @@ struct ConnectDocsView: View {
 struct DocumentRow: View {
     let document: Document
 
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
+
     var body: some View {
         HStack(spacing: 12) {
             Text("📄").font(.system(size: 18))
@@ -216,14 +222,14 @@ struct DocumentRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(document.title)
                     .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(Theme.charcoal)
+                    .foregroundColor(theme.charcoal)
 
                 HStack(spacing: 8) {
                     DocStatusBadge(status: document.status)
                     if let synced = document.lastSynced {
                         Text("Synced \(synced)")
                             .font(.system(size: 12))
-                            .foregroundColor(Theme.stone)
+                            .foregroundColor(theme.stone)
                     }
                 }
             }
@@ -233,7 +239,7 @@ struct DocumentRow: View {
             if let count = document.chunkCount, count > 0 {
                 Text("\(count) chunks")
                     .font(.system(size: 12))
-                    .foregroundColor(Theme.stone)
+                    .foregroundColor(theme.stone)
             }
         }
         .padding(.vertical, 4)
@@ -242,6 +248,9 @@ struct DocumentRow: View {
 
 struct DocStatusBadge: View {
     let status: DocumentStatus
+
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
 
     var body: some View {
         Text(status.rawValue.capitalized)
@@ -255,17 +264,17 @@ struct DocStatusBadge: View {
 
     private var backgroundColor: Color {
         switch status {
-        case .ready: return Theme.greenBadge
-        case .indexing: return Theme.goldBadge
-        case .error: return Theme.roseLight
+        case .ready: return theme.greenBadge
+        case .indexing: return theme.goldBadge
+        case .error: return theme.roseLight
         }
     }
 
     private var textColor: Color {
         switch status {
-        case .ready: return Theme.greenBadgeText
-        case .indexing: return Theme.goldBadgeText
-        case .error: return Theme.rose
+        case .ready: return theme.greenBadgeText
+        case .indexing: return theme.goldBadgeText
+        case .error: return theme.rose
         }
     }
 }
