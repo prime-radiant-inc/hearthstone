@@ -8,11 +8,13 @@ struct InviteErrorView: View {
     let errorType: InviteErrorType
     let onDismiss: () -> Void
 
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
+
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
 
-            // Icon circle
             Circle()
                 .fill(iconBackground)
                 .frame(width: 80, height: 80)
@@ -21,13 +23,13 @@ struct InviteErrorView: View {
 
             Text(title)
                 .font(Theme.heading(24))
-                .foregroundColor(Theme.charcoal)
+                .foregroundColor(theme.charcoal)
                 .multilineTextAlignment(.center)
                 .padding(.bottom, 12)
 
             Text(detail)
                 .font(.system(size: 16))
-                .foregroundColor(Theme.charcoalSoft)
+                .foregroundColor(theme.charcoalSoft)
                 .multilineTextAlignment(.center)
                 .lineSpacing(4)
                 .padding(.horizontal, 40)
@@ -35,27 +37,27 @@ struct InviteErrorView: View {
 
             Button(buttonTitle) { onDismiss() }
                 .font(.system(size: 15, weight: .semibold))
-                .foregroundColor(Theme.charcoalSoft)
+                .foregroundColor(theme.charcoalSoft)
                 .padding(.horizontal, 32)
                 .padding(.vertical, 14)
-                .background(Color.white)
+                .background(theme.creamWarm)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
-                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Theme.creamDeep, lineWidth: 1.5))
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(theme.creamDeep, lineWidth: 1.5))
 
             Spacer()
             Spacer()
         }
         .frame(maxWidth: .infinity)
         .background(
-            LinearGradient(colors: [Theme.cream, Theme.creamWarm], startPoint: .top, endPoint: .bottom)
+            LinearGradient(colors: [theme.cream, theme.creamWarm], startPoint: .top, endPoint: .bottom)
         )
     }
 
     private var iconBackground: Color {
         switch errorType {
-        case .expired: return Theme.goldBadge
-        case .alreadyUsed: return Theme.roseLight
-        case .notFound: return Theme.grayBadge
+        case .expired: return theme.goldBadge
+        case .alreadyUsed: return theme.roseLight
+        case .notFound: return theme.grayBadge
         }
     }
 
