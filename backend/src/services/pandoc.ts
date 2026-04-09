@@ -64,7 +64,18 @@ function promoteImpliedHeadings(markdown: string): string {
       const prevLine = i > 0 ? lines[i - 1].trim() : "";
       const isStandalone = prevLine === "" || i === 0;
 
-      if (isStandalone) {
+      // Don't promote bold lines that directly follow a real heading —
+      // they're content (e.g., a bolded address under "## House Address"),
+      // not a new section. Look back past blank lines for a heading.
+      let followsHeading = false;
+      for (let j = i - 1; j >= 0; j--) {
+        const prev = lines[j].trim();
+        if (prev === "") continue;
+        if (/^#{1,6}\s/.test(prev)) followsHeading = true;
+        break;
+      }
+
+      if (isStandalone && !followsHeading) {
         result.push(`## ${headingText}`);
         continue;
       }
