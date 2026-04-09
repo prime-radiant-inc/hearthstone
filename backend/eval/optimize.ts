@@ -69,8 +69,8 @@ interface QuestionScore {
 async function runEval(mode: Mode): Promise<QuestionScore[]> {
   const results: QuestionScore[] = [];
 
-  // Run questions concurrently in batches of 4
-  const BATCH_SIZE = 27;
+  // Run questions concurrently in batches
+  const BATCH_SIZE = 100;
   for (let i = 0; i < QUESTIONS.length; i += BATCH_SIZE) {
     const batch = QUESTIONS.slice(i, i + BATCH_SIZE);
     const batchResults = await Promise.all(batch.map(async (q) => {
@@ -320,7 +320,7 @@ async function runEvalFresh(mode: Mode): Promise<QuestionScore[]> {
   // imported it, we need to re-evaluate. The cleanest way is to call
   // the eval runner as a subprocess and parse the JSON output.
   const { execSync } = await import("node:child_process");
-  const cmd = `npx tsx eval/run.ts --mode ${mode} --concurrency 27`;
+  const cmd = `bun eval/run.ts --mode ${mode} --concurrency 100`;
   try {
     execSync(cmd, { cwd: resolve(import.meta.dirname, ".."), timeout: 600000, stdio: "pipe" });
   } catch (err: any) {

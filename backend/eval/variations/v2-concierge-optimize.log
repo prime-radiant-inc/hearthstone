@@ -1,0 +1,892 @@
+$ bun eval/optimize.ts --iterations "30" --mode full
+
+🔧 Hearthstone Prompt Optimizer
+Mode: full | Iterations: 30 | Proposer: gpt-5.4
+Chat: gpt-5.4 | Judge: gpt-5.4-mini
+
+Original prompt backed up to eval/prompt.backup.txt
+
+Running baseline eval...
+Baseline: 95.0%
+
+
+────────────────────────────────────────────────────────────
+Iteration 1/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+5 of 38 questions have room for improvement:
+
+Question: "When does the garbage go out?" (garbage-day)
+  Score: 33%
+  ABSENT facts (not mentioned at all):
+    - Recycling every other Tuesday — calendar on the fridge
+    - Compost also goes out Tuesday
+  Model's response (first 300 chars):
+    "Put the garbage out Monday night.
+
+Details:
+- Garbage is in the gray bin.
+- It is collected Tuesday mornings.
+- The bins are on the side of the house by the gate.
+- The gate latch sticks: lift up slightly w...
+
+Proposing edit...
+Prompt: 13 lines → 14 lines
+Evaluating candidate...
+
+Candidate: 96.4% (baseline: 95.0%)
+Changes:
+  ▲ garbage-day: 33% → 100%
+  ▼ noa-seasonal-allergy: 67% → 33%
+  ▲ noa-preschool: 67% → 100%
+  ▼ play-music: 100% → 90%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 2/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+5 of 38 questions have room for improvement:
+
+Question: "When does the garbage go out?" (garbage-day)
+  Score: 33%
+  ABSENT facts (not mentioned at all):
+    - Recycling every other Tuesday — calendar on the fridge
+    - Compost also goes out Tuesday
+  Model's response (first 300 chars):
+    "Put the garbage out Monday night.
+
+Details:
+- Garbage is in the gray bin.
+- It is collected Tuesday mornings.
+- The bins are on the side of the house by the gate.
+- The gate latch sticks: lift up slightly w...
+
+Proposing edit...
+Prompt: 13 lines → 17 lines
+Evaluating candidate...
+
+Candidate: 98.2% (baseline: 95.0%)
+Changes:
+  ▲ ipad-passcode: 50% → 75%
+  ▲ garbage-day: 33% → 100%
+  ▲ noa-preschool: 67% → 100%
+
+✅ KEPT — Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 3/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+3 of 38 questions have room for improvement:
+
+Question: "Noa is really sneezy today. Should I give her anything?" (noa-seasonal-allergy)
+  Score: 67%
+  ABSENT facts (not mentioned at all):
+    - She gets seasonal allergies in spring
+  Model's response (first 300 chars):
+    "Yes. For Noa’s seasonal allergies, give **Children’s Zyrtec, 2.5 mL once daily if she’s sneezy**.
+
+Relevant details:
+- Noa also has a **serious peanut allergy**. Avoid **peanuts, peanut butter, and foods processed in a facil...
+
+Proposing edit...
+Prompt: 17 lines → 19 lines
+Evaluating candidate...
+
+Candidate: 96.5% (baseline: 98.2%)
+Changes:
+  ▼ garbage-day: 100% → 33%
+  ⚠ noa-seasonal-allergy: new hallucination
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 4/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+3 of 38 questions have room for improvement:
+
+Question: "Noa is really sneezy today. Should I give her anything?" (noa-seasonal-allergy)
+  Score: 67%
+  ABSENT facts (not mentioned at all):
+    - She gets seasonal allergies in spring
+  Model's response (first 300 chars):
+    "Yes. For Noa’s seasonal allergies, give **Children’s Zyrtec, 2.5 mL once daily if she’s sneezy**.
+
+Relevant details:
+- Noa also has a **serious peanut allergy**. Avoid **peanuts, peanut butter, and foods processed in a facil...
+
+Proposing edit...
+Prompt: 17 lines → 19 lines
+Evaluating candidate...
+
+Candidate: 98.7% (baseline: 98.2%)
+Changes:
+  ▼ garbage-day: 100% → 83%
+  ▲ noa-seasonal-allergy: 67% → 100%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 5/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+3 of 38 questions have room for improvement:
+
+Question: "Noa is really sneezy today. Should I give her anything?" (noa-seasonal-allergy)
+  Score: 67%
+  ABSENT facts (not mentioned at all):
+    - She gets seasonal allergies in spring
+  Model's response (first 300 chars):
+    "Yes. For Noa’s seasonal allergies, give **Children’s Zyrtec, 2.5 mL once daily if she’s sneezy**.
+
+Relevant details:
+- Noa also has a **serious peanut allergy**. Avoid **peanuts, peanut butter, and foods processed in a facil...
+
+Proposing edit...
+Prompt: 17 lines → 19 lines
+Evaluating candidate...
+
+Candidate: 97.8% (baseline: 98.2%)
+Changes:
+  ▼ ipad-passcode: 75% → 50%
+  ▲ noa-allergy: 92% → 100%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 6/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+3 of 38 questions have room for improvement:
+
+Question: "Noa is really sneezy today. Should I give her anything?" (noa-seasonal-allergy)
+  Score: 67%
+  ABSENT facts (not mentioned at all):
+    - She gets seasonal allergies in spring
+  Model's response (first 300 chars):
+    "Yes. For Noa’s seasonal allergies, give **Children’s Zyrtec, 2.5 mL once daily if she’s sneezy**.
+
+Relevant details:
+- Noa also has a **serious peanut allergy**. Avoid **peanuts, peanut butter, and foods processed in a facil...
+
+Proposing edit...
+Prompt: 17 lines → 19 lines
+Evaluating candidate...
+
+Candidate: 97.6% (baseline: 98.2%)
+Changes:
+  ▼ nearest-er: 100% → 67%
+  ▼ ipad-passcode: 75% → 50%
+  ▲ noa-seasonal-allergy: 67% → 100%
+  ⚠ noa-seasonal-allergy: new hallucination
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 7/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+3 of 38 questions have room for improvement:
+
+Question: "Noa is really sneezy today. Should I give her anything?" (noa-seasonal-allergy)
+  Score: 67%
+  ABSENT facts (not mentioned at all):
+    - She gets seasonal allergies in spring
+  Model's response (first 300 chars):
+    "Yes. For Noa’s seasonal allergies, give **Children’s Zyrtec, 2.5 mL once daily if she’s sneezy**.
+
+Relevant details:
+- Noa also has a **serious peanut allergy**. Avoid **peanuts, peanut butter, and foods processed in a facil...
+
+Proposing edit...
+Prompt: 17 lines → 19 lines
+Evaluating candidate...
+
+Candidate: 96.6% (baseline: 98.2%)
+Changes:
+  ▲ ipad-passcode: 75% → 100%
+  ▼ garbage-day: 100% → 67%
+  ▼ noa-seasonal-allergy: 67% → 33%
+  ⚠ noa-seasonal-allergy: new hallucination
+  ▼ eli-screen-rules: 100% → 80%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 8/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+3 of 38 questions have room for improvement:
+
+Question: "Noa is really sneezy today. Should I give her anything?" (noa-seasonal-allergy)
+  Score: 67%
+  ABSENT facts (not mentioned at all):
+    - She gets seasonal allergies in spring
+  Model's response (first 300 chars):
+    "Yes. For Noa’s seasonal allergies, give **Children’s Zyrtec, 2.5 mL once daily if she’s sneezy**.
+
+Relevant details:
+- Noa also has a **serious peanut allergy**. Avoid **peanuts, peanut butter, and foods processed in a facil...
+
+Proposing edit...
+Prompt: 17 lines → 20 lines
+Evaluating candidate...
+
+Candidate: 96.9% (baseline: 98.2%)
+Changes:
+  ▼ nearest-er: 100% → 67%
+  ▼ ipad-passcode: 75% → 50%
+  ⚠ noa-seasonal-allergy: new hallucination
+  ▲ noa-allergy: 92% → 100%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 9/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+3 of 38 questions have room for improvement:
+
+Question: "Noa is really sneezy today. Should I give her anything?" (noa-seasonal-allergy)
+  Score: 67%
+  ABSENT facts (not mentioned at all):
+    - She gets seasonal allergies in spring
+  Model's response (first 300 chars):
+    "Yes. For Noa’s seasonal allergies, give **Children’s Zyrtec, 2.5 mL once daily if she’s sneezy**.
+
+Relevant details:
+- Noa also has a **serious peanut allergy**. Avoid **peanuts, peanut butter, and foods processed in a facil...
+
+Proposing edit...
+Prompt: 17 lines → 18 lines
+Evaluating candidate...
+
+Candidate: 98.9% (baseline: 98.2%)
+Changes:
+  ▲ noa-seasonal-allergy: 67% → 83%
+  ▲ noa-allergy: 92% → 100%
+
+✅ KEPT — Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 10/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "The passcode for the living room iPad is **0000**.
+
+It’s the iPad mounted on the wall by the kitchen entrance, used as the house control center. It should stay unlocked most of the time, and it’...
+
+Proposing edit...
+Prompt: 18 lines → 19 lines
+Evaluating candidate...
+
+Candidate: 98.6% (baseline: 98.9%)
+Changes:
+  ▲ noa-seasonal-allergy: 83% → 100%
+  ⚠ noa-seasonal-allergy: new hallucination
+  ▼ eli-screen-rules: 100% → 80%
+  ▼ noa-allergy: 100% → 92%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 11/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "The passcode for the living room iPad is **0000**.
+
+It’s the iPad mounted on the wall by the kitchen entrance, used as the house control center. It should stay unlocked most of the time, and it’...
+
+Proposing edit...
+Prompt: 18 lines → 19 lines
+Evaluating candidate...
+
+Candidate: 98.5% (baseline: 98.9%)
+Changes:
+  ▲ noa-seasonal-allergy: 83% → 100%
+  ⚠ noa-seasonal-allergy: new hallucination
+  ▼ garbage-day: 100% → 67%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 12/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "The passcode for the living room iPad is **0000**.
+
+It’s the iPad mounted on the wall by the kitchen entrance, used as the house control center. It should stay unlocked most of the time, and it’...
+
+Proposing edit...
+Prompt: 18 lines → 19 lines
+Evaluating candidate...
+
+Candidate: 95.8% (baseline: 98.9%)
+Changes:
+  ▼ garbage-day: 100% → 33%
+  ▼ ipad-passcode: 75% → 50%
+  ▼ noa-seasonal-allergy: 83% → 67%
+  ⚠ noa-seasonal-allergy: new hallucination
+  ▼ noa-allergy: 100% → 92%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 13/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "The passcode for the living room iPad is **0000**.
+
+It’s the iPad mounted on the wall by the kitchen entrance, used as the house control center. It should stay unlocked most of the time, and it’...
+
+Proposing edit...
+Prompt: 18 lines → 19 lines
+Evaluating candidate...
+
+Candidate: 99.1% (baseline: 98.9%)
+Changes:
+  ▼ garbage-day: 100% → 67%
+  ▲ ipad-passcode: 75% → 100%
+  ▲ noa-seasonal-allergy: 83% → 100%
+  ⚠ noa-seasonal-allergy: new hallucination
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 14/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "The passcode for the living room iPad is **0000**.
+
+It’s the iPad mounted on the wall by the kitchen entrance, used as the house control center. It should stay unlocked most of the time, and it’...
+
+Proposing edit...
+Prompt: 18 lines → 19 lines
+Evaluating candidate...
+
+Candidate: 95.4% (baseline: 98.9%)
+Changes:
+  ▼ nearest-er: 100% → 67%
+  ▼ garbage-day: 100% → 33%
+  ▼ noa-seasonal-allergy: 83% → 67%
+  ⚠ noa-seasonal-allergy: new hallucination
+  ▼ noa-allergy: 100% → 92%
+  ▼ play-music: 100% → 90%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 15/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "The passcode for the living room iPad is **0000**.
+
+It’s the iPad mounted on the wall by the kitchen entrance, used as the house control center. It should stay unlocked most of the time, and it’...
+
+Proposing edit...
+Prompt: 18 lines → 19 lines
+Evaluating candidate...
+
+Candidate: 97.6% (baseline: 98.9%)
+Changes:
+  ▼ ipad-passcode: 75% → 50%
+  ▼ nearest-er: 100% → 67%
+  ▲ noa-seasonal-allergy: 83% → 100%
+  ⚠ noa-seasonal-allergy: new hallucination
+  ▼ noa-allergy: 100% → 92%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 16/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "The passcode for the living room iPad is **0000**.
+
+It’s the iPad mounted on the wall by the kitchen entrance, used as the house control center. It should stay unlocked most of the time, and it’...
+
+Proposing edit...
+Prompt: 18 lines → 19 lines
+Evaluating candidate...
+
+Candidate: 99.1% (baseline: 98.9%)
+Changes:
+  ▲ noa-seasonal-allergy: 83% → 100%
+  ▼ noa-allergy: 100% → 92%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 17/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "The passcode for the living room iPad is **0000**.
+
+It’s the iPad mounted on the wall by the kitchen entrance, used as the house control center. It should stay unlocked most of the time, and it’...
+
+Proposing edit...
+Prompt: 18 lines → 20 lines
+Evaluating candidate...
+
+Candidate: 97.1% (baseline: 98.9%)
+Changes:
+  ▼ play-music: 100% → 90%
+  ▼ noa-seasonal-allergy: 83% → 33%
+  ⚠ noa-seasonal-allergy: new hallucination
+  ▼ noa-allergy: 100% → 92%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 18/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "The passcode for the living room iPad is **0000**.
+
+It’s the iPad mounted on the wall by the kitchen entrance, used as the house control center. It should stay unlocked most of the time, and it’...
+
+Proposing edit...
+Prompt: 18 lines → 19 lines
+Evaluating candidate...
+
+Candidate: 99.1% (baseline: 98.9%)
+Changes:
+  ▲ noa-seasonal-allergy: 83% → 100%
+  ▼ noa-allergy: 100% → 92%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 19/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "The passcode for the living room iPad is **0000**.
+
+It’s the iPad mounted on the wall by the kitchen entrance, used as the house control center. It should stay unlocked most of the time, and it’...
+
+Proposing edit...
+Prompt: 18 lines → 19 lines
+Evaluating candidate...
+
+Candidate: 98.5% (baseline: 98.9%)
+Changes:
+  ▼ ipad-passcode: 75% → 50%
+  ▲ noa-seasonal-allergy: 83% → 100%
+  ⚠ noa-seasonal-allergy: new hallucination
+  ▼ noa-allergy: 100% → 92%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 20/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "The passcode for the living room iPad is **0000**.
+
+It’s the iPad mounted on the wall by the kitchen entrance, used as the house control center. It should stay unlocked most of the time, and it’...
+
+Proposing edit...
+Prompt: 18 lines → 19 lines
+Evaluating candidate...
+
+Candidate: 98.2% (baseline: 98.9%)
+Changes:
+  ▼ noa-seasonal-allergy: 83% → 67%
+  ⚠ noa-seasonal-allergy: new hallucination
+  ▼ noa-allergy: 100% → 92%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 21/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "The passcode for the living room iPad is **0000**.
+
+It’s the iPad mounted on the wall by the kitchen entrance, used as the house control center. It should stay unlocked most of the time, and it’...
+
+Proposing edit...
+Prompt: 18 lines → 19 lines
+Evaluating candidate...
+
+Candidate: 96.5% (baseline: 98.9%)
+Changes:
+  ▼ garbage-day: 100% → 33%
+  ▼ nearest-er: 100% → 67%
+  ▲ noa-seasonal-allergy: 83% → 100%
+  ▼ noa-allergy: 100% → 92%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 22/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "The passcode for the living room iPad is **0000**.
+
+It’s the iPad mounted on the wall by the kitchen entrance, used as the house control center. It should stay unlocked most of the time, and it’...
+
+Proposing edit...
+Prompt: 18 lines → 20 lines
+Evaluating candidate...
+
+Candidate: 97.6% (baseline: 98.9%)
+Changes:
+  ▼ nearest-er: 100% → 67%
+  ▼ noa-seasonal-allergy: 83% → 67%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 23/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "The passcode for the living room iPad is **0000**.
+
+It’s the iPad mounted on the wall by the kitchen entrance, used as the house control center. It should stay unlocked most of the time, and it’...
+
+Proposing edit...
+Prompt: 18 lines → 19 lines
+Evaluating candidate...
+
+Candidate: 98.2% (baseline: 98.9%)
+Changes:
+  ▼ garbage-day: 100% → 67%
+  ▼ noa-allergy: 100% → 92%
+  ▲ noa-seasonal-allergy: 83% → 100%
+  ⚠ noa-seasonal-allergy: new hallucination
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 24/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "The passcode for the living room iPad is **0000**.
+
+It’s the iPad mounted on the wall by the kitchen entrance, used as the house control center. It should stay unlocked most of the time, and it’...
+
+Proposing edit...
+Prompt: 18 lines → 20 lines
+Evaluating candidate...
+
+Candidate: 97.6% (baseline: 98.9%)
+Changes:
+  ▼ garbage-day: 100% → 67%
+  ▼ noa-seasonal-allergy: 83% → 67%
+  ⚠ noa-seasonal-allergy: new hallucination
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 25/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "The passcode for the living room iPad is **0000**.
+
+It’s the iPad mounted on the wall by the kitchen entrance, used as the house control center. It should stay unlocked most of the time, and it’...
+
+Proposing edit...
+Prompt: 18 lines → 19 lines
+Evaluating candidate...
+
+Candidate: 98.2% (baseline: 98.9%)
+Changes:
+  ▼ garbage-day: 100% → 67%
+  ▼ noa-allergy: 100% → 92%
+  ▲ noa-seasonal-allergy: 83% → 100%
+  ⚠ noa-seasonal-allergy: new hallucination
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 26/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "The passcode for the living room iPad is **0000**.
+
+It’s the iPad mounted on the wall by the kitchen entrance, used as the house control center. It should stay unlocked most of the time, and it’...
+
+Proposing edit...
+Prompt: 18 lines → 20 lines
+Evaluating candidate...
+
+Candidate: 98.5% (baseline: 98.9%)
+Changes:
+  ▼ noa-seasonal-allergy: 83% → 67%
+  ⚠ noa-seasonal-allergy: new hallucination
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 27/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "The passcode for the living room iPad is **0000**.
+
+It’s the iPad mounted on the wall by the kitchen entrance, used as the house control center. It should stay unlocked most of the time, and it’...
+
+Proposing edit...
+Prompt: 18 lines → 20 lines
+Evaluating candidate...
+
+Candidate: 97.4% (baseline: 98.9%)
+Changes:
+  ▼ nearest-er: 100% → 67%
+  ▼ noa-seasonal-allergy: 83% → 67%
+  ⚠ noa-seasonal-allergy: new hallucination
+  ▼ noa-allergy: 100% → 92%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 28/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "The passcode for the living room iPad is **0000**.
+
+It’s the iPad mounted on the wall by the kitchen entrance, used as the house control center. It should stay unlocked most of the time, and it’...
+
+Proposing edit...
+Prompt: 18 lines → 20 lines
+Evaluating candidate...
+
+Candidate: 95.8% (baseline: 98.9%)
+Changes:
+  ▼ ipad-passcode: 75% → 50%
+  ▼ nearest-er: 100% → 67%
+  ▼ noa-seasonal-allergy: 83% → 33%
+  ▼ noa-allergy: 100% → 92%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 29/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "The passcode for the living room iPad is **0000**.
+
+It’s the iPad mounted on the wall by the kitchen entrance, used as the house control center. It should stay unlocked most of the time, and it’...
+
+Proposing edit...
+Prompt: 18 lines → 20 lines
+Evaluating candidate...
+
+Candidate: 98.2% (baseline: 98.9%)
+Changes:
+  ▼ nearest-er: 100% → 67%
+  ▲ ipad-passcode: 75% → 100%
+  ▼ noa-seasonal-allergy: 83% → 67%
+  ⚠ noa-seasonal-allergy: new hallucination
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 30/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "The passcode for the living room iPad is **0000**.
+
+It’s the iPad mounted on the wall by the kitchen entrance, used as the house control center. It should stay unlocked most of the time, and it’...
+
+Proposing edit...
+Prompt: 18 lines → 20 lines
+Evaluating candidate...
+
+Candidate: 96.9% (baseline: 98.9%)
+Changes:
+  ▼ ipad-passcode: 75% → 50%
+  ▼ nearest-er: 100% → 67%
+  ▼ noa-seasonal-allergy: 83% → 67%
+  ⚠ noa-seasonal-allergy: new hallucination
+
+❌ REVERTED — not a Pareto improvement
+
+============================================================
+OPTIMIZATION COMPLETE
+============================================================
+Iterations: 30 | Kept: 2 | Reverted: 28
+Score: 94.3%
+
+Final prompt saved to: eval/prompt.txt
+Original backed up to: eval/prompt.backup.txt

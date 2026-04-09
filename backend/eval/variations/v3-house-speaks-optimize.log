@@ -1,0 +1,909 @@
+$ bun eval/optimize.ts --iterations "30" --mode full
+
+🔧 Hearthstone Prompt Optimizer
+Mode: full | Iterations: 30 | Proposer: gpt-5.4
+Chat: gpt-5.4 | Judge: gpt-5.4-mini
+
+Original prompt backed up to eval/prompt.backup.txt
+
+Running baseline eval...
+Baseline: 95.8%
+
+
+────────────────────────────────────────────────────────────
+Iteration 1/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+5 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 50%
+  ABSENT facts (not mentioned at all):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "0000
+
+Sources: "House Operations"..."
+
+Question: "Where does Noa go to school and what time?" (noa-preschool)
+  Score: 67%
+  ABSENT facts (not mentioned at all):
+    - Pick up at 12:30
+  Model's response (first 300 c...
+
+Proposing edit...
+Prompt: 11 lines → 13 lines
+Evaluating candidate...
+
+Candidate: 96.7% (baseline: 95.8%)
+Changes:
+  ▼ garbage-day: 100% → 67%
+  ▲ noa-preschool: 67% → 100%
+  ▲ noa-seasonal-allergy: 67% → 100%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 2/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+5 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 50%
+  ABSENT facts (not mentioned at all):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "0000
+
+Sources: "House Operations"..."
+
+Question: "Where does Noa go to school and what time?" (noa-preschool)
+  Score: 67%
+  ABSENT facts (not mentioned at all):
+    - Pick up at 12:30
+  Model's response (first 300 c...
+
+Proposing edit...
+Prompt: 11 lines → 11 lines
+Evaluating candidate...
+
+Candidate: 97.1% (baseline: 95.8%)
+Changes:
+  ▼ garbage-day: 100% → 83%
+  ▲ noa-preschool: 67% → 100%
+  ▲ noa-seasonal-allergy: 67% → 100%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 3/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+5 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 50%
+  ABSENT facts (not mentioned at all):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "0000
+
+Sources: "House Operations"..."
+
+Question: "Where does Noa go to school and what time?" (noa-preschool)
+  Score: 67%
+  ABSENT facts (not mentioned at all):
+    - Pick up at 12:30
+  Model's response (first 300 c...
+
+Proposing edit...
+Prompt: 11 lines → 11 lines
+Evaluating candidate...
+
+Candidate: 97.4% (baseline: 95.8%)
+Changes:
+  ▼ garbage-day: 100% → 67%
+  ▲ noa-preschool: 67% → 100%
+  ▼ lights-not-responding: 100% → 83%
+  ▲ nearest-er: 67% → 100%
+  ▲ noa-seasonal-allergy: 67% → 100%
+  ▲ noa-allergy: 92% → 100%
+  ⚠ noa-allergy: new hallucination
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 4/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+5 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 50%
+  ABSENT facts (not mentioned at all):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "0000
+
+Sources: "House Operations"..."
+
+Question: "Where does Noa go to school and what time?" (noa-preschool)
+  Score: 67%
+  ABSENT facts (not mentioned at all):
+    - Pick up at 12:30
+  Model's response (first 300 c...
+
+Proposing edit...
+Prompt: 11 lines → 11 lines
+Evaluating candidate...
+
+Candidate: 97.4% (baseline: 95.8%)
+Changes:
+  ▼ garbage-day: 100% → 83%
+  ▲ noa-preschool: 67% → 100%
+  ▲ nearest-er: 67% → 100%
+  ▲ noa-allergy: 92% → 100%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 5/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+5 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 50%
+  ABSENT facts (not mentioned at all):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "0000
+
+Sources: "House Operations"..."
+
+Question: "Where does Noa go to school and what time?" (noa-preschool)
+  Score: 67%
+  ABSENT facts (not mentioned at all):
+    - Pick up at 12:30
+  Model's response (first 300 c...
+
+Proposing edit...
+Prompt: 11 lines → 11 lines
+Evaluating candidate...
+
+Candidate: 95.8% (baseline: 95.8%)
+Changes:
+  ▼ cat-hiding: 100% → 67%
+  ▲ noa-preschool: 67% → 100%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 6/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+5 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 50%
+  ABSENT facts (not mentioned at all):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "0000
+
+Sources: "House Operations"..."
+
+Question: "Where does Noa go to school and what time?" (noa-preschool)
+  Score: 67%
+  ABSENT facts (not mentioned at all):
+    - Pick up at 12:30
+  Model's response (first 300 c...
+
+Proposing edit...
+Prompt: 11 lines → 13 lines
+Evaluating candidate...
+
+Candidate: 95.8% (baseline: 95.8%)
+Changes:
+  ▲ noa-preschool: 67% → 100%
+  ▼ garbage-day: 100% → 67%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 7/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+5 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 50%
+  ABSENT facts (not mentioned at all):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "0000
+
+Sources: "House Operations"..."
+
+Question: "Where does Noa go to school and what time?" (noa-preschool)
+  Score: 67%
+  ABSENT facts (not mentioned at all):
+    - Pick up at 12:30
+  Model's response (first 300 c...
+
+Proposing edit...
+Prompt: 11 lines → 11 lines
+Evaluating candidate...
+
+Candidate: 94.6% (baseline: 95.8%)
+Changes:
+  ▼ garbage-day: 100% → 67%
+  ▲ noa-preschool: 67% → 100%
+  ▼ cat-hiding: 100% → 67%
+  ▼ emergency-contacts: 100% → 88%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 8/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+5 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 50%
+  ABSENT facts (not mentioned at all):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "0000
+
+Sources: "House Operations"..."
+
+Question: "Where does Noa go to school and what time?" (noa-preschool)
+  Score: 67%
+  ABSENT facts (not mentioned at all):
+    - Pick up at 12:30
+  Model's response (first 300 c...
+
+Proposing edit...
+Prompt: 11 lines → 11 lines
+Evaluating candidate...
+
+Candidate: 97.8% (baseline: 95.8%)
+Changes:
+  ▲ nearest-er: 67% → 100%
+  ▲ noa-preschool: 67% → 100%
+  ▲ noa-allergy: 92% → 100%
+  ⚠ noa-allergy: new hallucination
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 9/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+5 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 50%
+  ABSENT facts (not mentioned at all):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "0000
+
+Sources: "House Operations"..."
+
+Question: "Where does Noa go to school and what time?" (noa-preschool)
+  Score: 67%
+  ABSENT facts (not mentioned at all):
+    - Pick up at 12:30
+  Model's response (first 300 c...
+
+Proposing edit...
+Prompt: 11 lines → 11 lines
+Evaluating candidate...
+
+Candidate: 99.1% (baseline: 95.8%)
+Changes:
+  ▲ nearest-er: 67% → 100%
+  ▲ noa-preschool: 67% → 100%
+  ▲ ipad-passcode: 50% → 75%
+  ▲ noa-seasonal-allergy: 67% → 100%
+
+✅ KEPT — Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 10/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "0000
+
+The living room iPad is mounted on the wall by the kitchen entrance. It’s the house control center, stays plugged in, and shouldn’t be moved. It has the Home app, Sonos app, SimpliSafe app...
+
+Proposing edit...
+Prompt: 11 lines → 11 lines
+Evaluating candidate...
+
+Candidate: 99.1% (baseline: 99.1%)
+Changes:
+  (no changes)
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 11/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "0000
+
+The living room iPad is mounted on the wall by the kitchen entrance. It’s the house control center, stays plugged in, and shouldn’t be moved. It has the Home app, Sonos app, SimpliSafe app...
+
+Proposing edit...
+Prompt: 11 lines → 11 lines
+Evaluating candidate...
+
+Candidate: 98.9% (baseline: 99.1%)
+Changes:
+  ⚠ noa-seasonal-allergy: new hallucination
+  ▼ garbage-day: 100% → 83%
+  ▲ noa-allergy: 92% → 100%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 12/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "0000
+
+The living room iPad is mounted on the wall by the kitchen entrance. It’s the house control center, stays plugged in, and shouldn’t be moved. It has the Home app, Sonos app, SimpliSafe app...
+
+Proposing edit...
+Prompt: 11 lines → 11 lines
+Evaluating candidate...
+
+Candidate: 98.5% (baseline: 99.1%)
+Changes:
+  ⚠ noa-seasonal-allergy: new hallucination
+  ▼ emergency-contacts: 100% → 75%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 13/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "0000
+
+The living room iPad is mounted on the wall by the kitchen entrance. It’s the house control center, stays plugged in, and shouldn’t be moved. It has the Home app, Sonos app, SimpliSafe app...
+
+Proposing edit...
+Prompt: 11 lines → 11 lines
+Evaluating candidate...
+
+Candidate: 98.5% (baseline: 99.1%)
+Changes:
+  ▼ ipad-passcode: 75% → 50%
+  ⚠ noa-seasonal-allergy: new hallucination
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 14/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "0000
+
+The living room iPad is mounted on the wall by the kitchen entrance. It’s the house control center, stays plugged in, and shouldn’t be moved. It has the Home app, Sonos app, SimpliSafe app...
+
+Proposing edit...
+Prompt: 11 lines → 11 lines
+Evaluating candidate...
+
+Candidate: 98.9% (baseline: 99.1%)
+Changes:
+  ▼ garbage-day: 100% → 83%
+  ⚠ noa-seasonal-allergy: new hallucination
+  ▲ noa-allergy: 92% → 100%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 15/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "0000
+
+The living room iPad is mounted on the wall by the kitchen entrance. It’s the house control center, stays plugged in, and shouldn’t be moved. It has the Home app, Sonos app, SimpliSafe app...
+
+Proposing edit...
+Prompt: 11 lines → 13 lines
+Evaluating candidate...
+
+Candidate: 97.8% (baseline: 99.1%)
+Changes:
+  ▼ garbage-day: 100% → 67%
+  ▼ noa-seasonal-allergy: 100% → 83%
+  ⚠ noa-seasonal-allergy: new hallucination
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 16/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "0000
+
+The living room iPad is mounted on the wall by the kitchen entrance. It’s the house control center, stays plugged in, and shouldn’t be moved. It has the Home app, Sonos app, SimpliSafe app...
+
+Proposing edit...
+Prompt: 11 lines → 11 lines
+Evaluating candidate...
+
+Candidate: 98.5% (baseline: 99.1%)
+Changes:
+  ▼ ipad-passcode: 75% → 50%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 17/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "0000
+
+The living room iPad is mounted on the wall by the kitchen entrance. It’s the house control center, stays plugged in, and shouldn’t be moved. It has the Home app, Sonos app, SimpliSafe app...
+
+Proposing edit...
+Prompt: 11 lines → 11 lines
+Evaluating candidate...
+
+Candidate: 97.8% (baseline: 99.1%)
+Changes:
+  ▼ garbage-day: 100% → 83%
+  ▼ cat-hiding: 100% → 67%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 18/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "0000
+
+The living room iPad is mounted on the wall by the kitchen entrance. It’s the house control center, stays plugged in, and shouldn’t be moved. It has the Home app, Sonos app, SimpliSafe app...
+
+Proposing edit...
+Prompt: 11 lines → 11 lines
+Evaluating candidate...
+
+Candidate: 98.5% (baseline: 99.1%)
+Changes:
+  ▼ ipad-passcode: 75% → 50%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 19/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "0000
+
+The living room iPad is mounted on the wall by the kitchen entrance. It’s the house control center, stays plugged in, and shouldn’t be moved. It has the Home app, Sonos app, SimpliSafe app...
+
+Proposing edit...
+Prompt: 11 lines → 11 lines
+Evaluating candidate...
+
+Candidate: 97.6% (baseline: 99.1%)
+Changes:
+  ▼ ipad-passcode: 75% → 50%
+  ▼ noa-seasonal-allergy: 100% → 67%
+  ⚠ noa-seasonal-allergy: new hallucination
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 20/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "0000
+
+The living room iPad is mounted on the wall by the kitchen entrance. It’s the house control center, stays plugged in, and shouldn’t be moved. It has the Home app, Sonos app, SimpliSafe app...
+
+Proposing edit...
+Prompt: 11 lines → 11 lines
+Evaluating candidate...
+
+Candidate: 98.5% (baseline: 99.1%)
+Changes:
+  ▼ ipad-passcode: 75% → 50%
+  ⚠ noa-seasonal-allergy: new hallucination
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 21/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "0000
+
+The living room iPad is mounted on the wall by the kitchen entrance. It’s the house control center, stays plugged in, and shouldn’t be moved. It has the Home app, Sonos app, SimpliSafe app...
+
+Proposing edit...
+Prompt: 11 lines → 11 lines
+Evaluating candidate...
+
+Candidate: 99.1% (baseline: 99.1%)
+Changes:
+  ▼ garbage-day: 100% → 67%
+  ▲ ipad-passcode: 75% → 100%
+  ⚠ noa-seasonal-allergy: new hallucination
+  ▲ noa-allergy: 92% → 100%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 22/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "0000
+
+The living room iPad is mounted on the wall by the kitchen entrance. It’s the house control center, stays plugged in, and shouldn’t be moved. It has the Home app, Sonos app, SimpliSafe app...
+
+Proposing edit...
+Prompt: 11 lines → 11 lines
+Evaluating candidate...
+
+Candidate: 98.5% (baseline: 99.1%)
+Changes:
+  ▼ ipad-passcode: 75% → 50%
+  ⚠ noa-seasonal-allergy: new hallucination
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 23/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "0000
+
+The living room iPad is mounted on the wall by the kitchen entrance. It’s the house control center, stays plugged in, and shouldn’t be moved. It has the Home app, Sonos app, SimpliSafe app...
+
+Proposing edit...
+Prompt: 11 lines → 11 lines
+Evaluating candidate...
+
+Candidate: 98.9% (baseline: 99.1%)
+Changes:
+  ▲ ipad-passcode: 75% → 100%
+  ▼ garbage-day: 100% → 67%
+  ⚠ noa-seasonal-allergy: new hallucination
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 24/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "0000
+
+The living room iPad is mounted on the wall by the kitchen entrance. It’s the house control center, stays plugged in, and shouldn’t be moved. It has the Home app, Sonos app, SimpliSafe app...
+
+Proposing edit...
+Prompt: 11 lines → 11 lines
+Evaluating candidate...
+
+Candidate: 98.2% (baseline: 99.1%)
+Changes:
+  ▼ noa-seasonal-allergy: 100% → 67%
+  ⚠ noa-seasonal-allergy: new hallucination
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 25/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "0000
+
+The living room iPad is mounted on the wall by the kitchen entrance. It’s the house control center, stays plugged in, and shouldn’t be moved. It has the Home app, Sonos app, SimpliSafe app...
+
+Proposing edit...
+Prompt: 11 lines → 11 lines
+Evaluating candidate...
+
+Candidate: 98.2% (baseline: 99.1%)
+Changes:
+  ▼ garbage-day: 100% → 67%
+  ⚠ noa-seasonal-allergy: new hallucination
+  ▲ noa-allergy: 92% → 100%
+  ▼ play-music: 100% → 90%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 26/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "0000
+
+The living room iPad is mounted on the wall by the kitchen entrance. It’s the house control center, stays plugged in, and shouldn’t be moved. It has the Home app, Sonos app, SimpliSafe app...
+
+Proposing edit...
+Prompt: 11 lines → 11 lines
+Evaluating candidate...
+
+Candidate: 97.6% (baseline: 99.1%)
+Changes:
+  ▼ ipad-passcode: 75% → 50%
+  ▼ eli-soccer: 100% → 83%
+  ▼ cat-hiding: 100% → 83%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 27/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "0000
+
+The living room iPad is mounted on the wall by the kitchen entrance. It’s the house control center, stays plugged in, and shouldn’t be moved. It has the Home app, Sonos app, SimpliSafe app...
+
+Proposing edit...
+Prompt: 11 lines → 11 lines
+Evaluating candidate...
+
+Candidate: 99.1% (baseline: 99.1%)
+Changes:
+  (no changes)
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 28/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "0000
+
+The living room iPad is mounted on the wall by the kitchen entrance. It’s the house control center, stays plugged in, and shouldn’t be moved. It has the Home app, Sonos app, SimpliSafe app...
+
+Proposing edit...
+Prompt: 11 lines → 11 lines
+Evaluating candidate...
+
+Candidate: 96.4% (baseline: 99.1%)
+Changes:
+  ▼ ipad-passcode: 75% → 50%
+  ▼ nearest-er: 100% → 67%
+  ▼ alarm-code: 100% → 90%
+  ▼ noa-seasonal-allergy: 100% → 67%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 29/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "0000
+
+The living room iPad is mounted on the wall by the kitchen entrance. It’s the house control center, stays plugged in, and shouldn’t be moved. It has the Home app, Sonos app, SimpliSafe app...
+
+Proposing edit...
+Prompt: 11 lines → 11 lines
+Evaluating candidate...
+
+Candidate: 98.5% (baseline: 99.1%)
+Changes:
+  ▲ ipad-passcode: 75% → 100%
+  ▼ garbage-day: 100% → 67%
+  ⚠ noa-seasonal-allergy: new hallucination
+  ▲ noa-allergy: 92% → 100%
+  ▼ emergency-contacts: 100% → 75%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 30/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+2 of 38 questions have room for improvement:
+
+Question: "What's the passcode for the iPad in the living room?" (ipad-passcode)
+  Score: 75%
+  PARTIAL facts (vaguely mentioned but not specific enough):
+    - The iPad controls the house (lights, thermostat, music)
+  Model's response (first 300 chars):
+    "0000
+
+The living room iPad is mounted on the wall by the kitchen entrance. It’s the house control center, stays plugged in, and shouldn’t be moved. It has the Home app, Sonos app, SimpliSafe app...
+
+Proposing edit...
+Prompt: 11 lines → 11 lines
+Evaluating candidate...
+
+Candidate: 99.1% (baseline: 99.1%)
+Changes:
+  (no changes)
+
+❌ REVERTED — not a Pareto improvement
+
+============================================================
+OPTIMIZATION COMPLETE
+============================================================
+Iterations: 30 | Kept: 1 | Reverted: 29
+Score: 95.4%
+
+Final prompt saved to: eval/prompt.txt
+Original backed up to: eval/prompt.backup.txt

@@ -1,0 +1,986 @@
+$ bun eval/optimize.ts --iterations "30" --mode full
+
+🔧 Hearthstone Prompt Optimizer
+Mode: full | Iterations: 30 | Proposer: gpt-5.4
+Chat: gpt-5.4 | Judge: gpt-5.4-mini
+
+Original prompt backed up to eval/prompt.backup.txt
+
+Running baseline eval...
+Baseline: 92.8%
+
+
+────────────────────────────────────────────────────────────
+Iteration 1/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+7 of 38 questions have room for improvement:
+
+Question: "When does the garbage go out?" (garbage-day)
+  Score: 33%
+  ABSENT facts (not mentioned at all):
+    - Recycling every other Tuesday — calendar on the fridge
+    - Compost also goes out Tuesday
+  Model's response (first 300 chars):
+    "Put the garbage out Monday night.
+
+- Garbage is in the gray bin.
+- Collection is Tuesday mornings.
+- The bins are on the side of the house by the gate.
+- The gate latch sticks: lift up slightly while pushin...
+
+Proposing edit...
+Prompt: 21 lines → 23 lines
+Evaluating candidate...
+
+Candidate: 98.1% (baseline: 92.8%)
+Changes:
+  ▲ wifi-password: 50% → 100%
+  ▲ garbage-day: 33% → 100%
+  ▲ ipad-passcode: 50% → 75%
+  ▲ vet-info: 75% → 100%
+  ▲ noa-preschool: 67% → 100%
+  ▼ noa-seasonal-allergy: 83% → 67%
+  ▲ nearest-er: 67% → 100%
+  ▼ dog-feeding: 100% → 88%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 2/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+7 of 38 questions have room for improvement:
+
+Question: "When does the garbage go out?" (garbage-day)
+  Score: 33%
+  ABSENT facts (not mentioned at all):
+    - Recycling every other Tuesday — calendar on the fridge
+    - Compost also goes out Tuesday
+  Model's response (first 300 chars):
+    "Put the garbage out Monday night.
+
+- Garbage is in the gray bin.
+- Collection is Tuesday mornings.
+- The bins are on the side of the house by the gate.
+- The gate latch sticks: lift up slightly while pushin...
+
+Proposing edit...
+Prompt: 21 lines → 24 lines
+Evaluating candidate...
+
+Candidate: 96.7% (baseline: 92.8%)
+Changes:
+  ▲ vet-info: 75% → 100%
+  ▲ wifi-password: 50% → 100%
+  ▲ nearest-er: 67% → 100%
+  ▼ noa-seasonal-allergy: 83% → 67%
+  ▲ garbage-day: 33% → 100%
+  ▼ noa-allergy: 100% → 92%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 3/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+7 of 38 questions have room for improvement:
+
+Question: "When does the garbage go out?" (garbage-day)
+  Score: 33%
+  ABSENT facts (not mentioned at all):
+    - Recycling every other Tuesday — calendar on the fridge
+    - Compost also goes out Tuesday
+  Model's response (first 300 chars):
+    "Put the garbage out Monday night.
+
+- Garbage is in the gray bin.
+- Collection is Tuesday mornings.
+- The bins are on the side of the house by the gate.
+- The gate latch sticks: lift up slightly while pushin...
+
+Proposing edit...
+Prompt: 21 lines → 23 lines
+Evaluating candidate...
+
+Candidate: 93.0% (baseline: 92.8%)
+Changes:
+  ▲ wifi-password: 50% → 100%
+  ▼ noa-seasonal-allergy: 83% → 67%
+  ▼ thermostat: 100% → 75%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 4/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+7 of 38 questions have room for improvement:
+
+Question: "When does the garbage go out?" (garbage-day)
+  Score: 33%
+  ABSENT facts (not mentioned at all):
+    - Recycling every other Tuesday — calendar on the fridge
+    - Compost also goes out Tuesday
+  Model's response (first 300 chars):
+    "Put the garbage out Monday night.
+
+- Garbage is in the gray bin.
+- Collection is Tuesday mornings.
+- The bins are on the side of the house by the gate.
+- The gate latch sticks: lift up slightly while pushin...
+
+Proposing edit...
+Prompt: 21 lines → 24 lines
+Evaluating candidate...
+
+Candidate: 96.7% (baseline: 92.8%)
+Changes:
+  ▲ garbage-day: 33% → 67%
+  ▲ wifi-password: 50% → 100%
+  ▲ nearest-er: 67% → 100%
+  ▼ noa-seasonal-allergy: 83% → 67%
+  ▼ noa-allergy: 100% → 92%
+  ▲ noa-preschool: 67% → 100%
+  ▲ vet-info: 75% → 100%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 5/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+7 of 38 questions have room for improvement:
+
+Question: "When does the garbage go out?" (garbage-day)
+  Score: 33%
+  ABSENT facts (not mentioned at all):
+    - Recycling every other Tuesday — calendar on the fridge
+    - Compost also goes out Tuesday
+  Model's response (first 300 chars):
+    "Put the garbage out Monday night.
+
+- Garbage is in the gray bin.
+- Collection is Tuesday mornings.
+- The bins are on the side of the house by the gate.
+- The gate latch sticks: lift up slightly while pushin...
+
+Proposing edit...
+Prompt: 21 lines → 24 lines
+Evaluating candidate...
+
+Candidate: 96.7% (baseline: 92.8%)
+Changes:
+  ▲ wifi-password: 50% → 100%
+  ▲ nearest-er: 67% → 100%
+  ▲ garbage-day: 33% → 100%
+  ▼ noa-allergy: 100% → 92%
+  ▼ noa-seasonal-allergy: 83% → 67%
+  ▲ vet-info: 75% → 100%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 6/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+7 of 38 questions have room for improvement:
+
+Question: "When does the garbage go out?" (garbage-day)
+  Score: 33%
+  ABSENT facts (not mentioned at all):
+    - Recycling every other Tuesday — calendar on the fridge
+    - Compost also goes out Tuesday
+  Model's response (first 300 chars):
+    "Put the garbage out Monday night.
+
+- Garbage is in the gray bin.
+- Collection is Tuesday mornings.
+- The bins are on the side of the house by the gate.
+- The gate latch sticks: lift up slightly while pushin...
+
+Proposing edit...
+Prompt: 21 lines → 24 lines
+Evaluating candidate...
+
+Candidate: 97.5% (baseline: 92.8%)
+Changes:
+  ▲ vet-info: 75% → 100%
+  ▲ wifi-password: 50% → 100%
+  ▲ garbage-day: 33% → 100%
+  ▲ noa-preschool: 67% → 100%
+  ▲ noa-seasonal-allergy: 83% → 100%
+  ▼ dog-feeding: 100% → 88%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 7/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+7 of 38 questions have room for improvement:
+
+Question: "When does the garbage go out?" (garbage-day)
+  Score: 33%
+  ABSENT facts (not mentioned at all):
+    - Recycling every other Tuesday — calendar on the fridge
+    - Compost also goes out Tuesday
+  Model's response (first 300 chars):
+    "Put the garbage out Monday night.
+
+- Garbage is in the gray bin.
+- Collection is Tuesday mornings.
+- The bins are on the side of the house by the gate.
+- The gate latch sticks: lift up slightly while pushin...
+
+Proposing edit...
+Prompt: 21 lines → 24 lines
+Evaluating candidate...
+
+Candidate: 94.3% (baseline: 92.8%)
+Changes:
+  ▲ wifi-password: 50% → 100%
+  ▲ vet-info: 75% → 100%
+  ▼ emergency-contacts: 100% → 88%
+  ▼ eli-screen-rules: 100% → 80%
+  ▲ noa-seasonal-allergy: 83% → 100%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 8/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+7 of 38 questions have room for improvement:
+
+Question: "When does the garbage go out?" (garbage-day)
+  Score: 33%
+  ABSENT facts (not mentioned at all):
+    - Recycling every other Tuesday — calendar on the fridge
+    - Compost also goes out Tuesday
+  Model's response (first 300 chars):
+    "Put the garbage out Monday night.
+
+- Garbage is in the gray bin.
+- Collection is Tuesday mornings.
+- The bins are on the side of the house by the gate.
+- The gate latch sticks: lift up slightly while pushin...
+
+Proposing edit...
+Prompt: 21 lines → 25 lines
+Evaluating candidate...
+
+Candidate: 96.6% (baseline: 92.8%)
+Changes:
+  ▲ vet-info: 75% → 100%
+  ▲ wifi-password: 50% → 100%
+  ▲ garbage-day: 33% → 100%
+  ▼ dog-feeding: 100% → 88%
+  ▲ noa-seasonal-allergy: 83% → 100%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 9/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+7 of 38 questions have room for improvement:
+
+Question: "When does the garbage go out?" (garbage-day)
+  Score: 33%
+  ABSENT facts (not mentioned at all):
+    - Recycling every other Tuesday — calendar on the fridge
+    - Compost also goes out Tuesday
+  Model's response (first 300 chars):
+    "Put the garbage out Monday night.
+
+- Garbage is in the gray bin.
+- Collection is Tuesday mornings.
+- The bins are on the side of the house by the gate.
+- The gate latch sticks: lift up slightly while pushin...
+
+Proposing edit...
+Prompt: 21 lines → 24 lines
+Evaluating candidate...
+
+Candidate: 93.8% (baseline: 92.8%)
+Changes:
+  ▲ vet-info: 75% → 100%
+  ▲ wifi-password: 50% → 100%
+  ▼ dog-feeding: 100% → 88%
+  ▼ noa-seasonal-allergy: 83% → 67%
+  ▼ noa-allergy: 100% → 92%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 10/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+7 of 38 questions have room for improvement:
+
+Question: "When does the garbage go out?" (garbage-day)
+  Score: 33%
+  ABSENT facts (not mentioned at all):
+    - Recycling every other Tuesday — calendar on the fridge
+    - Compost also goes out Tuesday
+  Model's response (first 300 chars):
+    "Put the garbage out Monday night.
+
+- Garbage is in the gray bin.
+- Collection is Tuesday mornings.
+- The bins are on the side of the house by the gate.
+- The gate latch sticks: lift up slightly while pushin...
+
+Proposing edit...
+Prompt: 21 lines → 24 lines
+Evaluating candidate...
+
+Candidate: 96.1% (baseline: 92.8%)
+Changes:
+  ▲ vet-info: 75% → 100%
+  ▲ wifi-password: 50% → 100%
+  ▲ garbage-day: 33% → 100%
+  ▼ noa-seasonal-allergy: 83% → 67%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 11/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+7 of 38 questions have room for improvement:
+
+Question: "When does the garbage go out?" (garbage-day)
+  Score: 33%
+  ABSENT facts (not mentioned at all):
+    - Recycling every other Tuesday — calendar on the fridge
+    - Compost also goes out Tuesday
+  Model's response (first 300 chars):
+    "Put the garbage out Monday night.
+
+- Garbage is in the gray bin.
+- Collection is Tuesday mornings.
+- The bins are on the side of the house by the gate.
+- The gate latch sticks: lift up slightly while pushin...
+
+Proposing edit...
+Prompt: 21 lines → 24 lines
+Evaluating candidate...
+
+Candidate: 95.6% (baseline: 92.8%)
+Changes:
+  ▲ wifi-password: 50% → 100%
+  ▲ noa-preschool: 67% → 83%
+  ▲ noa-seasonal-allergy: 83% → 100%
+  ▲ vet-info: 75% → 100%
+
+✅ KEPT — Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 12/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+4 of 38 questions have room for improvement:
+
+Question: "When does the garbage go out?" (garbage-day)
+  Score: 33%
+  ABSENT facts (not mentioned at all):
+    - Recycling every other Tuesday — calendar on the fridge
+    - Compost also goes out Tuesday
+  Model's response (first 300 chars):
+    "Monday night. Garbage is in the gray bin and is collected Tuesday morning. The bins are on the side of the house by the gate. The gate latch sticks—lift up slightly while pushing the handle down.
+
+Sources: ...
+
+Proposing edit...
+Prompt: 24 lines → 26 lines
+Evaluating candidate...
+
+Candidate: 96.5% (baseline: 95.6%)
+Changes:
+  ▲ ipad-passcode: 50% → 75%
+  ▲ garbage-day: 33% → 100%
+  ▼ noa-preschool: 83% → 67%
+  ▼ noa-seasonal-allergy: 100% → 67%
+  ⚠ noa-seasonal-allergy: new hallucination
+  ▼ noa-allergy: 100% → 92%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 13/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+4 of 38 questions have room for improvement:
+
+Question: "When does the garbage go out?" (garbage-day)
+  Score: 33%
+  ABSENT facts (not mentioned at all):
+    - Recycling every other Tuesday — calendar on the fridge
+    - Compost also goes out Tuesday
+  Model's response (first 300 chars):
+    "Monday night. Garbage is in the gray bin and is collected Tuesday morning. The bins are on the side of the house by the gate. The gate latch sticks—lift up slightly while pushing the handle down.
+
+Sources: ...
+
+Proposing edit...
+Prompt: 24 lines → 25 lines
+Evaluating candidate...
+
+Candidate: 96.7% (baseline: 95.6%)
+Changes:
+  ▲ noa-preschool: 83% → 100%
+  ▲ garbage-day: 33% → 100%
+  ▼ cat-hiding: 100% → 83%
+  ▼ thermostat: 100% → 75%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 14/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+4 of 38 questions have room for improvement:
+
+Question: "When does the garbage go out?" (garbage-day)
+  Score: 33%
+  ABSENT facts (not mentioned at all):
+    - Recycling every other Tuesday — calendar on the fridge
+    - Compost also goes out Tuesday
+  Model's response (first 300 chars):
+    "Monday night. Garbage is in the gray bin and is collected Tuesday morning. The bins are on the side of the house by the gate. The gate latch sticks—lift up slightly while pushing the handle down.
+
+Sources: ...
+
+Proposing edit...
+Prompt: 24 lines → 26 lines
+Evaluating candidate...
+
+Candidate: 97.6% (baseline: 95.6%)
+Changes:
+  ▲ ipad-passcode: 50% → 75%
+  ▲ nearest-er: 67% → 100%
+  ▲ garbage-day: 33% → 100%
+  ▼ tv-audio: 100% → 67%
+  ⚠ noa-seasonal-allergy: new hallucination
+  ▼ noa-preschool: 83% → 67%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 15/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+4 of 38 questions have room for improvement:
+
+Question: "When does the garbage go out?" (garbage-day)
+  Score: 33%
+  ABSENT facts (not mentioned at all):
+    - Recycling every other Tuesday — calendar on the fridge
+    - Compost also goes out Tuesday
+  Model's response (first 300 chars):
+    "Monday night. Garbage is in the gray bin and is collected Tuesday morning. The bins are on the side of the house by the gate. The gate latch sticks—lift up slightly while pushing the handle down.
+
+Sources: ...
+
+Proposing edit...
+Prompt: 24 lines → 25 lines
+Evaluating candidate...
+
+Candidate: 94.0% (baseline: 95.6%)
+Changes:
+  ▼ dog-thunder: 100% → 75%
+  ▼ eli-screen-rules: 100% → 80%
+  ⚠ noa-seasonal-allergy: new hallucination
+  ▼ noa-preschool: 83% → 67%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 16/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+4 of 38 questions have room for improvement:
+
+Question: "When does the garbage go out?" (garbage-day)
+  Score: 33%
+  ABSENT facts (not mentioned at all):
+    - Recycling every other Tuesday — calendar on the fridge
+    - Compost also goes out Tuesday
+  Model's response (first 300 chars):
+    "Monday night. Garbage is in the gray bin and is collected Tuesday morning. The bins are on the side of the house by the gate. The gate latch sticks—lift up slightly while pushing the handle down.
+
+Sources: ...
+
+Proposing edit...
+Prompt: 24 lines → 26 lines
+Evaluating candidate...
+
+Candidate: 96.7% (baseline: 95.6%)
+Changes:
+  ▲ noa-preschool: 83% → 100%
+  ▲ garbage-day: 33% → 100%
+  ▼ noa-seasonal-allergy: 100% → 67%
+  ⚠ noa-seasonal-allergy: new hallucination
+  ▼ noa-allergy: 100% → 92%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 17/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+4 of 38 questions have room for improvement:
+
+Question: "When does the garbage go out?" (garbage-day)
+  Score: 33%
+  ABSENT facts (not mentioned at all):
+    - Recycling every other Tuesday — calendar on the fridge
+    - Compost also goes out Tuesday
+  Model's response (first 300 chars):
+    "Monday night. Garbage is in the gray bin and is collected Tuesday morning. The bins are on the side of the house by the gate. The gate latch sticks—lift up slightly while pushing the handle down.
+
+Sources: ...
+
+Proposing edit...
+Prompt: 24 lines → 25 lines
+Evaluating candidate...
+
+Candidate: 98.7% (baseline: 95.6%)
+Changes:
+  ▲ ipad-passcode: 50% → 75%
+  ▲ garbage-day: 33% → 100%
+  ▲ nearest-er: 67% → 100%
+  ▲ noa-preschool: 83% → 100%
+  ▼ thermostat: 100% → 75%
+  ⚠ noa-seasonal-allergy: new hallucination
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 18/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+4 of 38 questions have room for improvement:
+
+Question: "When does the garbage go out?" (garbage-day)
+  Score: 33%
+  ABSENT facts (not mentioned at all):
+    - Recycling every other Tuesday — calendar on the fridge
+    - Compost also goes out Tuesday
+  Model's response (first 300 chars):
+    "Monday night. Garbage is in the gray bin and is collected Tuesday morning. The bins are on the side of the house by the gate. The gate latch sticks—lift up slightly while pushing the handle down.
+
+Sources: ...
+
+Proposing edit...
+Prompt: 24 lines → 25 lines
+Evaluating candidate...
+
+Candidate: 96.3% (baseline: 95.6%)
+Changes:
+  ▼ noa-preschool: 83% → 67%
+  ▲ garbage-day: 33% → 100%
+  ▼ thermostat: 100% → 75%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 19/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+4 of 38 questions have room for improvement:
+
+Question: "When does the garbage go out?" (garbage-day)
+  Score: 33%
+  ABSENT facts (not mentioned at all):
+    - Recycling every other Tuesday — calendar on the fridge
+    - Compost also goes out Tuesday
+  Model's response (first 300 chars):
+    "Monday night. Garbage is in the gray bin and is collected Tuesday morning. The bins are on the side of the house by the gate. The gate latch sticks—lift up slightly while pushing the handle down.
+
+Sources: ...
+
+Proposing edit...
+Prompt: 24 lines → 26 lines
+Evaluating candidate...
+
+Candidate: 96.5% (baseline: 95.6%)
+Changes:
+  ▼ dog-thunder: 100% → 75%
+  ▲ ipad-passcode: 50% → 75%
+  ▲ garbage-day: 33% → 100%
+  ▼ cat-hiding: 100% → 83%
+  ▲ noa-preschool: 83% → 100%
+  ▼ noa-allergy: 100% → 92%
+  ▼ thermostat: 100% → 75%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 20/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+4 of 38 questions have room for improvement:
+
+Question: "When does the garbage go out?" (garbage-day)
+  Score: 33%
+  ABSENT facts (not mentioned at all):
+    - Recycling every other Tuesday — calendar on the fridge
+    - Compost also goes out Tuesday
+  Model's response (first 300 chars):
+    "Monday night. Garbage is in the gray bin and is collected Tuesday morning. The bins are on the side of the house by the gate. The gate latch sticks—lift up slightly while pushing the handle down.
+
+Sources: ...
+
+Proposing edit...
+Prompt: 24 lines → 26 lines
+Evaluating candidate...
+
+Candidate: 97.1% (baseline: 95.6%)
+Changes:
+  ▼ lights-not-responding: 100% → 67%
+  ▲ nearest-er: 67% → 100%
+  ▲ noa-preschool: 83% → 100%
+  ▲ garbage-day: 33% → 100%
+  ▼ noa-allergy: 100% → 92%
+  ▼ cat-hiding: 100% → 83%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 21/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+4 of 38 questions have room for improvement:
+
+Question: "When does the garbage go out?" (garbage-day)
+  Score: 33%
+  ABSENT facts (not mentioned at all):
+    - Recycling every other Tuesday — calendar on the fridge
+    - Compost also goes out Tuesday
+  Model's response (first 300 chars):
+    "Monday night. Garbage is in the gray bin and is collected Tuesday morning. The bins are on the side of the house by the gate. The gate latch sticks—lift up slightly while pushing the handle down.
+
+Sources: ...
+
+Proposing edit...
+Prompt: 24 lines → 26 lines
+Evaluating candidate...
+
+Candidate: 96.7% (baseline: 95.6%)
+Changes:
+  ▼ lights-not-responding: 100% → 83%
+  ▼ noa-preschool: 83% → 67%
+  ▲ nearest-er: 67% → 100%
+  ▲ garbage-day: 33% → 100%
+  ▼ cat-hiding: 100% → 83%
+  ⚠ noa-seasonal-allergy: new hallucination
+  ▼ noa-allergy: 100% → 92%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 22/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+4 of 38 questions have room for improvement:
+
+Question: "When does the garbage go out?" (garbage-day)
+  Score: 33%
+  ABSENT facts (not mentioned at all):
+    - Recycling every other Tuesday — calendar on the fridge
+    - Compost also goes out Tuesday
+  Model's response (first 300 chars):
+    "Monday night. Garbage is in the gray bin and is collected Tuesday morning. The bins are on the side of the house by the gate. The gate latch sticks—lift up slightly while pushing the handle down.
+
+Sources: ...
+
+Proposing edit...
+Prompt: 24 lines → 26 lines
+Evaluating candidate...
+
+Candidate: 95.6% (baseline: 95.6%)
+Changes:
+  ▼ noa-preschool: 83% → 67%
+  ▼ lights-not-responding: 100% → 83%
+  ▼ eli-soccer: 100% → 67%
+  ▲ garbage-day: 33% → 100%
+  ⚠ noa-seasonal-allergy: new hallucination
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 23/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+4 of 38 questions have room for improvement:
+
+Question: "When does the garbage go out?" (garbage-day)
+  Score: 33%
+  ABSENT facts (not mentioned at all):
+    - Recycling every other Tuesday — calendar on the fridge
+    - Compost also goes out Tuesday
+  Model's response (first 300 chars):
+    "Monday night. Garbage is in the gray bin and is collected Tuesday morning. The bins are on the side of the house by the gate. The gate latch sticks—lift up slightly while pushing the handle down.
+
+Sources: ...
+
+Proposing edit...
+Prompt: 24 lines → 25 lines
+Evaluating candidate...
+
+Candidate: 97.1% (baseline: 95.6%)
+Changes:
+  ▲ garbage-day: 33% → 100%
+  ▲ noa-preschool: 83% → 100%
+  ▼ thermostat: 100% → 75%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 24/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+4 of 38 questions have room for improvement:
+
+Question: "When does the garbage go out?" (garbage-day)
+  Score: 33%
+  ABSENT facts (not mentioned at all):
+    - Recycling every other Tuesday — calendar on the fridge
+    - Compost also goes out Tuesday
+  Model's response (first 300 chars):
+    "Monday night. Garbage is in the gray bin and is collected Tuesday morning. The bins are on the side of the house by the gate. The gate latch sticks—lift up slightly while pushing the handle down.
+
+Sources: ...
+
+Proposing edit...
+Prompt: 24 lines → 25 lines
+Evaluating candidate...
+
+Candidate: 96.1% (baseline: 95.6%)
+Changes:
+  ▲ noa-preschool: 83% → 100%
+  ▲ garbage-day: 33% → 100%
+  ▼ noa-water-call: 100% → 67%
+  ▼ thermostat: 100% → 75%
+  ▼ noa-allergy: 100% → 92%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 25/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+4 of 38 questions have room for improvement:
+
+Question: "When does the garbage go out?" (garbage-day)
+  Score: 33%
+  ABSENT facts (not mentioned at all):
+    - Recycling every other Tuesday — calendar on the fridge
+    - Compost also goes out Tuesday
+  Model's response (first 300 chars):
+    "Monday night. Garbage is in the gray bin and is collected Tuesday morning. The bins are on the side of the house by the gate. The gate latch sticks—lift up slightly while pushing the handle down.
+
+Sources: ...
+
+Proposing edit...
+Prompt: 24 lines → 25 lines
+Evaluating candidate...
+
+Candidate: 96.9% (baseline: 95.6%)
+Changes:
+  ▲ garbage-day: 33% → 100%
+  ▲ noa-preschool: 83% → 100%
+  ▼ dog-skateboard: 100% → 67%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 26/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+4 of 38 questions have room for improvement:
+
+Question: "When does the garbage go out?" (garbage-day)
+  Score: 33%
+  ABSENT facts (not mentioned at all):
+    - Recycling every other Tuesday — calendar on the fridge
+    - Compost also goes out Tuesday
+  Model's response (first 300 chars):
+    "Monday night. Garbage is in the gray bin and is collected Tuesday morning. The bins are on the side of the house by the gate. The gate latch sticks—lift up slightly while pushing the handle down.
+
+Sources: ...
+
+Proposing edit...
+Prompt: 24 lines → 25 lines
+Evaluating candidate...
+
+Candidate: 95.6% (baseline: 95.6%)
+Changes:
+  ▲ garbage-day: 33% → 100%
+  ▼ eli-soccer: 100% → 83%
+  ▼ thermostat: 100% → 75%
+  ▼ noa-allergy: 100% → 92%
+  ▼ noa-preschool: 83% → 67%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 27/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+4 of 38 questions have room for improvement:
+
+Question: "When does the garbage go out?" (garbage-day)
+  Score: 33%
+  ABSENT facts (not mentioned at all):
+    - Recycling every other Tuesday — calendar on the fridge
+    - Compost also goes out Tuesday
+  Model's response (first 300 chars):
+    "Monday night. Garbage is in the gray bin and is collected Tuesday morning. The bins are on the side of the house by the gate. The gate latch sticks—lift up slightly while pushing the handle down.
+
+Sources: ...
+
+Proposing edit...
+Prompt: 24 lines → 26 lines
+Evaluating candidate...
+
+Candidate: 99.3% (baseline: 95.6%)
+Changes:
+  ▲ ipad-passcode: 50% → 75%
+  ▲ noa-preschool: 83% → 100%
+  ▲ garbage-day: 33% → 100%
+  ▲ nearest-er: 67% → 100%
+  ⚠ noa-seasonal-allergy: new hallucination
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 28/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+4 of 38 questions have room for improvement:
+
+Question: "When does the garbage go out?" (garbage-day)
+  Score: 33%
+  ABSENT facts (not mentioned at all):
+    - Recycling every other Tuesday — calendar on the fridge
+    - Compost also goes out Tuesday
+  Model's response (first 300 chars):
+    "Monday night. Garbage is in the gray bin and is collected Tuesday morning. The bins are on the side of the house by the gate. The gate latch sticks—lift up slightly while pushing the handle down.
+
+Sources: ...
+
+Proposing edit...
+Prompt: 24 lines → 25 lines
+Evaluating candidate...
+
+Candidate: 95.5% (baseline: 95.6%)
+Changes:
+  ▼ noa-seasonal-allergy: 100% → 83%
+  ▲ garbage-day: 33% → 100%
+  ▼ good-night-scene: 100% → 75%
+  ▼ eli-screen-rules: 100% → 80%
+  ▼ play-music: 100% → 90%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 29/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+4 of 38 questions have room for improvement:
+
+Question: "When does the garbage go out?" (garbage-day)
+  Score: 33%
+  ABSENT facts (not mentioned at all):
+    - Recycling every other Tuesday — calendar on the fridge
+    - Compost also goes out Tuesday
+  Model's response (first 300 chars):
+    "Monday night. Garbage is in the gray bin and is collected Tuesday morning. The bins are on the side of the house by the gate. The gate latch sticks—lift up slightly while pushing the handle down.
+
+Sources: ...
+
+Proposing edit...
+Prompt: 24 lines → 25 lines
+Evaluating candidate...
+
+Candidate: 97.6% (baseline: 95.6%)
+Changes:
+  ▼ noa-preschool: 83% → 67%
+  ▲ ipad-passcode: 50% → 75%
+  ⚠ noa-seasonal-allergy: new hallucination
+  ▲ garbage-day: 33% → 100%
+
+❌ REVERTED — not a Pareto improvement
+
+────────────────────────────────────────────────────────────
+Iteration 30/30
+────────────────────────────────────────────────────────────
+
+Failures to address:
+4 of 38 questions have room for improvement:
+
+Question: "When does the garbage go out?" (garbage-day)
+  Score: 33%
+  ABSENT facts (not mentioned at all):
+    - Recycling every other Tuesday — calendar on the fridge
+    - Compost also goes out Tuesday
+  Model's response (first 300 chars):
+    "Monday night. Garbage is in the gray bin and is collected Tuesday morning. The bins are on the side of the house by the gate. The gate latch sticks—lift up slightly while pushing the handle down.
+
+Sources: ...
+
+Proposing edit...
+Prompt: 24 lines → 26 lines
+Evaluating candidate...
+
+Candidate: 97.6% (baseline: 95.6%)
+Changes:
+  ▲ ipad-passcode: 50% → 75%
+  ▲ noa-preschool: 83% → 100%
+  ▲ garbage-day: 33% → 100%
+  ▼ noa-seasonal-allergy: 100% → 67%
+  ⚠ noa-seasonal-allergy: new hallucination
+
+❌ REVERTED — not a Pareto improvement
+
+============================================================
+OPTIMIZATION COMPLETE
+============================================================
+Iterations: 30 | Kept: 1 | Reverted: 29
+Score: 94.8%
+
+Final prompt saved to: eval/prompt.txt
+Original backed up to: eval/prompt.backup.txt
