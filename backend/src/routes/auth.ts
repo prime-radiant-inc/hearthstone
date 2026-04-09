@@ -50,10 +50,11 @@ export async function handleRegister(
 
 export async function handleRegisterVerify(
   db: Database,
-  body: { email: string; code: string }
+  body: { email: string; code: string; name?: string }
 ): Promise<{ status: number; body: any }> {
   const email = body.email?.trim().toLowerCase();
   const code = body.code?.trim();
+  const name = body.name?.trim() || "";
 
   if (!email || !code) {
     return { status: 422, body: { message: "Email and code are required" } };
@@ -67,9 +68,10 @@ export async function handleRegisterVerify(
   // Create the person
   const personId = generateId();
   const now = new Date().toISOString();
-  db.prepare("INSERT INTO persons (id, email, created_at) VALUES (?, ?, ?)").run(
+  db.prepare("INSERT INTO persons (id, email, name, created_at) VALUES (?, ?, ?, ?)").run(
     personId,
     email,
+    name,
     now
   );
 
@@ -79,7 +81,7 @@ export async function handleRegisterVerify(
     status: 200,
     body: {
       token,
-      person: { id: personId, email },
+      person: { id: personId, email, name },
       household: null,
       is_new: true,
     },

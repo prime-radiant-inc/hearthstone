@@ -48,6 +48,14 @@ struct WelcomeView: View {
                     .padding(.bottom, 48)
 
                 HearthTextField(
+                    label: "Your Name",
+                    placeholder: "Jamie Anderson",
+                    text: $viewModel.ownerName
+                )
+                .padding(.horizontal, 32)
+                .padding(.bottom, 12)
+
+                HearthTextField(
                     label: "Email",
                     placeholder: "you@example.com",
                     text: $viewModel.email,

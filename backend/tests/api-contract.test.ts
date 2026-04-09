@@ -83,7 +83,7 @@ describe("API Contract: POST /auth/register/verify", () => {
     const result = await handleRegisterVerify(db, { email: "alice@test.com", code });
     expect(result.status).toBe(200);
     hasExactKeys(result.body, ["token", "person", "household", "is_new"]);
-    hasExactKeys(result.body.person, ["id", "email"]);
+    hasExactKeys(result.body.person, ["id", "email", "name"]);
     expect(typeof result.body.token).toBe("string");
   });
 });

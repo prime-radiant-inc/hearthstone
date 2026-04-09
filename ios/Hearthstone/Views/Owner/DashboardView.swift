@@ -4,7 +4,7 @@ import SwiftUI
 
 struct DashboardView: View {
     @State var householdName: String
-    let ownerName: String
+    @State var ownerName: String
 
     @Environment(\.colorScheme) private var colorScheme
     private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
@@ -17,6 +17,8 @@ struct DashboardView: View {
     @State private var isEditingName = false
     @State private var editedName = ""
     @State private var isSavingName = false
+    @State private var showNamePrompt = false
+    @State private var promptedName = ""
 
     var body: some View {
         ScrollView {
@@ -95,6 +97,27 @@ struct DashboardView: View {
         }
         .onChange(of: showGuestList) { _, isShowing in
             if !isShowing { Task { await viewModel.load() } }
+        }
+        .alert("What's your name?", isPresented: $showNamePrompt) {
+            TextField("Your name", text: $promptedName)
+            Button("Save") {
+                let name = promptedName.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !name.isEmpty else { return }
+                Task {
+                    do {
+                        _ = try await APIClient.shared.updateMe(name: name)
+                        ownerName = name
+                    } catch { }
+                }
+            }
+            Button("Skip", role: .cancel) {}
+        } message: {
+            Text("This shows on your dashboard instead of your email.")
+        }
+        .onAppear {
+            if ownerName.isEmpty || ownerName.contains("@") {
+                showNamePrompt = true
+            }
         }
     }
 

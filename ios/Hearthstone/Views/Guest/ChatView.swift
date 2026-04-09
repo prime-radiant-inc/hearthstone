@@ -5,6 +5,7 @@ struct ChatView: View {
     let householdName: String
 
     @State private var selectedSource: ChatSource?
+    @State private var showDocuments = false
     @Environment(\.colorScheme) private var colorScheme
     private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
 
@@ -17,6 +18,9 @@ struct ChatView: View {
         .background(theme.cream)
         .sheet(item: $selectedSource) { source in
             SourceDocumentView(documentId: source.documentId, documentTitle: source.title, chunkIndex: source.chunkIndex)
+        }
+        .sheet(isPresented: $showDocuments) {
+            GuestDocumentsView()
         }
         .alert("Error", isPresented: Binding(
             get: { viewModel.error != nil },
@@ -51,6 +55,14 @@ struct ChatView: View {
             }
 
             Spacer()
+
+            Button {
+                showDocuments = true
+            } label: {
+                Image(systemName: "doc.text")
+                    .font(.system(size: 15))
+                    .foregroundColor(theme.stone)
+            }
 
             if !viewModel.messages.isEmpty {
                 Button {

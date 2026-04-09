@@ -4,6 +4,7 @@ import Foundation
 final class AuthViewModel: ObservableObject {
     @Published var email = ""
     @Published var code = ""
+    @Published var ownerName = ""
     @Published var householdName = ""
     @Published var isLoading = false
     @Published var error: String?
@@ -47,7 +48,7 @@ final class AuthViewModel: ObservableObject {
             let response: APIClient.AuthResponse
             if isNewUser {
                 // New user: registerVerify creates person + issues JWT in one step
-                response = try await APIClient.shared.registerVerify(email: email, code: code)
+                response = try await APIClient.shared.registerVerify(email: email, code: code, name: ownerName.isEmpty ? nil : ownerName)
             } else {
                 // Existing user: login with email code
                 response = try await APIClient.shared.loginEmailVerify(email: email, code: code)

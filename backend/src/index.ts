@@ -314,6 +314,18 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
         return json({ person: { id: person.id, email: person.email, name: person.name || "" }, household });
       }
 
+      if (method === "PATCH" && pathname === "/me") {
+        const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        const body = await req.json() as { name?: string };
+        const name = body.name?.trim();
+        if (!name) {
+          return json({ message: "Name is required" }, 422);
+        }
+        getDb().prepare("UPDATE persons SET name = ? WHERE id = ?").run(name, owner.personId);
+        const person = getDb().prepare("SELECT id, email, name FROM persons WHERE id = ?").get(owner.personId) as any;
+        return json({ person: { id: person.id, email: person.email, name: person.name || "" } });
+      }
+
       // --- Owner routes ---
       if (method === "POST" && pathname === "/household") {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
@@ -513,6 +525,13 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         const body = await req.json();
         return handleChatPreview(ctx, getDb(), owner.householdId, body);
+      }
+
+      // --- Guest document list ---
+      if (method === "GET" && pathname === "/guest/documents") {
+        const guest = authenticateGuest(getDb(), req.headers.get("authorization"));
+        const result = handleListDocuments(getDb(), guest.householdId);
+        return json(result.body, result.status);
       }
 
       return json({ message: "Not found" }, 404);

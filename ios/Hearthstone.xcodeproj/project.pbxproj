@@ -55,6 +55,7 @@
 		AA02000000000000000002B1 /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA02000000000000000002A1 /* SessionStore.swift */; };
 		AA03000000000000000003B1 /* SidebarOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA03000000000000000003A1 /* SidebarOverlay.swift */; };
 		AA04000000000000000004B1 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA04000000000000000004A1 /* SidebarView.swift */; };
+		AA07000000000000000007B1 /* GuestDocumentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA07000000000000000007A1 /* GuestDocumentsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -107,6 +108,7 @@
 		AA03000000000000000003A1 /* SidebarOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarOverlay.swift; sourceTree = "<group>"; };
 		AA04000000000000000004A1 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
 		AA06000000000000000006A1 /* InviteOwnerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteOwnerView.swift; sourceTree = "<group>"; };
+		AA07000000000000000007A1 /* GuestDocumentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestDocumentsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -114,6 +116,7 @@
 			isa = PBXGroup;
 			children = (
 				344516F0243473D20A7D8C8C /* ChatView.swift */,
+				AA07000000000000000007A1 /* GuestDocumentsView.swift */,
 				35B54811E9568D04E41E1D40 /* MessageBubble.swift */,
 				FBD36E61ABE11EF9988D51C7 /* SourceDocumentView.swift */,
 				AB4504D789BCA1AA870DFA83 /* SuggestionChips.swift */,
@@ -344,6 +347,7 @@
 				B2C3D4E5F6A7B8C9D0E1F2A3 /* DriveFilePickerViewModel.swift in Sources */,
 				D4E5F6A7B8C9D0E1F2A3B4C5 /* DriveFilePickerView.swift in Sources */,
 				2BCB642D1B334674ABD76405 /* Guest.swift in Sources */,
+				AA07000000000000000007B1 /* GuestDocumentsView.swift in Sources */,
 				61688CC2624117D0895B5BC9 /* GuestListView.swift in Sources */,
 				FBDCAA2BF756B5DD7B198BC4 /* GuestListViewModel.swift in Sources */,
 				E2F3A4B5C6D7E8F9A0B1C2D3 /* GuestPINView.swift in Sources */,

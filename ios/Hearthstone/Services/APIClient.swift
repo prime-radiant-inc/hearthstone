@@ -159,10 +159,10 @@ final class APIClient {
                               body: Body(email: email))
     }
 
-    func registerVerify(email: String, code: String) async throws -> AuthResponse {
-        struct Body: Encodable { let email: String; let code: String }
+    func registerVerify(email: String, code: String, name: String? = nil) async throws -> AuthResponse {
+        struct Body: Encodable { let email: String; let code: String; let name: String? }
         return try await call(method: "POST", path: "/auth/register/verify",
-                              body: Body(email: email, code: code))
+                              body: Body(email: email, code: code, name: name))
     }
 
     struct LoginEmailResponse: Decodable {
@@ -250,6 +250,16 @@ final class APIClient {
 
     func getMe() async throws -> MeResponse {
         try await call(method: "GET", path: "/me", auth: .owner)
+    }
+
+    struct UpdateMeResponse: Decodable {
+        let person: Person
+    }
+
+    func updateMe(name: String) async throws -> UpdateMeResponse {
+        struct Body: Encodable { let name: String }
+        return try await call(method: "PATCH", path: "/me", auth: .owner,
+                              body: Body(name: name))
     }
 
     // MARK: - Household endpoints
@@ -350,6 +360,12 @@ final class APIClient {
     func listDocuments() async throws -> [Document] {
         struct Response: Decodable { let documents: [Document] }
         let r: Response = try await call(method: "GET", path: "/documents", auth: .owner)
+        return r.documents
+    }
+
+    func listGuestDocuments() async throws -> [Document] {
+        struct Response: Decodable { let documents: [Document] }
+        let r: Response = try await call(method: "GET", path: "/guest/documents", auth: .guest)
         return r.documents
     }
 
