@@ -1,9 +1,10 @@
 // src/routes/connections.ts
 import type { Database } from "bun:sqlite";
-import { getDriveAuthUrl, exchangeCodeForDrive } from "../services/google-auth";
+import { getDriveAuthUrl, exchangeCodeForDrive, GoogleAuthError } from "../services/google-auth";
 import { listDriveFiles } from "../services/google-drive";
 import { config } from "../config";
 import { generateId } from "../utils";
+import type { Context } from "../tracing";
 
 export function handleListConnections(
   db: Database,
@@ -73,6 +74,7 @@ export async function handleGoogleDriveCallback(
 }
 
 export async function handleListDriveFiles(
+  ctx: Context | undefined,
   db: Database,
   householdId: string,
   connectionId: string
@@ -88,7 +90,7 @@ export async function handleListDriveFiles(
   }
 
   try {
-    const allFiles = await listDriveFiles(connection.refresh_token);
+    const allFiles = await listDriveFiles(ctx, connection.refresh_token);
 
     // Filter out docs already connected to this household
     const existingDriveIds = db
@@ -107,6 +109,9 @@ export async function handleListDriveFiles(
 
     return { status: 200, body: { files } };
   } catch (err) {
+    if (err instanceof GoogleAuthError) {
+      return { status: 401, body: { message: "Google Drive authorization expired. Please reconnect." } };
+    }
     return { status: 502, body: { message: "Failed to list Drive files" } };
   }
 }

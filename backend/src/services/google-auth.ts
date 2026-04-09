@@ -56,9 +56,20 @@ export async function exchangeCodeForDrive(
   };
 }
 
+export class GoogleAuthError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "GoogleAuthError";
+  }
+}
+
 export async function getAccessToken(refreshToken: string): Promise<string> {
   const client = getClient();
   client.setCredentials({ refresh_token: refreshToken });
-  const { credentials } = await client.refreshAccessToken();
-  return credentials.access_token!;
+  try {
+    const { credentials } = await client.refreshAccessToken();
+    return credentials.access_token!;
+  } catch (err: any) {
+    throw new GoogleAuthError(err?.message ?? "Failed to refresh access token");
+  }
 }

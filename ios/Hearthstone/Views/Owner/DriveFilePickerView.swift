@@ -3,9 +3,11 @@ import SwiftUI
 struct DriveFilePickerView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: DriveFilePickerViewModel
+    var onReconnect: (() -> Void)?
 
-    init(connectionId: String) {
+    init(connectionId: String, onReconnect: (() -> Void)? = nil) {
         _viewModel = StateObject(wrappedValue: DriveFilePickerViewModel(connectionId: connectionId))
+        self.onReconnect = onReconnect
     }
 
     var body: some View {
@@ -21,17 +23,30 @@ struct DriveFilePickerView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if let error = viewModel.error, viewModel.files.isEmpty {
                     VStack(spacing: 12) {
-                        Text("⚠️").font(.system(size: 40))
+                        Text(viewModel.isAuthError ? "🔑" : "⚠️").font(.system(size: 40))
                         Text(error)
                             .font(.system(size: 14))
                             .foregroundColor(Theme.rose)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 40)
-                        Button("Retry") {
-                            Task { await viewModel.load() }
+                        if viewModel.isAuthError {
+                            Button("Reconnect Google Drive") {
+                                dismiss()
+                                onReconnect?()
+                            }
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 10)
+                            .background(Theme.hearth)
+                            .clipShape(Capsule())
+                        } else {
+                            Button("Retry") {
+                                Task { await viewModel.load() }
+                            }
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(Theme.hearth)
                         }
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(Theme.hearth)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if viewModel.files.isEmpty {

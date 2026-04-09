@@ -6,6 +6,8 @@ struct ConnectDocsView: View {
     @StateObject private var connVM = ConnectionsViewModel()
     @State private var showFilePicker = false
     @State private var isRefreshingAll = false
+    @State private var showDisconnectConfirm = false
+    @State private var pendingReconnect = false
 
     /// The connection ID to use for the file picker — either from a fresh OAuth or existing connection
     private var activeConnectionId: String? {
@@ -42,6 +44,15 @@ struct ConnectDocsView: View {
                         if let email = connVM.connections.first?.email {
                             Text("· \(email)")
                         }
+                        Spacer()
+                        Button {
+                            showDisconnectConfirm = true
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(Theme.stone)
+                                .font(.system(size: 16))
+                        }
+                        .buttonStyle(.plain)
                     }
                     .font(.system(size: 13))
                     .foregroundColor(Theme.goldBadgeText)
@@ -141,10 +152,18 @@ struct ConnectDocsView: View {
                 }
             }
             .sheet(isPresented: $showFilePicker, onDismiss: {
-                Task { await docsVM.load() }
+                Task {
+                    await docsVM.load()
+                    if pendingReconnect {
+                        pendingReconnect = false
+                        await reconnect()
+                    }
+                }
             }) {
                 if let connectionId = activeConnectionId {
-                    DriveFilePickerView(connectionId: connectionId)
+                    DriveFilePickerView(connectionId: connectionId) {
+                        pendingReconnect = true
+                    }
                 }
             }
         }
@@ -165,6 +184,25 @@ struct ConnectDocsView: View {
         } message: {
             Text(connVM.error ?? "")
         }
+        .alert("Disconnect Google Drive?", isPresented: $showDisconnectConfirm) {
+            Button("Disconnect", role: .destructive) {
+                Task {
+                    if let id = connVM.connections.first?.id {
+                        await connVM.removeConnection(id: id)
+                    }
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("You can reconnect at any time. Your documents will remain until you remove them.")
+        }
+    }
+
+    private func reconnect() async {
+        if let id = connVM.connections.first?.id {
+            await connVM.removeConnection(id: id)
+        }
+        await connVM.connectGoogleDrive()
     }
 }
 
