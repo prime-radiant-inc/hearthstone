@@ -5,17 +5,18 @@ struct SidebarOverlay<Content: View>: View {
     @ViewBuilder let content: () -> Content
 
     @State private var isOpen = false
-    @State private var dragOffset: CGFloat = 0
+    @GestureState private var dragOffset: CGFloat = 0
 
     private let sidebarWidth: CGFloat = 260
+    private let edgeZone: CGFloat = 80
 
     var body: some View {
-        GeometryReader { geo in
+        GeometryReader { _ in
             ZStack(alignment: .leading) {
                 content()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                if isOpen || dragOffset > 0 {
+                if isOpen || dragOffset != 0 {
                     Color.black
                         .opacity(overlayOpacity)
                         .ignoresSafeArea()
@@ -28,56 +29,52 @@ struct SidebarOverlay<Content: View>: View {
 
                     Spacer(minLength: 0)
                 }
-                .offset(x: sidebarOffset - sidebarWidth)
+                .offset(x: currentOffset - sidebarWidth)
             }
             .gesture(
-                DragGesture(minimumDistance: 12)
-                    .onChanged { value in
+                DragGesture(minimumDistance: 10, coordinateSpace: .global)
+                    .updating($dragOffset) { value, state, _ in
                         if isOpen {
                             let drag = min(0, value.translation.width)
-                            dragOffset = sidebarWidth + drag
-                        } else if value.startLocation.x < 50 {
-                            dragOffset = max(0, min(sidebarWidth, value.translation.width))
+                            state = sidebarWidth + drag
+                        } else if value.startLocation.x < edgeZone {
+                            state = max(0, min(sidebarWidth, value.translation.width))
                         }
                     }
                     .onEnded { value in
+                        let velocity = value.predictedEndTranslation.width - value.translation.width
                         if isOpen {
-                            if value.translation.width < -80 || value.predictedEndTranslation.width < -120 {
+                            if value.translation.width < -80 || velocity < -300 {
                                 close()
-                            } else {
-                                open()
                             }
-                        } else {
-                            if dragOffset > sidebarWidth / 3 || value.predictedEndTranslation.width > 120 {
+                        } else if value.startLocation.x < edgeZone {
+                            if dragOffset > sidebarWidth / 3 || velocity > 300 {
                                 open()
-                            } else {
-                                close()
                             }
                         }
                     }
             )
-            .animation(.easeOut(duration: 0.25), value: isOpen)
+            .animation(.spring(response: 0.35, dampingFraction: 0.86), value: isOpen)
+            .animation(.spring(response: 0.35, dampingFraction: 0.86), value: dragOffset)
         }
     }
 
-    private var sidebarOffset: CGFloat {
-        if isOpen && dragOffset == 0 {
-            return sidebarWidth
+    private var currentOffset: CGFloat {
+        if dragOffset != 0 {
+            return dragOffset
         }
-        return dragOffset
+        return isOpen ? sidebarWidth : 0
     }
 
     private var overlayOpacity: Double {
-        Double(sidebarOffset / sidebarWidth) * 0.4
+        Double(currentOffset / sidebarWidth) * 0.4
     }
 
     private func open() {
-        dragOffset = 0
         isOpen = true
     }
 
     private func close() {
-        dragOffset = 0
         isOpen = false
     }
 }
