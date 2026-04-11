@@ -56,32 +56,23 @@ struct ChatView: View {
 
             Spacer()
 
-            Button {
-                showDocuments = true
-            } label: {
-                Image(systemName: "doc.text")
-                    .font(.system(size: 15))
-                    .foregroundColor(theme.stone)
-            }
+            Menu {
+                Button {
+                    showDocuments = true
+                } label: {
+                    Label("Documents", systemImage: "doc.text")
+                }
 
-            if !viewModel.messages.isEmpty {
                 Button {
                     viewModel.clearChat()
                 } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "plus")
-                            .font(.system(size: 11, weight: .bold))
-                        Text("New Chat")
-                            .font(.system(size: 12, weight: .semibold))
-                    }
-                    .foregroundColor(theme.stone)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14)
-                            .stroke(theme.creamDeep, lineWidth: 1)
-                    )
+                    Label("New Chat", systemImage: "plus.bubble")
                 }
+            } label: {
+                Image(systemName: "ellipsis")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(theme.stone)
+                    .frame(width: 32, height: 32)
             }
         }
         .padding(.horizontal, 20)
