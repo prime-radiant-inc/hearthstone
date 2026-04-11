@@ -18,13 +18,11 @@ struct HearthstoneApp: App {
                 case .active(let session):
                     SidebarOverlay(router: router) {
                         if session.role == .owner {
-                            NavigationStack {
-                                DashboardView(
-                                    sessionId: session.id,
-                                    householdName: session.householdName,
-                                    ownerName: session.personName ?? ""
-                                )
-                            }
+                            DashboardView(
+                                sessionId: session.id,
+                                householdName: session.householdName,
+                                ownerName: session.personName ?? ""
+                            )
                         } else {
                             ChatView(
                                 viewModel: ChatViewModel(householdId: session.householdId),

@@ -22,76 +22,69 @@ struct DashboardView: View {
     @State private var promptedName = ""
 
     var body: some View {
-        ZStack(alignment: .top) {
-            // Gradient that fills behind the status bar / Dynamic Island
-            LinearGradient(
-                colors: [theme.hearth, theme.hearthDark],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .frame(height: 200)
-            .ignoresSafeArea(edges: .top)
-
+        GeometryReader { geo in
             ScrollView {
                 VStack(spacing: 0) {
                     HeroHeader(
-                    householdName: householdName,
-                    ownerName: ownerName,
-                    isEditing: $isEditingName,
-                    editedName: $editedName,
-                    isSaving: isSavingName,
-                    onSave: {
-                        let newName = editedName.trimmingCharacters(in: .whitespacesAndNewlines)
-                        guard !newName.isEmpty, newName != householdName else {
-                            isEditingName = false
-                            return
+                        householdName: householdName,
+                        ownerName: ownerName,
+                        isEditing: $isEditingName,
+                        editedName: $editedName,
+                        isSaving: isSavingName,
+                        safeAreaTop: geo.safeAreaInsets.top,
+                        onSave: {
+                            let newName = editedName.trimmingCharacters(in: .whitespacesAndNewlines)
+                            guard !newName.isEmpty, newName != householdName else {
+                                isEditingName = false
+                                return
+                            }
+                            isSavingName = true
+                            Task {
+                                do {
+                                    let updated = try await APIClient.shared.updateHousehold(name: newName)
+                                    householdName = updated.name
+                                } catch {}
+                                isSavingName = false
+                                isEditingName = false
+                            }
                         }
-                        isSavingName = true
-                        Task {
-                            do {
-                                let updated = try await APIClient.shared.updateHousehold(name: newName)
-                                householdName = updated.name
-                            } catch {}
-                            isSavingName = false
-                            isEditingName = false
-                        }
-                    }
-                )
-
-                StatRow(
-                    documentCount: viewModel.documentCount,
-                    guestCount: viewModel.activeGuestCount + viewModel.pendingGuestCount,
-                    onDocumentsTap: { showDocuments = true },
-                    onGuestsTap: { showGuestList = true }
-                )
-                .padding(.top, -16)
-                .padding(.horizontal, 24)
-                .zIndex(2)
-
-                if !viewModel.isSetupComplete {
-                    OnboardingChecklist(
-                        hasConnections: viewModel.hasConnections,
-                        hasDocuments: viewModel.documentCount > 0,
-                        hasGuests: (viewModel.activeGuestCount + viewModel.pendingGuestCount) > 0
                     )
-                    .padding(.top, 20)
-                    .padding(.horizontal, 24)
-                }
 
-                ManageSection(
-                    documentSubtitle: documentSubtitle,
-                    guestSubtitle: guestSubtitle,
-                    onDocumentsTap: { showDocuments = true },
-                    onGuestsTap: { showGuestList = true },
-                    onPreviewTap: { showOwnerPreview = true },
-                    onInviteOwnerTap: { showInviteOwner = true }
-                )
-                .padding(.top, 24)
+                    StatRow(
+                        documentCount: viewModel.documentCount,
+                        guestCount: viewModel.activeGuestCount + viewModel.pendingGuestCount,
+                        onDocumentsTap: { showDocuments = true },
+                        onGuestsTap: { showGuestList = true }
+                    )
+                    .padding(.top, -16)
+                    .padding(.horizontal, 24)
+                    .zIndex(2)
+
+                    if !viewModel.isSetupComplete {
+                        OnboardingChecklist(
+                            hasConnections: viewModel.hasConnections,
+                            hasDocuments: viewModel.documentCount > 0,
+                            hasGuests: (viewModel.activeGuestCount + viewModel.pendingGuestCount) > 0
+                        )
+                        .padding(.top, 20)
+                        .padding(.horizontal, 24)
+                    }
+
+                    ManageSection(
+                        documentSubtitle: documentSubtitle,
+                        guestSubtitle: guestSubtitle,
+                        onDocumentsTap: { showDocuments = true },
+                        onGuestsTap: { showGuestList = true },
+                        onPreviewTap: { showOwnerPreview = true },
+                        onInviteOwnerTap: { showInviteOwner = true }
+                    )
+                    .padding(.top, 24)
+                }
             }
+            .ignoresSafeArea(edges: .top)
+            .background(theme.cream)
         }
-        .background(theme.cream.ignoresSafeArea())
         .task { await viewModel.load() }
-        }
         .sheet(isPresented: $showDocuments) {
             ConnectDocsView()
         }
@@ -165,6 +158,7 @@ private struct HeroHeader: View {
     @Binding var isEditing: Bool
     @Binding var editedName: String
     let isSaving: Bool
+    var safeAreaTop: CGFloat = 0
     let onSave: () -> Void
 
     @Environment(\.colorScheme) private var colorScheme
@@ -220,7 +214,7 @@ private struct HeroHeader: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 24)
-            .padding(.top, 20)
+            .padding(.top, safeAreaTop + 12)
             .padding(.bottom, 28)
         }
         .foregroundColor(.white)
