@@ -3,6 +3,7 @@ import SwiftUI
 // MARK: - DashboardView
 
 struct DashboardView: View {
+    let sessionId: String
     @State var householdName: String
     @State var ownerName: String
 
@@ -108,6 +109,7 @@ struct DashboardView: View {
                     do {
                         _ = try await APIClient.shared.updateMe(name: name)
                         ownerName = name
+                        SessionStore.shared.updateSession(id: sessionId, personName: name)
                     } catch { }
                 }
             }

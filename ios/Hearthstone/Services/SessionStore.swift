@@ -131,4 +131,10 @@ final class SessionStore: ObservableObject {
         activeSessionId = id
         persist()
     }
+
+    func updateSession(id: String, personName: String) {
+        guard let idx = sessions.firstIndex(where: { $0.id == id }) else { return }
+        sessions[idx].personName = personName
+        persist()
+    }
 }

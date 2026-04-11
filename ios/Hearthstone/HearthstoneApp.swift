@@ -20,6 +20,7 @@ struct HearthstoneApp: App {
                         if session.role == .owner {
                             NavigationStack {
                                 DashboardView(
+                                    sessionId: session.id,
                                     householdName: session.householdName,
                                     ownerName: session.personName ?? ""
                                 )
