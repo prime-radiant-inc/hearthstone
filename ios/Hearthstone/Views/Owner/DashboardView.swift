@@ -22,9 +22,19 @@ struct DashboardView: View {
     @State private var promptedName = ""
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                HeroHeader(
+        ZStack(alignment: .top) {
+            // Gradient that fills behind the status bar / Dynamic Island
+            LinearGradient(
+                colors: [theme.hearth, theme.hearthDark],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .frame(height: 200)
+            .ignoresSafeArea(edges: .top)
+
+            ScrollView {
+                VStack(spacing: 0) {
+                    HeroHeader(
                     householdName: householdName,
                     ownerName: ownerName,
                     isEditing: $isEditingName,
@@ -79,9 +89,9 @@ struct DashboardView: View {
                 .padding(.top, 24)
             }
         }
-        .ignoresSafeArea(edges: .top)
         .background(theme.cream.ignoresSafeArea())
         .task { await viewModel.load() }
+        }
         .sheet(isPresented: $showDocuments) {
             ConnectDocsView()
         }
