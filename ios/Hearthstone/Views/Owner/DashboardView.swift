@@ -78,6 +78,7 @@ struct DashboardView: View {
                 .padding(.top, 24)
             }
         }
+        .ignoresSafeArea(edges: .top)
         .background(theme.cream.ignoresSafeArea())
         .task { await viewModel.load() }
         .sheet(isPresented: $showDocuments) {
@@ -217,7 +218,6 @@ private struct HeroHeader: View {
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
-            .ignoresSafeArea(edges: .top)
         )
     }
 }
