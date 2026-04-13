@@ -56,6 +56,10 @@
 		AA03000000000000000003B1 /* SidebarOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA03000000000000000003A1 /* SidebarOverlay.swift */; };
 		AA04000000000000000004B1 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA04000000000000000004A1 /* SidebarView.swift */; };
 		AA07000000000000000007B1 /* GuestDocumentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA07000000000000000007A1 /* GuestDocumentsView.swift */; };
+		AA08000000000000000008B1 /* UnauthenticatedClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA08000000000000000008A1 /* UnauthenticatedClient.swift */; };
+		AA09000000000000000009B1 /* JoinURLParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA09000000000000000009A1 /* JoinURLParser.swift */; };
+		AA10000000000000000010B1 /* NewServerPromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000000000000000010A1 /* NewServerPromptView.swift */; };
+		AA11000000000000000011B1 /* LandingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11000000000000000011A1 /* LandingView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -109,6 +113,10 @@
 		AA04000000000000000004A1 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
 		AA06000000000000000006A1 /* InviteOwnerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteOwnerView.swift; sourceTree = "<group>"; };
 		AA07000000000000000007A1 /* GuestDocumentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestDocumentsView.swift; sourceTree = "<group>"; };
+		AA08000000000000000008A1 /* UnauthenticatedClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnauthenticatedClient.swift; sourceTree = "<group>"; };
+		AA09000000000000000009A1 /* JoinURLParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JoinURLParser.swift; sourceTree = "<group>"; };
+		AA10000000000000000010A1 /* NewServerPromptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewServerPromptView.swift; sourceTree = "<group>"; };
+		AA11000000000000000011A1 /* LandingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandingView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -144,6 +152,8 @@
 			isa = PBXGroup;
 			children = (
 				CE3D7F4ED477BB3A9D6AC4EA /* HouseholdSetupView.swift */,
+				AA11000000000000000011A1 /* LandingView.swift */,
+				AA10000000000000000010A1 /* NewServerPromptView.swift */,
 				A1B2C3D4E5F601234567890A /* PINEntryView.swift */,
 				AA05000000000000000005A1 /* QRScannerView.swift */,
 				722C9536F2D45780DDF60666 /* VerifyCodeView.swift */,
@@ -179,9 +189,11 @@
 			isa = PBXGroup;
 			children = (
 				BE4EE6D15E820ECB1A26F3A3 /* APIClient.swift */,
+				AA09000000000000000009A1 /* JoinURLParser.swift */,
 				EDD84A7F97E32C1775351C2C /* KeychainService.swift */,
 				AA02000000000000000002A1 /* SessionStore.swift */,
 				FDD098C398E3401F959D0287 /* SSEClient.swift */,
+				AA08000000000000000008A1 /* UnauthenticatedClient.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -377,6 +389,10 @@
 				AA05000000000000000005B1 /* QRScannerView.swift in Sources */,
 				AA03000000000000000003B1 /* SidebarOverlay.swift in Sources */,
 				AA04000000000000000004B1 /* SidebarView.swift in Sources */,
+				AA08000000000000000008B1 /* UnauthenticatedClient.swift in Sources */,
+				AA09000000000000000009B1 /* JoinURLParser.swift in Sources */,
+				AA10000000000000000010B1 /* NewServerPromptView.swift in Sources */,
+				AA11000000000000000011B1 /* LandingView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
