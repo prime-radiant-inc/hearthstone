@@ -17,6 +17,7 @@ import { handleRegister, handleRegisterVerify, handleLoginEmail, handleLoginEmai
 import { handleCreateHousehold } from "../src/routes/household-create";
 import { handleUpdateHousehold } from "../src/routes/household";
 import { handleListGuests, handleCreateGuest, handleRevokeGuest, handleReinviteGuest, handleDeleteGuest } from "../src/routes/guests";
+import { handleInviteOwner } from "../src/routes/owners";
 import { handleListDocuments, handleConnectDocument, handleDeleteDocument, handleGetContent } from "../src/routes/documents";
 import { handleListConnections } from "../src/routes/connections";
 import { handleGetSuggestions } from "../src/routes/chat";
@@ -158,13 +159,15 @@ describe("API Contract: POST /guests", () => {
   let db: Database;
   beforeEach(() => { db = createTestDb(); });
 
-  it("response has { guest: { id, name, status }, pin, expires_at }", async () => {
+  it("response has { guest: { id, name, status }, pin, join_url, expires_at }", async () => {
     const hid = seedOwner(db);
-    const result = await handleCreateGuest(db, hid, "p1", { name: "Maria", email: "maria@test.com" });
+    const result = await handleCreateGuest(db, hid, "p1", { name: "Maria", email: "maria@test.com" }, "http://test.example");
     expect(result.status).toBe(200);
-    hasExactKeys(result.body, ["guest", "pin", "expires_at"]);
+    hasExactKeys(result.body, ["guest", "pin", "join_url", "expires_at"]);
     hasExactKeys(result.body.guest, ["id", "name", "status"]);
     expect(result.body.pin).toMatch(/^\d{6}$/);
+    expect(typeof result.body.join_url).toBe("string");
+    expect(result.body.join_url).toContain(`/join/${result.body.pin}`);
   });
 });
 
@@ -185,13 +188,34 @@ describe("API Contract: POST /guests/:id/reinvite", () => {
   let db: Database;
   beforeEach(() => { db = createTestDb(); });
 
-  it("response has { pin, expires_at }", () => {
+  it("response has { pin, join_url, expires_at }", () => {
     const hid = seedOwner(db);
     seedGuest(db, hid, "pending");
-    const result = handleReinviteGuest(db, hid, "p1", "g1");
+    const result = handleReinviteGuest(db, hid, "p1", "g1", "http://test.example");
     expect(result.status).toBe(200);
-    hasExactKeys(result.body, ["pin", "expires_at"]);
+    hasExactKeys(result.body, ["pin", "join_url", "expires_at"]);
     expect(result.body.pin).toMatch(/^\d{6}$/);
+    expect(result.body.join_url).toContain(`/join/${result.body.pin}`);
+  });
+});
+
+describe("API Contract: POST /household/owners", () => {
+  let db: Database;
+  beforeEach(() => { db = createTestDb(); });
+
+  it("response has { pin, join_url, expires_at }", () => {
+    const hid = seedOwner(db);
+    const result = handleInviteOwner(
+      db,
+      hid,
+      "p1",
+      { name: "Jamie", email: "jamie@test.com" },
+      "http://test.example"
+    );
+    expect(result.status).toBe(200);
+    hasExactKeys(result.body, ["pin", "join_url", "expires_at"]);
+    expect(result.body.pin).toMatch(/^\d{6}$/);
+    expect(result.body.join_url).toContain(`/join/${result.body.pin}`);
   });
 });
 
