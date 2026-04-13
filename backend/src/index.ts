@@ -577,5 +577,10 @@ async function tracedFetch(req: Request): Promise<Response> {
   }
 }
 
+if (!process.env.HEARTHSTONE_PUBLIC_URL) {
+  console.error("FATAL: HEARTHSTONE_PUBLIC_URL is not set. Refusing to start.");
+  process.exit(1);
+}
+
 Bun.serve({ port: config.port, fetch: tracedFetch });
 console.log(`Hearthstone backend running on http://localhost:${config.port}`);

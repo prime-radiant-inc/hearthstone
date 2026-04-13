@@ -18,5 +18,6 @@ export const config = {
   chatProvider: optional("CHAT_PROVIDER", "openai"),
   jwtSecret: required("JWT_SECRET"),
   appBaseUrl: optional("APP_BASE_URL", "https://hearthstone.app"),
+  hearthstonePublicUrl: optional("HEARTHSTONE_PUBLIC_URL", "http://localhost:3000"),
   port: parseInt(optional("PORT", "3000"), 10),
 };
