@@ -350,14 +350,14 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       if (method === "POST" && pathname === "/guests") {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         const body = await req.json();
-        const result = await handleCreateGuest(getDb(), owner.householdId, owner.personId, body);
+        const result = await handleCreateGuest(getDb(), owner.householdId, owner.personId, body, config.hearthstonePublicUrl);
         return json(result.body, result.status);
       }
 
       const reinviteParams = parsePathParams("/guests/:id/reinvite", pathname);
       if (method === "POST" && reinviteParams) {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
-        const result = handleReinviteGuest(getDb(), owner.householdId, owner.personId, reinviteParams.id);
+        const result = handleReinviteGuest(getDb(), owner.householdId, owner.personId, reinviteParams.id, config.hearthstonePublicUrl);
         return json(result.body, result.status);
       }
 
@@ -385,7 +385,7 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       if (method === "POST" && pathname === "/household/owners") {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         const body = await req.json();
-        const result = handleInviteOwner(getDb(), owner.householdId, owner.personId, body);
+        const result = handleInviteOwner(getDb(), owner.householdId, owner.personId, body, config.hearthstonePublicUrl);
         return json(result.body, result.status);
       }
 

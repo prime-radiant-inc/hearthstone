@@ -7,6 +7,7 @@ enum HouseRole: String, Codable {
 
 struct HouseSession: Identifiable, Codable, Equatable {
     let id: String
+    let serverURL: URL
     let householdId: String
     var householdName: String
     let role: HouseRole

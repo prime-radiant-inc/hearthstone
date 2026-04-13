@@ -22,7 +22,8 @@ export function handleInviteOwner(
   db: Database,
   householdId: string,
   inviterPersonId: string,
-  body: { name: string; email: string }
+  body: { name: string; email: string },
+  publicUrl: string
 ): { status: number; body: any } {
   if (!body.email || !body.email.trim()) {
     return { status: 422, body: { message: "Email is required" } };
@@ -63,7 +64,7 @@ export function handleInviteOwner(
 
   return {
     status: 200,
-    body: { pin, expires_at: expiresAt },
+    body: { pin, join_url: `${publicUrl}/join/${pin}`, expires_at: expiresAt },
   };
 }
 
