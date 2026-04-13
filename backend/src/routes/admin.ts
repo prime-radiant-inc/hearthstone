@@ -52,7 +52,13 @@ export function handleAdminCreateHouse(
 
   // Create a synthetic placeholder person for the first owner PIN.
   // When the PIN is redeemed, the real person record is created/updated.
-  const placeholderEmail = `placeholder-${houseId}@hearthstone.local`;
+  // The sentinel prefix `__placeholder__` is filtered out of every API
+  // response by `publicEmail` in utils.ts — see routes/pin-auth, routes/owners,
+  // and the /me handler in index.ts. The row itself stays in the DB because
+  // the persons.email column is UNIQUE NOT NULL and auth_pins.person_id FKs
+  // against it; we can't clear it without risking collisions on multiple
+  // pending placeholder houses.
+  const placeholderEmail = `__placeholder__-${houseId}@local`;
   const personId = generateId();
   db.prepare("INSERT INTO persons (id, email, name, created_at) VALUES (?, ?, ?, ?)")
     .run(personId, placeholderEmail, "", now);

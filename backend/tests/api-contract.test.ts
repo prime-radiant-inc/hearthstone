@@ -17,7 +17,7 @@ import { handleRegister, handleRegisterVerify, handleLoginEmail, handleLoginEmai
 import { handleCreateHousehold } from "../src/routes/household-create";
 import { handleUpdateHousehold } from "../src/routes/household";
 import { handleListGuests, handleCreateGuest, handleRevokeGuest, handleReinviteGuest, handleDeleteGuest } from "../src/routes/guests";
-import { handleInviteOwner } from "../src/routes/owners";
+import { handleInviteOwner, handleListOwners } from "../src/routes/owners";
 import { handleJoinPage } from "../src/routes/join";
 import {
   handleAdminHouses,
@@ -388,6 +388,40 @@ describe("API Contract: POST /admin/houses", () => {
     hasExactKeys(result.body.house, ["id", "name", "created_at"]);
     expect(result.body.pin).toMatch(/^\d{6}$/);
     expect(result.body.join_url).toBe(`http://test.example/join/${result.body.pin}`);
+  });
+});
+
+describe("Placeholder email is never leaked through admin-create → redeem → list owners", () => {
+  let db: Database;
+  beforeEach(() => { db = createTestDb(); });
+
+  it("pin redeem and owner list both return empty email, not the __placeholder__ sentinel", async () => {
+    // 1. Admin creates a house. This inserts a synthetic persons row
+    //    with a `__placeholder__-<houseId>@local` email.
+    const created = handleAdminCreateHouse(db, { name: "Placeholder Home" }, "http://test.example");
+    expect(created.status).toBe(200);
+    const pin = created.body.pin as string;
+    const houseId = created.body.house.id as string;
+
+    // Sanity: the raw row does carry the sentinel prefix.
+    const rawPerson = db.prepare(
+      "SELECT p.email FROM household_members hm JOIN persons p ON p.id = hm.person_id WHERE hm.household_id = ?"
+    ).get(houseId) as any;
+    expect(rawPerson.email).toMatch(/^__placeholder__/);
+
+    // 2. Owner redeems the PIN. The response's person.email must be "".
+    const redeemed = await handlePinRedeem(db, { pin }, "test-secret");
+    expect(redeemed.status).toBe(200);
+    expect(redeemed.body.person.email).toBe("");
+    expect(redeemed.body.person.email).not.toContain("__placeholder__");
+
+    // 3. GET /household/owners must scrub the same row.
+    const owners = handleListOwners(db, houseId);
+    expect(owners.status).toBe(200);
+    expect(owners.body.owners).toHaveLength(1);
+    expect(owners.body.owners[0].email).toBe("");
+    expect(owners.body.owners[0].email).not.toContain("__placeholder__");
+    hasExactKeys(owners.body.owners[0], ["id", "name", "email", "created_at"]);
   });
 });
 

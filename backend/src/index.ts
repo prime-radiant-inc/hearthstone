@@ -38,6 +38,7 @@ import { handleJoinPage } from "./routes/join";
 import { mintAdminToken, getAdminToken } from "./services/admin-token";
 import { handleAdminAuth, handleAdminPage, handleAdminHouses, handleAdminCreateHouse, handleAdminInfo } from "./routes/admin";
 import { requireAdmin } from "./middleware/admin-auth";
+import { publicEmail } from "./utils";
 
 function json(body: any, status: number = 200): Response {
   if (status === 204) return new Response(null, { status: 204 });
@@ -363,7 +364,7 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
         const household = getDb().prepare(
           "SELECT h.id, h.name, h.created_at FROM households h JOIN household_members hm ON hm.household_id = h.id WHERE hm.person_id = ? AND hm.role = 'owner' LIMIT 1"
         ).get(owner.personId) as any || null;
-        return json({ person: { id: person.id, email: person.email, name: person.name || "" }, household });
+        return json({ person: { id: person.id, email: publicEmail(person.email), name: person.name || "" }, household });
       }
 
       if (method === "PATCH" && pathname === "/me") {
@@ -375,7 +376,7 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
         }
         getDb().prepare("UPDATE persons SET name = ? WHERE id = ?").run(name, owner.personId);
         const person = getDb().prepare("SELECT id, email, name FROM persons WHERE id = ?").get(owner.personId) as any;
-        return json({ person: { id: person.id, email: person.email, name: person.name || "" } });
+        return json({ person: { id: person.id, email: publicEmail(person.email), name: person.name || "" } });
       }
 
       // --- Owner routes ---

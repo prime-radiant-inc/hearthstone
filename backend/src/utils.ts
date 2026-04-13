@@ -1,5 +1,20 @@
 import { randomBytes } from "crypto";
 
+/**
+ * Strip internal placeholder emails before returning to API clients.
+ *
+ * Admin-created houses get a synthetic persons row with a sentinel
+ * `__placeholder__-<houseId>@local` email (so the auth_pins FK is satisfied
+ * before the real owner redeems). That email must never leak to real owners —
+ * they'd see a fake-looking address in their roster forever. Apply this helper
+ * at every response boundary that returns `person.email`.
+ */
+export function publicEmail(raw: string | null | undefined): string {
+  if (!raw) return "";
+  if (raw.startsWith("__placeholder__")) return "";
+  return raw;
+}
+
 // UUIDv7: time-sortable, index-friendly
 // Structure: timestamp (48 bits) + version (4 bits) + random (12 bits) + variant (2 bits) + random (62 bits)
 export function generateId(): string {
