@@ -35,6 +35,26 @@ struct HearthstoneApp: App {
             .sheet(item: $router.showAccessRevoked) { name in
                 AccessRevokedView(householdName: name)
             }
+            .sheet(item: $router.pendingServerPrompt) { payload in
+                NewServerPromptView(
+                    host: payload.serverURL.host ?? payload.serverURL.absoluteString,
+                    onConfirm: {
+                        router.pendingServerPrompt = nil
+                        router.performRedeem(payload: payload)
+                    },
+                    onCancel: {
+                        router.pendingServerPrompt = nil
+                    }
+                )
+            }
+            .alert("Couldn't open invite", isPresented: .init(
+                get: { router.redemptionError != nil },
+                set: { if !$0 { router.redemptionError = nil } }
+            )) {
+                Button("OK") { router.redemptionError = nil }
+            } message: {
+                Text(router.redemptionError ?? "")
+            }
             .onOpenURL { url in
                 router.handleIncomingURL(url)
             }
@@ -48,6 +68,8 @@ struct HearthstoneApp: App {
 final class AppRouter: ObservableObject {
     @Published var state: AppState = .empty
     @Published var showAccessRevoked: String? = nil
+    @Published var pendingServerPrompt: JoinPayload? = nil
+    @Published var redemptionError: String? = nil
 
     let store = SessionStore.shared
 
@@ -102,7 +124,50 @@ final class AppRouter: ObservableObject {
     }
 
     func handleIncomingURL(_ url: URL) {
-        // Rewritten in Task 16 to use UnauthenticatedClient.
+        guard let payload = JoinURLParser.parse(url.absoluteString) else { return }
+        redeem(payload: payload)
+    }
+
+    func redeem(payload: JoinPayload) {
+        let host = payload.serverURL.host ?? ""
+        let isKnown = store.hasSession(forServerHost: host)
+        if !isKnown {
+            pendingServerPrompt = payload
+            return
+        }
+        performRedeem(payload: payload)
+    }
+
+    func performRedeem(payload: JoinPayload) {
+        Task { @MainActor in
+            let client = UnauthenticatedClient(serverURL: payload.serverURL)
+            do {
+                let result = try await client.redeemPin(payload.pin)
+                let role: HouseRole = result.role == "owner" ? .owner : .guest
+                let householdId = result.household?.id ?? result.guest?.householdId ?? ""
+                let householdName = result.household?.name ?? result.householdName ?? ""
+                let personName: String? = role == .owner
+                    ? (result.person?.name?.isEmpty == false ? result.person?.name : result.person?.email)
+                    : nil
+                let session = HouseSession(
+                    id: UUID().uuidString,
+                    serverURL: payload.serverURL,
+                    householdId: householdId,
+                    householdName: householdName,
+                    role: role,
+                    personName: personName,
+                    addedAt: Date()
+                )
+                store.add(session: session, token: result.token)
+                syncState()
+            } catch {
+                if let apiErr = error as? APIError, case .server(_, let msg) = apiErr {
+                    self.redemptionError = msg
+                } else {
+                    self.redemptionError = "Could not redeem this invite."
+                }
+            }
+        }
     }
 }
 
