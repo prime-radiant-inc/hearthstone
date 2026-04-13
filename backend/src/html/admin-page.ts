@@ -45,11 +45,16 @@ export function renderAdminPage(): string {
     }
     .modal .actions { display: flex; gap: 0.6rem; justify-content: flex-end; }
     .modal button.secondary { background: transparent; color: #6b6358; border: none; padding: 0.7rem 1rem; cursor: pointer; font-size: 0.95rem; }
-    .qr-box { text-align: center; margin: 1rem 0; }
-    .qr-box img { width: 200px; height: 200px; }
+    .join-url-box {
+      background: #faf9f6; border: 1.5px solid #f0ece3; border-radius: 12px;
+      padding: 1rem 1.1rem; margin: 0.75rem 0 1rem;
+      word-break: break-all; font-family: ui-monospace, Menlo, monospace;
+      font-size: 0.95rem; color: #3d3529; line-height: 1.45;
+    }
     .join-url-row { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
-    .join-url-row input { flex: 1; }
-    .pin-display { text-align: center; font-family: ui-monospace, Menlo, monospace; font-size: 1.4rem; letter-spacing: 0.3rem; color: #6b6358; margin: 0.75rem 0; }
+    .join-url-row input { flex: 1; padding: 0.7rem 0.9rem; border: 1.5px solid #f0ece3; border-radius: 10px; font-size: 0.95rem; background: #faf9f6; font-family: ui-monospace, Menlo, monospace; }
+    .pin-label { font-size: 0.78rem; color: #9b9488; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.5rem; }
+    .pin-display { text-align: center; font-family: ui-monospace, Menlo, monospace; font-size: 1.4rem; letter-spacing: 0.3rem; color: #6b6358; margin: 0.25rem 0 0.75rem; }
     .hint { font-size: 0.85rem; color: #6b6358; line-height: 1.5; }
   </style>
 </head>
@@ -156,22 +161,32 @@ export function renderAdminPage(): string {
     }
 
     function showResult(data) {
-      const qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + encodeURIComponent(data.join_url);
+      // Operators share the join link via text, email, or chat. We deliberately
+      // do NOT render a QR here — a third-party QR service (api.qrserver.com)
+      // would be the easiest path but it would leak every single-use owner PIN
+      // to a SaaS. On-device QR rendering lives in the iOS GuestPINView via
+      // CoreImage, which is where recipients actually need to scan it. The
+      // admin flow just needs a copy-pasteable link.
       openModal(\`
         <h3>\${escapeHTML(data.house.name)}</h3>
-        <div class="qr-box"><img src="\${qrUrl}" alt="QR code"></div>
+        <p class="hint" style="margin-bottom:0.5rem;">Share this link with the person who will be the house's first owner.</p>
         <div class="join-url-row">
           <input type="text" readonly value="\${escapeHTML(data.join_url)}" id="join-url-input">
           <button class="primary" id="copy-btn">Copy</button>
         </div>
+        <div class="pin-label">Single-use PIN (for reference)</div>
         <div class="pin-display">\${escapeHTML(data.pin)}</div>
-        <p class="hint">Send this link to the person who will be the house's first owner. The link is single-use and expires in 7 days.</p>
+        <p class="hint">The link is single-use and expires in 7 days. No QR code is shown here so the PIN never leaves this server.</p>
         <div class="actions" style="margin-top:1rem;">
           <button class="secondary" id="close-result">Done</button>
         </div>
       \`);
       document.getElementById("copy-btn").onclick = () => {
         navigator.clipboard.writeText(data.join_url);
+        const btn = document.getElementById("copy-btn");
+        const prev = btn.textContent;
+        btn.textContent = "Copied";
+        setTimeout(() => { btn.textContent = prev; }, 1200);
       };
       document.getElementById("close-result").onclick = closeModal;
     }
