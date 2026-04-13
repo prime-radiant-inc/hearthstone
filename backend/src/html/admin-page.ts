@@ -51,8 +51,9 @@ export function renderAdminPage(): string {
       padding: 1rem; margin: 0.75rem 0 1rem;
     }
     .qr-box svg { display: block; width: 220px; height: 220px; }
-    .join-url-row { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
-    .join-url-row input { flex: 1; padding: 0.7rem 0.9rem; border: 1.5px solid #f0ece3; border-radius: 10px; font-size: 0.95rem; background: #faf9f6; font-family: ui-monospace, Menlo, monospace; }
+    .join-url-row { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; align-items: stretch; }
+    .join-url-row input { flex: 1; min-width: 0; padding: 0.7rem 0.9rem; border: 1.5px solid #f0ece3; border-radius: 10px; font-size: 0.95rem; background: #faf9f6; font-family: ui-monospace, Menlo, monospace; }
+    .join-url-row button.primary { padding: 0 1.3rem; border: 1.5px solid transparent; display: inline-flex; align-items: center; justify-content: center; }
     .pin-label { font-size: 0.78rem; color: #9b9488; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.5rem; }
     .pin-display { text-align: center; font-family: ui-monospace, Menlo, monospace; font-size: 1.4rem; letter-spacing: 0.3rem; color: #6b6358; margin: 0.25rem 0 0.75rem; }
     .hint { font-size: 0.85rem; color: #6b6358; line-height: 1.5; }
