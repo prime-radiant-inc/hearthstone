@@ -39,6 +39,13 @@ import { mintAdminToken, getAdminToken } from "./services/admin-token";
 import { handleAdminAuth, handleAdminPage, handleAdminHouses, handleAdminCreateHouse, handleAdminInfo } from "./routes/admin";
 import { requireAdmin } from "./middleware/admin-auth";
 import { publicEmail } from "./utils";
+import pkg from "../package.json" with { type: "json" };
+
+// Read version from package.json directly. Bun does not populate
+// `process.env.npm_package_version` the way npm does, so the old
+// `process.env.npm_package_version || "0.0.0"` always returned "0.0.0"
+// regardless of the value in package.json.
+const PACKAGE_VERSION: string = (pkg as { version?: string }).version ?? "0.0.0";
 
 function json(body: any, status: number = 200): Response {
   if (status === 204) return new Response(null, { status: 204 });
@@ -297,8 +304,7 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
 
       if (method === "GET" && pathname === "/admin/info") {
         if (!requireAdmin(req)) return json({ message: "Unauthorized" }, 401);
-        const version = process.env.npm_package_version || "0.0.0";
-        const result = handleAdminInfo(getDb(), config.hearthstonePublicUrl, config.databaseUrl, version);
+        const result = handleAdminInfo(getDb(), config.hearthstonePublicUrl, config.databaseUrl, PACKAGE_VERSION);
         return json(result.body, result.status);
       }
 
