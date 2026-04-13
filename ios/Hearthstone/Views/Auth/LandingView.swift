@@ -122,18 +122,6 @@ struct LandingView: View {
             .background(theme.cream)
             .presentationDetents([.medium])
         }
-        .sheet(item: $router.pendingServerPrompt) { payload in
-            NewServerPromptView(
-                host: payload.serverURL.host ?? payload.serverURL.absoluteString,
-                onConfirm: {
-                    router.pendingServerPrompt = nil
-                    router.performRedeem(payload: payload)
-                },
-                onCancel: {
-                    router.pendingServerPrompt = nil
-                }
-            )
-        }
         .onAppear {
             initialSessionCount = router.store.sessions.count
         }
