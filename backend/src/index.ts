@@ -35,6 +35,7 @@ import { handleChat, handleGetSuggestions, handleChatPreview } from "./routes/ch
 import { handlePinRedeem } from "./routes/pin-auth";
 import { handleListOwners, handleInviteOwner, handleRemoveOwner } from "./routes/owners";
 import { handleJoinPage } from "./routes/join";
+import { mintAdminToken } from "./services/admin-token";
 
 function json(body: any, status: number = 200): Response {
   if (status === 204) return new Response(null, { status: 204 });
@@ -593,6 +594,11 @@ if (!process.env.HEARTHSTONE_PUBLIC_URL) {
   console.error("FATAL: HEARTHSTONE_PUBLIC_URL is not set. Refusing to start.");
   process.exit(1);
 }
+
+const _adminToken = mintAdminToken();
+console.log("=== Hearthstone admin ===");
+console.log(`URL: ${config.hearthstonePublicUrl}/admin/auth?t=${_adminToken}`);
+console.log("Valid until process restart.");
 
 Bun.serve({ port: config.port, fetch: tracedFetch });
 console.log(`Hearthstone backend running on http://localhost:${config.port}`);
