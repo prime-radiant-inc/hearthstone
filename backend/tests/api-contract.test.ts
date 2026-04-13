@@ -19,6 +19,12 @@ import { handleUpdateHousehold } from "../src/routes/household";
 import { handleListGuests, handleCreateGuest, handleRevokeGuest, handleReinviteGuest, handleDeleteGuest } from "../src/routes/guests";
 import { handleInviteOwner } from "../src/routes/owners";
 import { handleJoinPage } from "../src/routes/join";
+import {
+  handleAdminHouses,
+  handleAdminCreateHouse,
+  handleAdminInfo,
+  handleAdminAuth,
+} from "../src/routes/admin";
 import { handleListDocuments, handleConnectDocument, handleDeleteDocument, handleGetContent } from "../src/routes/documents";
 import { handleListConnections } from "../src/routes/connections";
 import { handleGetSuggestions } from "../src/routes/chat";
@@ -345,5 +351,77 @@ describe("Contract: GET /join/:pin", () => {
   it("returns 404 for malformed PIN", () => {
     const result = handleJoinPage("abc", "https://server.example");
     expect(result.status).toBe(404);
+  });
+});
+
+// ============================================================
+// ADMIN
+// ============================================================
+
+describe("API Contract: GET /admin/houses", () => {
+  let db: Database;
+  beforeEach(() => { db = createTestDb(); });
+
+  it("response has { houses: [{ id, name, created_at, owner_count, guest_count, document_count }] }", () => {
+    seedOwner(db);
+    seedGuest(db, "h1");
+    seedDocument(db, "h1");
+    const result = handleAdminHouses(db);
+    expect(result.status).toBe(200);
+    hasExactKeys(result.body, ["houses"]);
+    expect(result.body.houses).toHaveLength(1);
+    hasExactKeys(result.body.houses[0], ["id", "name", "created_at", "owner_count", "guest_count", "document_count"]);
+    expect(result.body.houses[0].owner_count).toBe(1);
+    expect(result.body.houses[0].guest_count).toBe(1);
+    expect(result.body.houses[0].document_count).toBe(1);
+  });
+});
+
+describe("API Contract: POST /admin/houses", () => {
+  let db: Database;
+  beforeEach(() => { db = createTestDb(); });
+
+  it("response has { house: { id, name, created_at }, pin, join_url }", () => {
+    const result = handleAdminCreateHouse(db, { name: "New Place" }, "http://test.example");
+    expect(result.status).toBe(200);
+    hasExactKeys(result.body, ["house", "pin", "join_url"]);
+    hasExactKeys(result.body.house, ["id", "name", "created_at"]);
+    expect(result.body.pin).toMatch(/^\d{6}$/);
+    expect(result.body.join_url).toBe(`http://test.example/join/${result.body.pin}`);
+  });
+});
+
+describe("API Contract: GET /admin/info", () => {
+  let db: Database;
+  beforeEach(() => { db = createTestDb(); });
+
+  it("response has { public_url, db_file_size_bytes, version }", () => {
+    const result = handleAdminInfo(db, "http://test.example", "./nonexistent.db", "0.2.0");
+    expect(result.status).toBe(200);
+    hasExactKeys(result.body, ["public_url", "db_file_size_bytes", "version"]);
+    expect(result.body.public_url).toBe("http://test.example");
+    expect(result.body.version).toBe("0.2.0");
+  });
+});
+
+describe("Admin auth flow", () => {
+  it("handleAdminAuth rejects missing token", () => {
+    const result = handleAdminAuth(null, "hadm_valid");
+    expect(result.status).toBe(401);
+  });
+
+  it("handleAdminAuth rejects wrong token", () => {
+    const result = handleAdminAuth("hadm_wrong", "hadm_valid");
+    expect(result.status).toBe(401);
+  });
+
+  it("handleAdminAuth 302s and sets cookie on match", () => {
+    const result = handleAdminAuth("hadm_valid", "hadm_valid");
+    expect(result.status).toBe(302);
+    expect(result.headers["Set-Cookie"]).toContain("hadm=hadm_valid");
+    expect(result.headers["Set-Cookie"]).toContain("HttpOnly");
+    expect(result.headers["Set-Cookie"]).toContain("Secure");
+    expect(result.headers["Set-Cookie"]).toContain("SameSite=Strict");
+    expect(result.headers.Location).toBe("/admin");
   });
 });

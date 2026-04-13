@@ -35,7 +35,9 @@ import { handleChat, handleGetSuggestions, handleChatPreview } from "./routes/ch
 import { handlePinRedeem } from "./routes/pin-auth";
 import { handleListOwners, handleInviteOwner, handleRemoveOwner } from "./routes/owners";
 import { handleJoinPage } from "./routes/join";
-import { mintAdminToken } from "./services/admin-token";
+import { mintAdminToken, getAdminToken } from "./services/admin-token";
+import { handleAdminAuth, handleAdminPage, handleAdminHouses, handleAdminCreateHouse, handleAdminInfo } from "./routes/admin";
+import { requireAdmin } from "./middleware/admin-auth";
 
 function json(body: any, status: number = 200): Response {
   if (status === 204) return new Response(null, { status: 204 });
@@ -260,6 +262,43 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
           status: result.status,
           headers: { "Content-Type": result.contentType },
         });
+      }
+
+      // --- Admin routes ---
+      if (method === "POST" && pathname === "/admin/auth") {
+        const result = handleAdminAuth(url.searchParams.get("t"), getAdminToken());
+        return new Response(null, { status: result.status, headers: result.headers });
+      }
+      // Allow GET on /admin/auth too — clicking a link from a terminal is a GET.
+      if (method === "GET" && pathname === "/admin/auth") {
+        const result = handleAdminAuth(url.searchParams.get("t"), getAdminToken());
+        return new Response(null, { status: result.status, headers: result.headers });
+      }
+
+      if (method === "GET" && pathname === "/admin") {
+        if (!requireAdmin(req)) return json({ message: "Unauthorized" }, 401);
+        const result = handleAdminPage();
+        return html(result.body, result.status);
+      }
+
+      if (method === "GET" && pathname === "/admin/houses") {
+        if (!requireAdmin(req)) return json({ message: "Unauthorized" }, 401);
+        const result = handleAdminHouses(getDb());
+        return json(result.body, result.status);
+      }
+
+      if (method === "POST" && pathname === "/admin/houses") {
+        if (!requireAdmin(req)) return json({ message: "Unauthorized" }, 401);
+        const body = await req.json();
+        const result = handleAdminCreateHouse(getDb(), body, config.hearthstonePublicUrl);
+        return json(result.body, result.status);
+      }
+
+      if (method === "GET" && pathname === "/admin/info") {
+        if (!requireAdmin(req)) return json({ message: "Unauthorized" }, 401);
+        const version = process.env.npm_package_version || "0.0.0";
+        const result = handleAdminInfo(getDb(), config.hearthstonePublicUrl, config.databaseUrl, version);
+        return json(result.body, result.status);
       }
 
       // --- Auth routes (no auth required) ---
