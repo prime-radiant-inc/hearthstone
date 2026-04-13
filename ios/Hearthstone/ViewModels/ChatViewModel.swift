@@ -44,8 +44,21 @@ final class ChatViewModel: ObservableObject {
             SSEClient.HistoryMessage(role: msg.role == .user ? "user" : "assistant", content: msg.content)
         }
 
+        guard let session = SessionStore.shared.activeSession,
+              let token = SessionStore.shared.activeToken else {
+            self.error = "No active session."
+            messages.removeLast()
+            isStreaming = false
+            return
+        }
         do {
-            for try await event in SSEClient.streamChat(message: message, history: Array(history), isPreview: isPreview) {
+            for try await event in SSEClient.streamChat(
+                serverURL: session.serverURL,
+                token: token,
+                message: message,
+                history: Array(history),
+                isPreview: isPreview
+            ) {
                 if let delta = event.delta {
                     assistantMessage.content += delta
                     if let lastIndex = messages.indices.last {
