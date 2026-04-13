@@ -22,6 +22,7 @@ import { handleJoinPage } from "../src/routes/join";
 import {
   handleAdminHouses,
   handleAdminCreateHouse,
+  handleAdminInviteOwner,
   handleAdminInfo,
   handleAdminAuth,
 } from "../src/routes/admin";
@@ -389,6 +390,33 @@ describe("API Contract: POST /admin/houses", () => {
     expect(result.body.pin).toMatch(/^\d{6}$/);
     expect(result.body.join_url).toBe(`http://test.example/join/${result.body.pin}`);
     expect(result.body.qr_svg).toMatch(/^<svg[\s\S]+<\/svg>\s*$/);
+  });
+});
+
+describe("API Contract: POST /admin/houses/:id/owner-invite", () => {
+  let db: Database;
+  beforeEach(() => { db = createTestDb(); });
+
+  it("response mirrors create-house: { house, pin, join_url, qr_svg } with a fresh PIN", async () => {
+    const created = await handleAdminCreateHouse(db, { name: "Existing Place" }, "http://test.example");
+    const houseId = created.body.house.id as string;
+    const firstPin = created.body.pin as string;
+
+    const result = await handleAdminInviteOwner(db, houseId, "http://test.example");
+    expect(result.status).toBe(200);
+    hasExactKeys(result.body, ["house", "pin", "join_url", "qr_svg"]);
+    hasExactKeys(result.body.house, ["id", "name", "created_at"]);
+    expect(result.body.house.id).toBe(houseId);
+    expect(result.body.house.name).toBe("Existing Place");
+    expect(result.body.pin).toMatch(/^\d{6}$/);
+    expect(result.body.pin).not.toBe(firstPin);
+    expect(result.body.join_url).toBe(`http://test.example/join/${result.body.pin}`);
+    expect(result.body.qr_svg).toMatch(/^<svg[\s\S]+<\/svg>\s*$/);
+  });
+
+  it("returns 404 for an unknown house id", async () => {
+    const result = await handleAdminInviteOwner(db, "does-not-exist", "http://test.example");
+    expect(result.status).toBe(404);
   });
 });
 

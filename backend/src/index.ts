@@ -36,7 +36,7 @@ import { handlePinRedeem } from "./routes/pin-auth";
 import { handleListOwners, handleInviteOwner, handleRemoveOwner } from "./routes/owners";
 import { handleJoinPage } from "./routes/join";
 import { mintAdminToken, getAdminToken } from "./services/admin-token";
-import { handleAdminAuth, handleAdminPage, handleAdminHouses, handleAdminCreateHouse, handleAdminInfo } from "./routes/admin";
+import { handleAdminAuth, handleAdminPage, handleAdminHouses, handleAdminCreateHouse, handleAdminInviteOwner, handleAdminInfo } from "./routes/admin";
 import { requireAdmin } from "./middleware/admin-auth";
 import { publicEmail } from "./utils";
 import pkg from "../package.json" with { type: "json" };
@@ -300,6 +300,15 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
         const body = await req.json();
         const result = await handleAdminCreateHouse(getDb(), body, config.hearthstonePublicUrl);
         return json(result.body, result.status);
+      }
+
+      {
+        const params = parsePathParams("/admin/houses/:id/owner-invite", pathname);
+        if (method === "POST" && params) {
+          if (!requireAdmin(req)) return json({ message: "Unauthorized" }, 401);
+          const result = await handleAdminInviteOwner(getDb(), params.id, config.hearthstonePublicUrl);
+          return json(result.body, result.status);
+        }
       }
 
       if (method === "GET" && pathname === "/admin/info") {

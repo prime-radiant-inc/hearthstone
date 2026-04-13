@@ -32,6 +32,13 @@ export function renderAdminPage(): string {
     }
     button.primary:hover { filter: brightness(1.05); }
     .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    button.row-action {
+      background: transparent; color: #a65a3e; border: 1px solid #f0ece3;
+      padding: 0.35rem 0.75rem; border-radius: 8px; font-size: 0.82rem;
+      font-weight: 500; cursor: pointer;
+    }
+    button.row-action:hover { background: #faf9f6; border-color: #c97b5e; }
+    .row-actions-col { text-align: right; white-space: nowrap; }
     .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
     .info-grid .label { font-size: 0.78rem; color: #9b9488; text-transform: uppercase; letter-spacing: 0.05em; }
     .info-grid .value { font-size: 1rem; color: #3d3529; margin-top: 0.25rem; word-break: break-all; }
@@ -74,7 +81,7 @@ export function renderAdminPage(): string {
       </div>
       <table>
         <thead>
-          <tr><th>Name</th><th>Created</th><th>Owners</th><th>Guests</th><th>Docs</th></tr>
+          <tr><th>Name</th><th>Created</th><th>Owners</th><th>Guests</th><th>Docs</th><th></th></tr>
         </thead>
         <tbody id="houses-tbody"></tbody>
       </table>
@@ -112,8 +119,21 @@ export function renderAdminPage(): string {
           <td>\${h.owner_count}</td>
           <td>\${h.guest_count}</td>
           <td>\${h.document_count}</td>
+          <td class="row-actions-col"><button class="row-action" data-action="invite-owner" data-house-id="\${escapeHTML(h.id)}">New owner link</button></td>
         </tr>
       \`).join("");
+    }
+
+    async function inviteOwner(houseId) {
+      try {
+        const data = await fetchJSON("/admin/houses/" + encodeURIComponent(houseId) + "/owner-invite", {
+          method: "POST",
+        });
+        showResult(data);
+        await loadHouses();
+      } catch (e) {
+        alert("Could not mint invite: " + e.message);
+      }
     }
 
     async function loadInfo() {
@@ -191,6 +211,11 @@ export function renderAdminPage(): string {
     }
 
     document.getElementById("create-house-btn").onclick = showCreateForm;
+    document.getElementById("houses-tbody").addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-action='invite-owner']");
+      if (!btn) return;
+      inviteOwner(btn.dataset.houseId);
+    });
     loadHouses();
     loadInfo();
   </script>

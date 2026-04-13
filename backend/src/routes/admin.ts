@@ -25,6 +25,19 @@ export function handleAdminPage(): { status: number; body: string } {
   return { status: 200, body: renderAdminPage() };
 }
 
+// Server-side QR render. See docs/superpowers/specs/2026-04-11-multi-server-app-design.md
+// for why this must not call an external service: the join URL contains a
+// single-use PIN and can never leave this process.
+async function renderJoinQR(joinUrl: string): Promise<string> {
+  return QRCode.toString(joinUrl, {
+    type: "svg",
+    margin: 1,
+    width: 220,
+    errorCorrectionLevel: "M",
+    color: { dark: "#3d3529", light: "#faf9f6" },
+  });
+}
+
 export function handleAdminHouses(db: Database): { status: number; body: any } {
   const houses = db.prepare(`
     SELECT
@@ -71,21 +84,48 @@ export async function handleAdminCreateHouse(
 
   const { pin } = createAuthPin(db, { role: "owner", personId, householdId: houseId });
   const joinUrl = `${publicUrl}/join/${pin}`;
-
-  // Server-side QR render. See docs/superpowers/specs/2026-04-11-multi-server-app-design.md
-  // for why this must not call an external service.
-  const qrSvg = await QRCode.toString(joinUrl, {
-    type: "svg",
-    margin: 1,
-    width: 220,
-    errorCorrectionLevel: "M",
-    color: { dark: "#3d3529", light: "#faf9f6" },
-  });
+  const qrSvg = await renderJoinQR(joinUrl);
 
   return {
     status: 200,
     body: {
       house: { id: houseId, name, created_at: now },
+      pin,
+      join_url: joinUrl,
+      qr_svg: qrSvg,
+    },
+  };
+}
+
+export async function handleAdminInviteOwner(
+  db: Database,
+  houseId: string,
+  publicUrl: string
+): Promise<{ status: number; body: any }> {
+  const house = db.prepare(
+    "SELECT id, name, created_at FROM households WHERE id = ?"
+  ).get(houseId) as { id: string; name: string; created_at: string } | undefined;
+  if (!house) return { status: 404, body: { message: "House not found" } };
+
+  // Each re-invite mints its own placeholder person so we never reuse a
+  // PIN and never mutate a redeemed owner's row. The placeholder is filtered
+  // from API responses by `publicEmail`, same as the first-owner path.
+  const now = new Date().toISOString();
+  const personId = generateId();
+  const placeholderEmail = `__placeholder__-${houseId}-${personId}@local`;
+  db.prepare("INSERT INTO persons (id, email, name, created_at) VALUES (?, ?, ?, ?)")
+    .run(personId, placeholderEmail, "", now);
+  db.prepare("INSERT INTO household_members (id, household_id, person_id, role, created_at) VALUES (?, ?, ?, 'owner', ?)")
+    .run(generateId(), houseId, personId, now);
+
+  const { pin } = createAuthPin(db, { role: "owner", personId, householdId: houseId });
+  const joinUrl = `${publicUrl}/join/${pin}`;
+  const qrSvg = await renderJoinQR(joinUrl);
+
+  return {
+    status: 200,
+    body: {
+      house: { id: house.id, name: house.name, created_at: house.created_at },
       pin,
       join_url: joinUrl,
       qr_svg: qrSvg,
