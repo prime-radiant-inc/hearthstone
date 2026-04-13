@@ -104,12 +104,15 @@ struct GuestListView: View {
             })
         }
         .sheet(item: $viewModel.reinviteResult) { result in
-            GuestPINView(
-                guestName: result.guestName,
-                pin: result.pin,
-                expiresAt: result.expiresAt
-            ) {
-                viewModel.reinviteResult = nil
+            if let joinURL = URL(string: result.joinUrl) {
+                GuestPINView(
+                    guestName: result.guestName,
+                    pin: result.pin,
+                    joinURL: joinURL,
+                    expiresAt: result.expiresAt
+                ) {
+                    viewModel.reinviteResult = nil
+                }
             }
         }
     }

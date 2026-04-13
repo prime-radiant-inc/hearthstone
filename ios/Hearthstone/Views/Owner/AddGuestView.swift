@@ -17,10 +17,11 @@ struct AddGuestView: View {
         ZStack {
             theme.cream.ignoresSafeArea()
 
-            if let guest = createdGuest {
+            if let guest = createdGuest, let joinURL = URL(string: guest.joinUrl) {
                 GuestPINView(
                     guestName: guest.guest.name,
                     pin: guest.pin,
+                    joinURL: joinURL,
                     expiresAt: guest.expiresAt
                 ) {
                     onSuccess()

@@ -17,10 +17,12 @@ struct InviteOwnerView: View {
         ZStack {
             theme.cream.ignoresSafeArea()
 
-            if let pin = resultPin, let expiry = resultExpiry {
+            if let pin = resultPin, let expiry = resultExpiry,
+               let urlString = resultJoinUrl, let joinURL = URL(string: urlString) {
                 GuestPINView(
                     guestName: name,
                     pin: pin,
+                    joinURL: joinURL,
                     expiresAt: expiry
                 ) {
                     dismiss()
