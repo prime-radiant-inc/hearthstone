@@ -3,7 +3,7 @@ import SwiftUI
 struct SidebarView: View {
     @ObservedObject var router: AppRouter
     let onClose: () -> Void
-    @State private var showPINEntry = false
+    @State private var showAddSession = false
 
     @Environment(\.colorScheme) private var colorScheme
     private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
@@ -65,11 +65,11 @@ struct SidebarView: View {
                 .padding(.vertical, 8)
 
             Button {
-                showPINEntry = true
+                showAddSession = true
             } label: {
                 HStack {
                     Image(systemName: "plus.circle.fill")
-                    Text("Enter PIN")
+                    Text("Add house")
                         .fontWeight(.semibold)
                 }
                 .font(.system(size: 14))
@@ -94,12 +94,8 @@ struct SidebarView: View {
         }
         .frame(maxHeight: .infinity)
         .background(theme.sidebarBackground)
-        .sheet(isPresented: $showPINEntry) {
-            PINEntryView { session, token in
-                router.addSession(session, token: token)
-                showPINEntry = false
-                onClose()
-            }
+        .sheet(isPresented: $showAddSession) {
+            LandingView(router: router)
         }
     }
 }

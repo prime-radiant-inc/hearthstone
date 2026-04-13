@@ -12,9 +12,7 @@ struct HearthstoneApp: App {
             Group {
                 switch router.state {
                 case .empty:
-                    PINEntryView { session, token in
-                        router.addSession(session, token: token)
-                    }
+                    LandingView(router: router)
                 case .active(let session):
                     SidebarOverlay(router: router) {
                         if session.role == .owner {
