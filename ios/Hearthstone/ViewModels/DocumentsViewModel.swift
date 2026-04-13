@@ -6,8 +6,15 @@ final class DocumentsViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var error: String?
 
+    let sessionId: String
+
+    init(sessionId: String) {
+        self.sessionId = sessionId
+    }
+
     private var client: APIClient? {
-        SessionStore.shared.activeSession?.apiClient()
+        guard let session = SessionStore.shared.sessions.first(where: { $0.id == sessionId }) else { return nil }
+        return session.apiClient()
     }
 
     func load() async {

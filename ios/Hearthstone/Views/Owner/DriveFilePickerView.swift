@@ -8,8 +8,8 @@ struct DriveFilePickerView: View {
     @StateObject private var viewModel: DriveFilePickerViewModel
     var onReconnect: (() -> Void)?
 
-    init(connectionId: String, onReconnect: (() -> Void)? = nil) {
-        _viewModel = StateObject(wrappedValue: DriveFilePickerViewModel(connectionId: connectionId))
+    init(sessionId: String, connectionId: String, onReconnect: (() -> Void)? = nil) {
+        _viewModel = StateObject(wrappedValue: DriveFilePickerViewModel(sessionId: sessionId, connectionId: connectionId))
         self.onReconnect = onReconnect
     }
 

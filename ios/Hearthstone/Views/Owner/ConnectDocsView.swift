@@ -1,16 +1,24 @@
 import SwiftUI
 
 struct ConnectDocsView: View {
+    let sessionId: String
+
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
 
-    @StateObject private var docsVM = DocumentsViewModel()
-    @StateObject private var connVM = ConnectionsViewModel()
+    @StateObject private var docsVM: DocumentsViewModel
+    @StateObject private var connVM: ConnectionsViewModel
     @State private var showFilePicker = false
     @State private var isRefreshingAll = false
     @State private var showDisconnectConfirm = false
     @State private var pendingReconnect = false
+
+    init(sessionId: String) {
+        self.sessionId = sessionId
+        _docsVM = StateObject(wrappedValue: DocumentsViewModel(sessionId: sessionId))
+        _connVM = StateObject(wrappedValue: ConnectionsViewModel(sessionId: sessionId))
+    }
 
     /// The connection ID to use for the file picker — either from a fresh OAuth or existing connection
     private var activeConnectionId: String? {
@@ -164,7 +172,7 @@ struct ConnectDocsView: View {
                 }
             }) {
                 if let connectionId = activeConnectionId {
-                    DriveFilePickerView(connectionId: connectionId) {
+                    DriveFilePickerView(sessionId: sessionId, connectionId: connectionId) {
                         pendingReconnect = true
                     }
                 }
