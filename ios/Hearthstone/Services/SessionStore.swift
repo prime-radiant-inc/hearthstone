@@ -128,11 +128,14 @@ final class SessionStore: ObservableObject {
     }
 
     func add(session: HouseSession, token: String) {
+        let wasEmpty = sessions.isEmpty
         sessions.removeAll { $0.householdId == session.householdId && $0.role == session.role }
         sessions.append(session)
         sessions.sort { $0.addedAt < $1.addedAt }
         KeychainService.shared.save(key: "hst_\(session.id)", value: token)
-        activeSessionId = session.id
+        if wasEmpty || activeSessionId == nil {
+            activeSessionId = session.id
+        }
         persist()
     }
 
@@ -158,6 +161,10 @@ final class SessionStore: ObservableObject {
         guard sessions.contains(where: { $0.id == id }) else { return }
         activeSessionId = id
         persist()
+    }
+
+    func hasSession(forServerHost host: String) -> Bool {
+        sessions.contains { $0.serverURL.host == host }
     }
 
     func updateSession(id: String, personName: String) {
