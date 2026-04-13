@@ -298,7 +298,7 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       if (method === "POST" && pathname === "/admin/houses") {
         if (!requireAdmin(req)) return json({ message: "Unauthorized" }, 401);
         const body = await req.json();
-        const result = handleAdminCreateHouse(getDb(), body, config.hearthstonePublicUrl);
+        const result = await handleAdminCreateHouse(getDb(), body, config.hearthstonePublicUrl);
         return json(result.body, result.status);
       }
 

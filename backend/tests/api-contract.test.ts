@@ -381,13 +381,14 @@ describe("API Contract: POST /admin/houses", () => {
   let db: Database;
   beforeEach(() => { db = createTestDb(); });
 
-  it("response has { house: { id, name, created_at }, pin, join_url }", () => {
-    const result = handleAdminCreateHouse(db, { name: "New Place" }, "http://test.example");
+  it("response has { house: { id, name, created_at }, pin, join_url, qr_svg }", async () => {
+    const result = await handleAdminCreateHouse(db, { name: "New Place" }, "http://test.example");
     expect(result.status).toBe(200);
-    hasExactKeys(result.body, ["house", "pin", "join_url"]);
+    hasExactKeys(result.body, ["house", "pin", "join_url", "qr_svg"]);
     hasExactKeys(result.body.house, ["id", "name", "created_at"]);
     expect(result.body.pin).toMatch(/^\d{6}$/);
     expect(result.body.join_url).toBe(`http://test.example/join/${result.body.pin}`);
+    expect(result.body.qr_svg).toMatch(/^<svg[\s\S]+<\/svg>\s*$/);
   });
 });
 
@@ -398,7 +399,7 @@ describe("Placeholder email is never leaked through admin-create → redeem → 
   it("pin redeem and owner list both return empty email, not the __placeholder__ sentinel", async () => {
     // 1. Admin creates a house. This inserts a synthetic persons row
     //    with a `__placeholder__-<houseId>@local` email.
-    const created = handleAdminCreateHouse(db, { name: "Placeholder Home" }, "http://test.example");
+    const created = await handleAdminCreateHouse(db, { name: "Placeholder Home" }, "http://test.example");
     expect(created.status).toBe(200);
     const pin = created.body.pin as string;
     const houseId = created.body.house.id as string;

@@ -1,5 +1,6 @@
 import type { Database } from "bun:sqlite";
 import { statSync } from "fs";
+import QRCode from "qrcode";
 import { generateId } from "../utils";
 import { createAuthPin } from "../services/pins";
 import { renderAdminPage } from "../html/admin-page";
@@ -37,11 +38,11 @@ export function handleAdminHouses(db: Database): { status: number; body: any } {
   return { status: 200, body: { houses } };
 }
 
-export function handleAdminCreateHouse(
+export async function handleAdminCreateHouse(
   db: Database,
   body: { name: string },
   publicUrl: string
-): { status: number; body: any } {
+): Promise<{ status: number; body: any }> {
   if (!body?.name || !body.name.trim()) {
     return { status: 422, body: { message: "Name is required" } };
   }
@@ -69,13 +70,25 @@ export function handleAdminCreateHouse(
     .run(generateId(), houseId, personId, now);
 
   const { pin } = createAuthPin(db, { role: "owner", personId, householdId: houseId });
+  const joinUrl = `${publicUrl}/join/${pin}`;
+
+  // Server-side QR render. See docs/superpowers/specs/2026-04-11-multi-server-app-design.md
+  // for why this must not call an external service.
+  const qrSvg = await QRCode.toString(joinUrl, {
+    type: "svg",
+    margin: 1,
+    width: 220,
+    errorCorrectionLevel: "M",
+    color: { dark: "#3d3529", light: "#faf9f6" },
+  });
 
   return {
     status: 200,
     body: {
       house: { id: houseId, name, created_at: now },
       pin,
-      join_url: `${publicUrl}/join/${pin}`,
+      join_url: joinUrl,
+      qr_svg: qrSvg,
     },
   };
 }
