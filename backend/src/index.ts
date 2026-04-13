@@ -34,6 +34,7 @@ import {
 import { handleChat, handleGetSuggestions, handleChatPreview } from "./routes/chat";
 import { handlePinRedeem } from "./routes/pin-auth";
 import { handleListOwners, handleInviteOwner, handleRemoveOwner } from "./routes/owners";
+import { handleJoinPage } from "./routes/join";
 
 function json(body: any, status: number = 200): Response {
   if (status === 204) return new Response(null, { status: 204 });
@@ -129,6 +130,7 @@ function matchRoute(method: string, pathname: string): string {
 
   // Parameterized routes
   const paramPatterns = [
+    "/join/:pin",
     "/guests/:id/reinvite",
     "/guests/:id/revoke",
     "/guests/:id",
@@ -248,6 +250,16 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       if (method === "GET" && pathname === "/") return html(landingPage);
       if (method === "GET" && pathname === "/tos") return html(legalPage("Terms of Service"));
       if (method === "GET" && pathname === "/privacy") return html(legalPage("Privacy Policy"));
+
+      // --- Join landing page ---
+      const joinParams = parsePathParams("/join/:pin", pathname);
+      if (method === "GET" && joinParams) {
+        const result = handleJoinPage(joinParams.pin, config.hearthstonePublicUrl);
+        return new Response(result.body, {
+          status: result.status,
+          headers: { "Content-Type": result.contentType },
+        });
+      }
 
       // --- Auth routes (no auth required) ---
       if (method === "POST" && pathname === "/auth/register") {

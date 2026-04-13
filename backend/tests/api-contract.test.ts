@@ -18,6 +18,7 @@ import { handleCreateHousehold } from "../src/routes/household-create";
 import { handleUpdateHousehold } from "../src/routes/household";
 import { handleListGuests, handleCreateGuest, handleRevokeGuest, handleReinviteGuest, handleDeleteGuest } from "../src/routes/guests";
 import { handleInviteOwner } from "../src/routes/owners";
+import { handleJoinPage } from "../src/routes/join";
 import { handleListDocuments, handleConnectDocument, handleDeleteDocument, handleGetContent } from "../src/routes/documents";
 import { handleListConnections } from "../src/routes/connections";
 import { handleGetSuggestions } from "../src/routes/chat";
@@ -323,5 +324,26 @@ describe("API Contract: POST /auth/pin/redeem (guest)", () => {
     hasExactKeys(result.body, ["token", "role", "guest", "household_name"]);
     expect(result.body.role).toBe("guest");
     hasExactKeys(result.body.guest, ["id", "name", "household_id"]);
+  });
+});
+
+// ============================================================
+// JOIN PAGE
+// ============================================================
+
+describe("Contract: GET /join/:pin", () => {
+  it("returns HTML with embedded custom scheme for a 6-digit PIN", () => {
+    const result = handleJoinPage("123456", "https://server.example");
+    expect(result.status).toBe(200);
+    expect(result.contentType).toContain("text/html");
+    expect(result.body).toContain("hearthstone://join?");
+    expect(result.body).toContain("server=https%3A%2F%2Fserver.example");
+    expect(result.body).toContain("pin=123456");
+    expect(result.body).toContain("Open in Hearthstone");
+  });
+
+  it("returns 404 for malformed PIN", () => {
+    const result = handleJoinPage("abc", "https://server.example");
+    expect(result.status).toBe(404);
   });
 });
