@@ -43,7 +43,7 @@ struct HearthstoneApp: App {
                     host: payload.serverURL.host ?? payload.serverURL.absoluteString,
                     onConfirm: {
                         router.pendingServerPrompt = nil
-                        router.performRedeem(payload: payload)
+                        router.performRedeem(payload: payload, autoActivate: true)
                     },
                     onCancel: {
                         router.pendingServerPrompt = nil
@@ -138,10 +138,17 @@ final class AppRouter: ObservableObject {
             pendingServerPrompt = payload
             return
         }
-        performRedeem(payload: payload)
+        // Same-host redeem (no prompt). Add the session but don't yank the
+        // user out of whatever house they're currently in.
+        performRedeem(payload: payload, autoActivate: false)
     }
 
-    func performRedeem(payload: JoinPayload) {
+    /// `autoActivate` is true when the user just accepted the new-server
+    /// prompt: that's an explicit "I want to enter this server" gesture, and
+    /// landing them on the freshly-added house matches the bootstrap intent.
+    /// For same-host redeems we leave it false so an incoming guest invite
+    /// can't pull a working owner out of their current house.
+    func performRedeem(payload: JoinPayload, autoActivate: Bool) {
         Task { @MainActor in
             let client = UnauthenticatedClient(serverURL: payload.serverURL)
             do {
@@ -162,6 +169,9 @@ final class AppRouter: ObservableObject {
                     addedAt: Date()
                 )
                 store.add(session: session, token: result.token)
+                if autoActivate {
+                    store.switchTo(id: session.id)
+                }
                 syncState()
             } catch {
                 if let apiErr = error as? APIError, case .server(_, let msg) = apiErr {

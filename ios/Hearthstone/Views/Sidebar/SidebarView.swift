@@ -10,13 +10,19 @@ struct SidebarView: View {
 
     private var store: SessionStore { router.store }
 
-    /// Owners first, then alphabetical by household name
+    /// Alphabetical by household name; within a name, owner before guest.
+    /// This groups duplicate houses (e.g. an owner and a guest seat in the
+    /// same household) together rather than scattering them by role.
     private var sortedSessions: [HouseSession] {
         store.sessions.sorted { a, b in
+            let byName = a.householdName.localizedCaseInsensitiveCompare(b.householdName)
+            if byName != .orderedSame {
+                return byName == .orderedAscending
+            }
             if a.role != b.role {
                 return a.role == .owner
             }
-            return a.householdName.localizedCaseInsensitiveCompare(b.householdName) == .orderedAscending
+            return false
         }
     }
 
