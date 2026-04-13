@@ -449,6 +449,21 @@ describe("Admin auth flow", () => {
     expect(result.status).toBe(401);
   });
 
+  it("accepts both GET and POST on /admin/auth (routing contract)", () => {
+    // The handler itself is a pure function of (queryToken, validToken) — it
+    // doesn't look at the HTTP verb. The route dispatch in src/index.ts
+    // registers the same handler for `GET /admin/auth` and
+    // `POST /admin/auth` on purpose: operators click the admin URL from
+    // `fly logs` (a GET) and curl/scripts use POST. If either branch gets
+    // dropped, this will be the test that hangs the PR until it's put back.
+    const indexSource = require("fs").readFileSync(
+      require("path").join(__dirname, "..", "src", "index.ts"),
+      "utf-8"
+    ) as string;
+    expect(indexSource).toContain('method === "POST" && pathname === "/admin/auth"');
+    expect(indexSource).toContain('method === "GET" && pathname === "/admin/auth"');
+  });
+
   it("handleAdminAuth 302s and sets cookie on match", () => {
     const result = handleAdminAuth("hadm_valid", "hadm_valid");
     expect(result.status).toBe(302);

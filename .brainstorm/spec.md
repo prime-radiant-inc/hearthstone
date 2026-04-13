@@ -679,8 +679,10 @@ Public HTML landing page. Returns an HTML document that redirects to `hearthston
 
 **Response:** `200 text/html`
 
-### `POST /admin/auth?t=<token>`
+### `GET /admin/auth?t=<token>` or `POST /admin/auth?t=<token>`
 Exchanges the token query param for a `hadm` cookie, then redirects to `/admin`. Cookie is `httponly`, `secure`, `samesite=strict`, browser-session lifetime.
+
+Both verbs are accepted because operators commonly click the admin URL from `fly logs` or a terminal, which issues a GET. POST is kept for curl/scripted use. The handler is verb-agnostic — it only inspects the `t` query param and the in-memory token.
 
 **Response:** `302` to `/admin` with `Set-Cookie: hadm=<token>`
 
