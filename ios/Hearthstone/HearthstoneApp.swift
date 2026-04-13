@@ -33,18 +33,11 @@ struct HearthstoneApp: App {
             .sheet(item: $router.showAccessRevoked) { name in
                 AccessRevokedView(householdName: name)
             }
-            .sheet(item: $router.pendingServerPrompt) { payload in
-                NewServerPromptView(
-                    host: payload.serverURL.host ?? payload.serverURL.absoluteString,
-                    onConfirm: {
-                        router.pendingServerPrompt = nil
-                        router.performRedeem(payload: payload)
-                    },
-                    onCancel: {
-                        router.pendingServerPrompt = nil
-                    }
-                )
-            }
+            // NewServerPromptView presentation lives on LandingView itself, which
+            // is either the root view (.empty) or sheet content (add-house from
+            // sidebar). In both modes LandingView is the frontmost presenter of
+            // the scanned payload, so attaching the prompt there avoids the
+            // sheet-over-sheet swallowing bug.
             .alert("Couldn't open invite", isPresented: .init(
                 get: { router.redemptionError != nil },
                 set: { if !$0 { router.redemptionError = nil } }

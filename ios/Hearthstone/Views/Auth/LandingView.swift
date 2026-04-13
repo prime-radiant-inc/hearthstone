@@ -7,7 +7,9 @@ struct LandingView: View {
     @State private var showPasteField = false
     @State private var pastedText = ""
     @State private var parseError: String?
+    @State private var initialSessionCount: Int = 0
 
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
 
@@ -119,6 +121,30 @@ struct LandingView: View {
             }
             .background(theme.cream)
             .presentationDetents([.medium])
+        }
+        .sheet(item: $router.pendingServerPrompt) { payload in
+            NewServerPromptView(
+                host: payload.serverURL.host ?? payload.serverURL.absoluteString,
+                onConfirm: {
+                    router.pendingServerPrompt = nil
+                    router.performRedeem(payload: payload)
+                },
+                onCancel: {
+                    router.pendingServerPrompt = nil
+                }
+            )
+        }
+        .onAppear {
+            initialSessionCount = router.store.sessions.count
+        }
+        .onReceive(router.store.$sessions) { newSessions in
+            // If a session was added while this view is visible (e.g. add-house
+            // from the sidebar), dismiss back to the sidebar. When LandingView
+            // is the root (empty state), dismiss() is a no-op — the root view
+            // swap in HearthstoneApp handles that transition.
+            if newSessions.count > initialSessionCount {
+                dismiss()
+            }
         }
     }
 
