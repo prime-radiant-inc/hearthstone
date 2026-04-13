@@ -630,10 +630,9 @@ async function tracedFetch(req: Request): Promise<Response> {
   }
 }
 
-if (!process.env.HEARTHSTONE_PUBLIC_URL) {
-  console.error("FATAL: HEARTHSTONE_PUBLIC_URL is not set. Refusing to start.");
-  process.exit(1);
-}
+// HEARTHSTONE_PUBLIC_URL is now enforced by config.ts's `required()` — it
+// throws a clear error at import time if the var is missing, which is earlier
+// and louder than a manual boot-time check here.
 
 const _adminToken = mintAdminToken();
 console.log("=== Hearthstone admin ===");
