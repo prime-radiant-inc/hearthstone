@@ -62,9 +62,11 @@ struct GuestDocumentsView: View {
             }
         }
         .task {
-            do {
-                documents = try await APIClient.shared.listGuestDocuments()
-            } catch { }
+            if let client = SessionStore.shared.activeSession?.apiClient() {
+                do {
+                    documents = try await client.listGuestDocuments()
+                } catch { }
+            }
             isLoading = false
         }
         .sheet(item: $selectedDoc) { doc in

@@ -14,68 +14,19 @@ final class AuthViewModel: ObservableObject {
         case welcome, verifyCode, setupHousehold, done
     }
 
-    private var isNewUser = false
+    // Legacy email/passkey auth paths are no longer wired up. The flows are
+    // replaced by QR/link redemption via UnauthenticatedClient. These methods
+    // remain so existing previews/views still compile, but they are not used.
 
     func sendCode() async {
-        guard !email.isEmpty else { return }
-        isLoading = true
-        error = nil
-        do {
-            // Try register first; if 409 (already exists), send login code
-            do {
-                _ = try await APIClient.shared.register(email: email)
-                isNewUser = true
-            } catch let apiError as APIError {
-                if case .server(409, _) = apiError {
-                    _ = try await APIClient.shared.loginEmail(email: email)
-                    isNewUser = false
-                } else {
-                    throw apiError
-                }
-            }
-            step = .verifyCode
-        } catch {
-            self.error = error.localizedDescription
-        }
-        isLoading = false
+        self.error = "Email auth has been removed. Use a QR or join link instead."
     }
 
     func verifyCode() async {
-        guard code.count == 6 else { return }
-        isLoading = true
-        error = nil
-        do {
-            let response: APIClient.AuthResponse
-            if isNewUser {
-                // New user: registerVerify creates person + issues JWT in one step
-                response = try await APIClient.shared.registerVerify(email: email, code: code, name: ownerName.isEmpty ? nil : ownerName)
-            } else {
-                // Existing user: login with email code
-                response = try await APIClient.shared.loginEmailVerify(email: email, code: code)
-            }
-
-            KeychainService.shared.ownerToken = response.token
-            if response.household != nil {
-                step = .done
-            } else {
-                step = .setupHousehold
-            }
-        } catch {
-            self.error = "Invalid or expired code"
-        }
-        isLoading = false
+        self.error = "Email auth has been removed. Use a QR or join link instead."
     }
 
     func createHousehold() async {
-        guard !householdName.isEmpty else { return }
-        isLoading = true
-        error = nil
-        do {
-            _ = try await APIClient.shared.createHousehold(name: householdName)
-            step = .done
-        } catch {
-            self.error = error.localizedDescription
-        }
-        isLoading = false
+        self.error = "Households are now created from the admin web UI."
     }
 }

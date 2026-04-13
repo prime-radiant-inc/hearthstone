@@ -40,10 +40,13 @@ struct DashboardView: View {
                             }
                             isSavingName = true
                             Task {
-                                do {
-                                    let updated = try await APIClient.shared.updateHousehold(name: newName)
-                                    householdName = updated.name
-                                } catch {}
+                                if let session = SessionStore.shared.sessions.first(where: { $0.id == sessionId }),
+                                   let client = session.apiClient() {
+                                    do {
+                                        let updated = try await client.updateHousehold(name: newName)
+                                        householdName = updated.name
+                                    } catch {}
+                                }
                                 isSavingName = false
                                 isEditingName = false
                             }
@@ -109,11 +112,14 @@ struct DashboardView: View {
                 let name = promptedName.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !name.isEmpty else { return }
                 Task {
-                    do {
-                        _ = try await APIClient.shared.updateMe(name: name)
-                        ownerName = name
-                        SessionStore.shared.updateSession(id: sessionId, personName: name)
-                    } catch { }
+                    if let session = SessionStore.shared.sessions.first(where: { $0.id == sessionId }),
+                       let client = session.apiClient() {
+                        do {
+                            _ = try await client.updateMe(name: name)
+                            ownerName = name
+                            SessionStore.shared.updateSession(id: sessionId, personName: name)
+                        } catch { }
+                    }
                 }
             }
             Button("Skip", role: .cancel) {}

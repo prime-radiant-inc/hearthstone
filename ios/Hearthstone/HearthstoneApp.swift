@@ -36,7 +36,7 @@ struct HearthstoneApp: App {
                 AccessRevokedView(householdName: name)
             }
             .onOpenURL { url in
-                router.handleUniversalLink(url)
+                router.handleIncomingURL(url)
             }
         }
     }
@@ -101,29 +101,8 @@ final class AppRouter: ObservableObject {
         syncState()
     }
 
-    func handleUniversalLink(_ url: URL) {
-        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
-              components.path.hasPrefix("/join/") else { return }
-
-        let pathParts = components.path.split(separator: "/")
-        guard pathParts.count >= 2 else { return }
-        let token = String(pathParts[1])
-
-        Task {
-            do {
-                let response = try await APIClient.shared.redeemInvite(token: token)
-                let session = HouseSession(
-                    id: UUID().uuidString,
-                    householdId: response.guest.householdId,
-                    householdName: response.householdName,
-                    role: .guest,
-                    addedAt: Date()
-                )
-                addSession(session, token: response.sessionToken)
-            } catch {
-                // Invite errors handled later
-            }
-        }
+    func handleIncomingURL(_ url: URL) {
+        // Rewritten in Task 16 to use UnauthenticatedClient.
     }
 }
 

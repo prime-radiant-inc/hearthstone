@@ -92,9 +92,13 @@ struct AddGuestView: View {
             error = "Name is required."
             return
         }
+        guard let client = SessionStore.shared.activeSession?.apiClient() else {
+            error = "No active session."
+            return
+        }
         isLoading = true
         do {
-            let response = try await APIClient.shared.createGuest(
+            let response = try await client.createGuest(
                 name: name.trimmingCharacters(in: .whitespaces),
                 email: email.isEmpty ? nil : email.trimmingCharacters(in: .whitespaces)
             )

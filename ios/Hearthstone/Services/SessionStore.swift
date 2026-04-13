@@ -44,26 +44,23 @@ final class SessionStore: ObservableObject {
             add(session: session, token: ownerToken)
             KeychainService.shared.delete(key: "hearthstone_owner_jwt")
 
+            let migratedSession = sessions.first(where: { $0.role == .owner && $0.householdId == "migrated-owner" })
             Task {
-                do {
-                    let me = try await APIClient.shared.getMe()
-                    if let household = me.household {
-                        if let idx = sessions.firstIndex(where: { $0.role == .owner && $0.householdId == "migrated-owner" }) {
-                            let old = sessions[idx]
-                            let updated = HouseSession(
-                                id: old.id,
-                                serverURL: old.serverURL,
-                                householdId: household.id,
-                                householdName: household.name,
-                                role: .owner,
-                                addedAt: old.addedAt
-                            )
-                            sessions[idx] = updated
-                            persist()
-                        }
+                guard let me = try? await migratedSession?.apiClient()?.getMe() else { return }
+                if let household = me.household {
+                    if let idx = sessions.firstIndex(where: { $0.role == .owner && $0.householdId == "migrated-owner" }) {
+                        let old = sessions[idx]
+                        let updated = HouseSession(
+                            id: old.id,
+                            serverURL: old.serverURL,
+                            householdId: household.id,
+                            householdName: household.name,
+                            role: .owner,
+                            addedAt: old.addedAt
+                        )
+                        sessions[idx] = updated
+                        persist()
                     }
-                } catch {
-                    // Migration succeeded with placeholder name
                 }
             }
         }

@@ -117,13 +117,16 @@ struct PINEntryView: View {
     }
 
     private func redeemPin() async {
+        // Deprecated: this view is replaced by LandingView in Task 18. Stubbed for build only.
         guard pin.count == 6, !isLoading else { return }
         isLoading = true
         error = nil
         do {
-            let response = try await APIClient.shared.redeemPin(pin: pin)
+            let client = UnauthenticatedClient(serverURL: SessionStore.legacyDefaultServer)
+            let response = try await client.redeemPin(pin)
             let session = HouseSession(
                 id: UUID().uuidString,
+                serverURL: SessionStore.legacyDefaultServer,
                 householdId: response.household?.id ?? response.guest?.householdId ?? "",
                 householdName: response.household?.name ?? response.householdName ?? "",
                 role: response.role == "owner" ? .owner : .guest,

@@ -54,9 +54,13 @@ struct SourceDocumentView: View {
     private func loadContent() async {
         isLoading = true
         error = nil
+        guard let client = await SessionStore.shared.activeSession?.apiClient() else {
+            self.error = "No active session."
+            isLoading = false
+            return
+        }
         do {
-            let auth: APIAuth = KeychainService.shared.ownerToken != nil ? .owner : .guest
-            let doc = try await APIClient.shared.getDocumentContent(id: documentId, auth: auth)
+            let doc = try await client.getDocumentContent(id: documentId)
             htmlContent = doc.html
         } catch {
             self.error = "Unable to load document. Please try again."

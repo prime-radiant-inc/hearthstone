@@ -10,17 +10,25 @@ final class DashboardViewModel: ObservableObject {
     @Published var hasConnections = false
     @Published var error: String?
 
+    private var client: APIClient? {
+        SessionStore.shared.activeSession?.apiClient()
+    }
+
     func load() async {
         self.error = nil
+        guard let client else {
+            self.error = "No active session."
+            return
+        }
         do {
-            let guests = try await APIClient.shared.listGuests()
+            let guests = try await client.listGuests()
             activeGuestCount = guests.filter { $0.status == .active }.count
             pendingGuestCount = guests.filter { $0.status == .pending }.count
 
-            let docs = try await APIClient.shared.listDocuments()
+            let docs = try await client.listDocuments()
             documentCount = docs.count
 
-            let connections = try await APIClient.shared.listConnections()
+            let connections = try await client.listConnections()
             hasConnections = !connections.isEmpty
 
             isSetupComplete = !docs.isEmpty && !guests.isEmpty
