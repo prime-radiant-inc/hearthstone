@@ -306,7 +306,8 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
         const params = parsePathParams("/admin/houses/:id/owner-invite", pathname);
         if (method === "POST" && params) {
           if (!requireAdmin(req)) return json({ message: "Unauthorized" }, 401);
-          const result = await handleAdminInviteOwner(getDb(), params.id, config.hearthstonePublicUrl);
+          const body = await req.json().catch(() => null);
+          const result = await handleAdminInviteOwner(getDb(), params.id, body, config.hearthstonePublicUrl);
           return json(result.body, result.status);
         }
       }

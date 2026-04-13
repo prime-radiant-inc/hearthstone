@@ -391,6 +391,28 @@ describe("API Contract: POST /admin/houses", () => {
     expect(result.body.join_url).toBe(`http://test.example/join/${result.body.pin}`);
     expect(result.body.qr_svg).toMatch(/^<svg[\s\S]+<\/svg>\s*$/);
   });
+
+  it("threads owner_name through to the placeholder person row", async () => {
+    const result = await handleAdminCreateHouse(
+      db,
+      { name: "Anderson Home", owner_name: "Jane Anderson" },
+      "http://test.example"
+    );
+    expect(result.status).toBe(200);
+    const person = db.prepare(
+      "SELECT p.name FROM household_members hm JOIN persons p ON p.id = hm.person_id WHERE hm.household_id = ?"
+    ).get(result.body.house.id) as { name: string };
+    expect(person.name).toBe("Jane Anderson");
+  });
+
+  it("defaults owner_name to empty string when omitted", async () => {
+    const result = await handleAdminCreateHouse(db, { name: "Nameless Home" }, "http://test.example");
+    expect(result.status).toBe(200);
+    const person = db.prepare(
+      "SELECT p.name FROM household_members hm JOIN persons p ON p.id = hm.person_id WHERE hm.household_id = ?"
+    ).get(result.body.house.id) as { name: string };
+    expect(person.name).toBe("");
+  });
 });
 
 describe("API Contract: POST /admin/houses/:id/owner-invite", () => {
@@ -402,7 +424,7 @@ describe("API Contract: POST /admin/houses/:id/owner-invite", () => {
     const houseId = created.body.house.id as string;
     const firstPin = created.body.pin as string;
 
-    const result = await handleAdminInviteOwner(db, houseId, "http://test.example");
+    const result = await handleAdminInviteOwner(db, houseId, null, "http://test.example");
     expect(result.status).toBe(200);
     hasExactKeys(result.body, ["house", "pin", "join_url", "qr_svg"]);
     hasExactKeys(result.body.house, ["id", "name", "created_at"]);
@@ -414,8 +436,26 @@ describe("API Contract: POST /admin/houses/:id/owner-invite", () => {
     expect(result.body.qr_svg).toMatch(/^<svg[\s\S]+<\/svg>\s*$/);
   });
 
+  it("threads owner_name through to the new placeholder person row", async () => {
+    const created = await handleAdminCreateHouse(db, { name: "Existing Place" }, "http://test.example");
+    const houseId = created.body.house.id as string;
+
+    const result = await handleAdminInviteOwner(
+      db,
+      houseId,
+      { owner_name: "Bob Newman" },
+      "http://test.example"
+    );
+    expect(result.status).toBe(200);
+    // The newest placeholder person on this household carries the supplied name.
+    const person = db.prepare(
+      "SELECT p.name FROM household_members hm JOIN persons p ON p.id = hm.person_id WHERE hm.household_id = ? ORDER BY hm.created_at DESC LIMIT 1"
+    ).get(houseId) as { name: string };
+    expect(person.name).toBe("Bob Newman");
+  });
+
   it("returns 404 for an unknown house id", async () => {
-    const result = await handleAdminInviteOwner(db, "does-not-exist", "http://test.example");
+    const result = await handleAdminInviteOwner(db, "does-not-exist", null, "http://test.example");
     expect(result.status).toBe(404);
   });
 });

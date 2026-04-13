@@ -53,7 +53,7 @@ export function handleAdminHouses(db: Database): { status: number; body: any } {
 
 export async function handleAdminCreateHouse(
   db: Database,
-  body: { name: string },
+  body: { name: string; owner_name?: string },
   publicUrl: string
 ): Promise<{ status: number; body: any }> {
   if (!body?.name || !body.name.trim()) {
@@ -62,10 +62,15 @@ export async function handleAdminCreateHouse(
 
   const houseId = generateId();
   const name = body.name.trim();
+  const ownerName = (body.owner_name ?? "").trim();
   const now = new Date().toISOString();
 
   // Create a synthetic placeholder person for the first owner PIN.
-  // When the PIN is redeemed, the real person record is created/updated.
+  // The placeholder's `name` is whatever the admin typed when creating
+  // the house — when the owner redeems, that name is already on the
+  // person row, so the dashboard never has to ask "what's your name?".
+  // If the admin left it blank we store an empty string and fall back
+  // to the dashboard's reactive prompt.
   // The sentinel prefix `__placeholder__` is filtered out of every API
   // response by `publicEmail` in utils.ts — see routes/pin-auth, routes/owners,
   // and the /me handler in index.ts. The row itself stays in the DB because
@@ -75,7 +80,7 @@ export async function handleAdminCreateHouse(
   const placeholderEmail = `__placeholder__-${houseId}@local`;
   const personId = generateId();
   db.prepare("INSERT INTO persons (id, email, name, created_at) VALUES (?, ?, ?, ?)")
-    .run(personId, placeholderEmail, "", now);
+    .run(personId, placeholderEmail, ownerName, now);
 
   db.prepare("INSERT INTO households (id, owner_id, name, created_at) VALUES (?, ?, ?, ?)")
     .run(houseId, personId, name, now);
@@ -100,6 +105,7 @@ export async function handleAdminCreateHouse(
 export async function handleAdminInviteOwner(
   db: Database,
   houseId: string,
+  body: { owner_name?: string } | null,
   publicUrl: string
 ): Promise<{ status: number; body: any }> {
   const house = db.prepare(
@@ -110,11 +116,14 @@ export async function handleAdminInviteOwner(
   // Each re-invite mints its own placeholder person so we never reuse a
   // PIN and never mutate a redeemed owner's row. The placeholder is filtered
   // from API responses by `publicEmail`, same as the first-owner path.
+  // owner_name is optional — when supplied, the redeeming owner skips the
+  // "what's your name?" prompt because their person row already carries it.
+  const ownerName = (body?.owner_name ?? "").trim();
   const now = new Date().toISOString();
   const personId = generateId();
   const placeholderEmail = `__placeholder__-${houseId}-${personId}@local`;
   db.prepare("INSERT INTO persons (id, email, name, created_at) VALUES (?, ?, ?, ?)")
-    .run(personId, placeholderEmail, "", now);
+    .run(personId, placeholderEmail, ownerName, now);
   db.prepare("INSERT INTO household_members (id, household_id, person_id, role, created_at) VALUES (?, ?, ?, 'owner', ?)")
     .run(generateId(), houseId, personId, now);
 

@@ -58,9 +58,36 @@ export function renderAdminPage(): string {
       padding: 1rem; margin: 0.75rem 0 1rem;
     }
     .qr-box svg { display: block; width: 220px; height: 220px; }
-    .join-url-row { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; align-items: stretch; }
-    .join-url-row input { flex: 1; min-width: 0; padding: 0.7rem 0.9rem; border: 1.5px solid #f0ece3; border-radius: 10px; font-size: 0.95rem; background: #faf9f6; font-family: ui-monospace, Menlo, monospace; }
-    .join-url-row button.primary { padding: 0 1.3rem; border: 1.5px solid transparent; display: inline-flex; align-items: center; justify-content: center; }
+    .join-url-row { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
+    .join-url-row input,
+    .join-url-row button.copy {
+      height: 46px;
+      box-sizing: border-box;
+    }
+    .join-url-row input {
+      flex: 1; min-width: 0;
+      padding: 0 0.9rem;
+      border: 1.5px solid #f0ece3; border-radius: 10px;
+      font-size: 0.95rem;
+      background: #faf9f6;
+      font-family: ui-monospace, Menlo, monospace;
+    }
+    .join-url-row button.copy {
+      padding: 0 1.3rem;
+      border: 0; border-radius: 10px;
+      background: linear-gradient(135deg, #c97b5e, #a65a3e);
+      color: white;
+      font-size: 0.95rem; font-weight: 600;
+      cursor: pointer;
+    }
+    .modal label.field-label {
+      display: block;
+      font-size: 0.78rem; color: #9b9488;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      margin: 0.4rem 0 0.4rem;
+    }
+    .modal label.field-label:first-child { margin-top: 0; }
+    .modal .field-hint { font-size: 0.78rem; color: #9b9488; margin: -0.5rem 0 0.75rem; }
     .pin-label { font-size: 0.78rem; color: #9b9488; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.5rem; }
     .pin-display { text-align: center; font-family: ui-monospace, Menlo, monospace; font-size: 1.4rem; letter-spacing: 0.3rem; color: #6b6358; margin: 0.25rem 0 0.75rem; }
     .hint { font-size: 0.85rem; color: #6b6358; line-height: 1.5; }
@@ -124,17 +151,6 @@ export function renderAdminPage(): string {
       \`).join("");
     }
 
-    async function inviteOwner(houseId) {
-      try {
-        const data = await fetchJSON("/admin/houses/" + encodeURIComponent(houseId) + "/owner-invite", {
-          method: "POST",
-        });
-        showResult(data);
-        await loadHouses();
-      } catch (e) {
-        alert("Could not mint invite: " + e.message);
-      }
-    }
 
     async function loadInfo() {
       const data = await fetchJSON("/admin/info");
@@ -157,7 +173,11 @@ export function renderAdminPage(): string {
     function showCreateForm() {
       openModal(\`
         <h3>Create house</h3>
+        <label class="field-label" for="new-house-name">House name</label>
         <input type="text" id="new-house-name" placeholder="The Anderson Home" autofocus>
+        <label class="field-label" for="new-owner-name">First owner's name</label>
+        <input type="text" id="new-owner-name" placeholder="Jane Anderson">
+        <p class="field-hint">Optional. Pre-fills the owner's name so they don't have to type it on first launch.</p>
         <div class="actions">
           <button class="secondary" id="cancel-create">Cancel</button>
           <button class="primary" id="confirm-create">Create</button>
@@ -166,17 +186,46 @@ export function renderAdminPage(): string {
       document.getElementById("cancel-create").onclick = closeModal;
       document.getElementById("confirm-create").onclick = async () => {
         const name = document.getElementById("new-house-name").value.trim();
+        const owner_name = document.getElementById("new-owner-name").value.trim();
         if (!name) return;
         try {
           const data = await fetchJSON("/admin/houses", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name }),
+            body: JSON.stringify({ name, owner_name }),
           });
           showResult(data);
           await loadHouses();
         } catch (e) {
           alert("Create failed: " + e.message);
+        }
+      };
+    }
+
+    function showInviteOwnerForm(houseId) {
+      openModal(\`
+        <h3>New owner link</h3>
+        <label class="field-label" for="invite-owner-name">Owner's name</label>
+        <input type="text" id="invite-owner-name" placeholder="Jane Anderson" autofocus>
+        <p class="field-hint">Optional. Pre-fills their name so they don't have to type it on first launch.</p>
+        <div class="actions">
+          <button class="secondary" id="cancel-invite">Cancel</button>
+          <button class="primary" id="confirm-invite">Mint link</button>
+        </div>
+      \`);
+      document.getElementById("cancel-invite").onclick = closeModal;
+      document.getElementById("confirm-invite").onclick = async () => {
+        const owner_name = document.getElementById("invite-owner-name").value.trim();
+        try {
+          const data = await fetchJSON("/admin/houses/" + encodeURIComponent(houseId) + "/owner-invite", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ owner_name }),
+          });
+          showResult(data);
+          await loadHouses();
+        } catch (e) {
+          alert("Could not mint invite: " + e.message);
         }
       };
     }
@@ -191,7 +240,7 @@ export function renderAdminPage(): string {
         <div class="qr-box">\${data.qr_svg}</div>
         <div class="join-url-row">
           <input type="text" readonly value="\${escapeHTML(data.join_url)}" id="join-url-input">
-          <button class="primary" id="copy-btn">Copy</button>
+          <button class="copy" id="copy-btn">Copy</button>
         </div>
         <div class="pin-label">Single-use PIN (for reference)</div>
         <div class="pin-display">\${escapeHTML(data.pin)}</div>
@@ -214,7 +263,7 @@ export function renderAdminPage(): string {
     document.getElementById("houses-tbody").addEventListener("click", (e) => {
       const btn = e.target.closest("button[data-action='invite-owner']");
       if (!btn) return;
-      inviteOwner(btn.dataset.houseId);
+      showInviteOwnerForm(btn.dataset.houseId);
     });
     loadHouses();
     loadInfo();
