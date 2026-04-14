@@ -57,4 +57,41 @@ export function runMigrations(db: Database): void {
   if (!personCols.some((c: any) => c.name === "name")) {
     db.run("ALTER TABLE persons ADD COLUMN name TEXT NOT NULL DEFAULT ''");
   }
+
+  // FTS5 virtual table over chunks. External-content table — index lives here,
+  // canonical text stays in `chunks`. Triggers keep them in sync.
+  db.run(`
+    CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts USING fts5(
+      text, heading,
+      content='chunks',
+      content_rowid='rowid'
+    );
+  `);
+
+  db.run(`
+    CREATE TRIGGER IF NOT EXISTS chunks_ai AFTER INSERT ON chunks BEGIN
+      INSERT INTO chunks_fts(rowid, text, heading)
+      VALUES (new.rowid, new.text, new.heading);
+    END;
+  `);
+
+  db.run(`
+    CREATE TRIGGER IF NOT EXISTS chunks_ad AFTER DELETE ON chunks BEGIN
+      INSERT INTO chunks_fts(chunks_fts, rowid, text, heading)
+      VALUES('delete', old.rowid, old.text, old.heading);
+    END;
+  `);
+
+  db.run(`
+    CREATE TRIGGER IF NOT EXISTS chunks_au AFTER UPDATE ON chunks BEGIN
+      INSERT INTO chunks_fts(chunks_fts, rowid, text, heading)
+      VALUES('delete', old.rowid, old.text, old.heading);
+      INSERT INTO chunks_fts(rowid, text, heading)
+      VALUES (new.rowid, new.text, new.heading);
+    END;
+  `);
+
+  // Backfill from existing chunks. Idempotent — rebuild is the FTS5 way to
+  // recompute the index from external content.
+  db.run("INSERT INTO chunks_fts(chunks_fts) VALUES('rebuild');");
 }
