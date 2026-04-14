@@ -1,6 +1,6 @@
 import type { Database } from "bun:sqlite";
 import { getSuggestions } from "../services/suggestions";
-import { runChatLoop, type RunChatLoopOptions } from "../services/chat-loop";
+import { runChatLoop, type RunChatLoopOptions, type ChunkRef } from "../services/chat-loop";
 import type { Context } from "../tracing";
 
 interface ChatRequest {
@@ -26,13 +26,7 @@ export async function handleChat(
 
       // Accumulate every chunk the loop publishes so we can resolve
       // the cited [N] indices to source pills after the model is done.
-      const allChunks: Array<{
-        index: number;
-        chunk_id: string;
-        document_id: string;
-        title: string;
-        chunk_index: number;
-      }> = [];
+      const allChunks: ChunkRef[] = [];
 
       try {
         for await (const event of runChatLoop(
