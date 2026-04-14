@@ -6,6 +6,8 @@ export type Persona =
   | "long_term_guest"
   | "relative";
 
+export type Difficulty = "easy" | "hard";
+
 export interface EvalQuestion {
   id: string;
   persona: Persona;
@@ -13,6 +15,7 @@ export interface EvalQuestion {
   keyFacts: string[];
   antiHallucinations?: string[];
   sourceDoc: string;
+  difficulty?: Difficulty; // defaults to "easy" when omitted
 }
 
 export const QUESTIONS: EvalQuestion[] = [
@@ -483,5 +486,247 @@ export const QUESTIONS: EvalQuestion[] = [
       "This is related to her peanut allergy",
     ],
     sourceDoc: "Emergency and General Info",
+  },
+
+  // ── Hard: Multi-hop ─────────────────────────────────────────
+
+  {
+    id: "hard-multihop-noa-reaction-sequence",
+    persona: "childcare",
+    question: "Noa just ate something and I think she's having a peanut reaction. What do I do AND where is the EpiPen?",
+    keyFacts: [
+      "EpiPen is in the front pocket of the red backpack hanging by the front door",
+      "second one in the medicine cabinet upstairs",
+      "use the EpiPen, call 911, then call us",
+    ],
+    antiHallucinations: [
+      "EpiPen is in the kitchen",
+      "call parents before using the EpiPen",
+    ],
+    sourceDoc: "Emergency and General Information",
+    difficulty: "hard",
+  },
+  {
+    id: "hard-multihop-grandma-rosa-role",
+    persona: "childcare",
+    question: "Who is Grandma Rosa, how far away is she, and what's her phone number?",
+    keyFacts: [
+      "(503) 555-0381",
+      "15 min away",
+      "backup if neither of us picks up",
+      "she has a house key",
+    ],
+    sourceDoc: "Emergency and General Information",
+    difficulty: "hard",
+  },
+  {
+    id: "hard-multihop-urgent-care-hours",
+    persona: "house_sitter",
+    question: "It's Saturday evening and Eli has a minor injury. What urgent care can I take him to AND what are the hours?",
+    keyFacts: [
+      "ZoomCare on Hawthorne",
+      "3537 SE Hawthorne Blvd",
+      "5pm weekends",
+    ],
+    antiHallucinations: [
+      "ZoomCare is open until 7pm on weekends",
+      "Go to the ER",
+    ],
+    sourceDoc: "Emergency and General Information",
+    difficulty: "hard",
+  },
+  {
+    id: "hard-multihop-vet-and-insurance",
+    persona: "long_term_guest",
+    question: "If one of the pets gets sick, where's the vet AND where do I find the pet insurance info?",
+    keyFacts: [
+      "Hawthorne Animal Hospital",
+      "(503) 555-8200",
+      "3442 SE Hawthorne Blvd",
+      "filing cabinet",
+      "folder labeled \"Pets\"",
+    ],
+    sourceDoc: "Emergency and General Information",
+    difficulty: "hard",
+  },
+
+  // ── Hard: Exact-token ────────────────────────────────────────
+
+  {
+    id: "hard-exact-poison-control",
+    persona: "childcare",
+    question: "What's the poison control hotline number?",
+    keyFacts: [
+      "1-800-222-1222",
+      "available 24/7",
+    ],
+    antiHallucinations: [
+      "1-800-555-1212",
+      "Call 911 for poison emergencies",
+    ],
+    sourceDoc: "Emergency and General Information",
+    difficulty: "hard",
+  },
+  {
+    id: "hard-exact-noa-zyrtec-dose",
+    persona: "childcare",
+    question: "How much Children's Zyrtec do I give Noa for her seasonal allergies?",
+    keyFacts: [
+      "2.5mL once daily",
+    ],
+    antiHallucinations: [
+      "5mL",
+      "one tablet",
+      "twice daily",
+    ],
+    sourceDoc: "Emergency and General Information",
+    difficulty: "hard",
+  },
+  {
+    id: "hard-exact-er-address",
+    persona: "relative",
+    question: "What's the address of the nearest emergency room?",
+    keyFacts: [
+      "Providence Portland Medical Center",
+      "4805 NE Glisan St",
+    ],
+    antiHallucinations: [
+      "OHSU",
+      "Legacy Emanuel",
+    ],
+    sourceDoc: "Emergency and General Information",
+    difficulty: "hard",
+  },
+  {
+    id: "hard-exact-pediatrician-phone",
+    persona: "childcare",
+    question: "What's the phone number for the kids' pediatrician?",
+    keyFacts: [
+      "(503) 555-7100",
+      "Dr. Sarah Chen",
+      "Westside Pediatrics",
+    ],
+    sourceDoc: "Emergency and General Information",
+    difficulty: "hard",
+  },
+
+  // ── Hard: Browse-style ───────────────────────────────────────
+
+  {
+    id: "hard-browse-all-emergency-contacts",
+    persona: "house_sitter",
+    question: "Give me the full list of emergency contacts with their phone numbers.",
+    keyFacts: [
+      "Mia Castillo",
+      "(503) 555-0147",
+      "David Park",
+      "(503) 555-0293",
+      "Grandma Rosa",
+      "(503) 555-0381",
+      "Brennans",
+      "(503) 555-0422",
+    ],
+    sourceDoc: "Emergency and General Information",
+    difficulty: "hard",
+  },
+  {
+    id: "hard-browse-all-medical-resources",
+    persona: "relative",
+    question: "Walk me through all the medical resources available — doctors, hospitals, urgent care, and poison control.",
+    keyFacts: [
+      "Dr. Sarah Chen",
+      "Westside Pediatrics",
+      "(503) 555-7100",
+      "Providence Portland Medical Center",
+      "4805 NE Glisan St",
+      "ZoomCare on Hawthorne",
+      "3537 SE Hawthorne Blvd",
+      "1-800-222-1222",
+    ],
+    sourceDoc: "Emergency and General Information",
+    difficulty: "hard",
+  },
+  {
+    id: "hard-browse-noa-full-allergy-protocol",
+    persona: "childcare",
+    question: "Give me the complete protocol for handling Noa's peanut allergy, from avoidance to emergency response.",
+    keyFacts: [
+      "No peanuts, no peanut butter, no foods processed in a facility with peanuts",
+      "Check labels",
+      "EpiPen is in the front pocket of the red backpack hanging by the front door",
+      "second one in the medicine cabinet upstairs",
+      "use the EpiPen, call 911, then call us",
+    ],
+    sourceDoc: "Emergency and General Information",
+    difficulty: "hard",
+  },
+  {
+    id: "hard-browse-kids-medical-summary",
+    persona: "childcare",
+    question: "Summarize the medical information for both Eli and Noa — allergies, medications, and any special notes.",
+    keyFacts: [
+      "Eli",
+      "No known allergies",
+      "daily multivitamin",
+      "above the toaster",
+      "stomachaches when anxious",
+      "Noa",
+      "PEANUT ALLERGY",
+      "Children's Zyrtec",
+      "2.5mL",
+    ],
+    sourceDoc: "Emergency and General Information",
+    difficulty: "hard",
+  },
+
+  // ── Hard: Refinement-required ────────────────────────────────
+
+  {
+    id: "hard-refine-family-allergies",
+    persona: "house_sitter",
+    question: "Is anyone in the family allergic to anything?",
+    keyFacts: [
+      "Noa",
+      "PEANUT ALLERGY",
+      "David",
+      "mild shellfish allergy",
+    ],
+    antiHallucinations: [
+      "Eli has a food allergy",
+      "Mia has an allergy",
+    ],
+    sourceDoc: "Emergency and General Information",
+    difficulty: "hard",
+  },
+  {
+    id: "hard-refine-insurance-location",
+    persona: "long_term_guest",
+    question: "Where can I find the insurance information if I need it?",
+    keyFacts: [
+      "filing cabinet in the office",
+      "top drawer",
+      "folder labeled \"Medical\"",
+      "folder labeled \"Pets\"",
+    ],
+    sourceDoc: "Emergency and General Information",
+    difficulty: "hard",
+  },
+  {
+    id: "hard-refine-call-a-doctor",
+    persona: "childcare",
+    question: "I need to reach a doctor. Who should I call?",
+    keyFacts: [
+      "Dr. Sarah Chen",
+      "Westside Pediatrics",
+      "(503) 555-7100",
+      "ZoomCare on Hawthorne",
+      "3537 SE Hawthorne Blvd",
+    ],
+    antiHallucinations: [
+      "Call 911",
+      "Call the parents first",
+    ],
+    sourceDoc: "Emergency and General Information",
+    difficulty: "hard",
   },
 ];
