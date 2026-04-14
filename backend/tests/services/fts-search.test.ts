@@ -74,7 +74,7 @@ describe("ftsSearch", () => {
     expect(results[0].text).toContain("garage");
   });
 
-  it("returns multiple results in rank order", () => {
+  it("returns multiple results when several chunks match", () => {
     insertChunk(db, "c4", "Garage door opener is on the fridge", "House");
     const results = ftsSearch(db, "h1", "garage", 5);
     expect(results.length).toBe(2);
