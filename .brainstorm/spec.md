@@ -420,6 +420,20 @@ data: [DONE]
 
 Final `sources` event lists the chunks used to generate the answer.
 
+**Status events (during tool calls):**
+
+While the model runs tool calls, the SSE stream may include status events between content deltas. iOS clients should treat unknown event types as no-ops.
+
+```
+data: {"status": "searching", "query": "weekend bedtime"}
+data: {"status": "reading", "document_id": "uuid", "title": "House Operations"}
+data: {"status": "thinking"}
+```
+
+Status values: `searching` | `reading` | `thinking`. The `query` field is present on `searching` events; `document_id` and `title` are present on `reading` events.
+
+The order of events within a `/chat` response is: zero or more `status` events interleaved with eventual `delta` events, then a single `sources` event, then `[DONE]`.
+
 **Errors:**
 - `401` — invalid or revoked `hss_` token → `{"message": "Your session has expired. Please use your invite link again."}`
 - `500` — AI provider error → `{"message": "Something went wrong. Please try again."}`

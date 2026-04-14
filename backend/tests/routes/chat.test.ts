@@ -162,3 +162,64 @@ describe("handleChat", () => {
     expect(events.find((e) => "chunks" in e)).toBeUndefined();
   });
 });
+
+describe("handleChat status event shape", () => {
+  let db: Database;
+  const responses: any[] = [];
+
+  beforeEach(() => {
+    db = new Database(":memory:");
+    sqliteVec.load(db);
+    runMigrations(db);
+    seed(db);
+    responses.length = 0;
+  });
+
+  // Programmable mock that drains a queue of responses per test.
+  const programmableMock = async (_ctx: any, _messages: any, _tools: any) => {
+    const next = responses.shift();
+    if (!next) throw new Error("no mock response queued");
+    return next;
+  };
+
+  it("status events expose only the documented fields", async () => {
+    // First model turn calls search; second turn answers.
+    responses.push({
+      role: "assistant",
+      content: null,
+      tool_calls: [{
+        id: "call_1",
+        type: "function",
+        function: { name: "search", arguments: JSON.stringify({ query: "weekend bedtime" }) },
+      }],
+    });
+    responses.push({
+      role: "assistant",
+      content: "OK. Sources: [1]",
+      tool_calls: undefined,
+    });
+
+    const response = await handleChat(
+      undefined,
+      db,
+      "h1",
+      { message: "bedtime?", history: [] },
+      { chatLoopOptions: { chatComplete: programmableMock } }
+    );
+    const events = await readSseEvents(response);
+
+    const statusEvents = events.filter((e: any) => "status" in e);
+    expect(statusEvents.length).toBeGreaterThan(0);
+
+    const allowedKeys = new Set(["status", "query", "document_id", "title"]);
+    for (const ev of statusEvents) {
+      expect(["searching", "reading", "thinking"]).toContain(ev.status);
+      for (const key of Object.keys(ev)) {
+        expect(allowedKeys.has(key)).toBe(true);
+      }
+      if (ev.status === "searching") {
+        expect(typeof ev.query).toBe("string");
+      }
+    }
+  });
+});
