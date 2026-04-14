@@ -98,9 +98,10 @@ describe("runChatLoop", () => {
   });
 
   it("terminates when the tool call cap is reached even if the model keeps calling tools", async () => {
-    // Queue 5 tool-calling responses + 1 final. Cap is 4 tool calls; the 5th
-    // should not be dispatched and the loop should emit a forced final answer.
-    for (let i = 0; i < 5; i++) {
+    // Queue 4 tool-calling responses (filling the cap) + 1 final text response.
+    // The 4 tool calls consume MAX_TOOL_CALLS, then the loop makes one extra
+    // forced call with empty tools that returns the final text answer.
+    for (let i = 0; i < 4; i++) {
       mockResponses.push({
         role: "assistant",
         content: null,
@@ -111,14 +112,16 @@ describe("runChatLoop", () => {
         }],
       });
     }
-    // Forced answer when cap is hit
+    // Forced final answer when the cap fires
     mockResponses.push({ role: "assistant", content: "OK final.", tool_calls: undefined });
 
     const events = await collect(runChatLoop(undefined, db, "h1", "q", [], { chatComplete: mockChatComplete }));
+
     const statusEvents = events.filter(e => e.type === "status" && (e as any).status === "searching");
-    // Seed search is not a status event (it runs synthetically before the loop),
-    // so status count is exactly the number of model-issued tool calls = 4 cap.
     expect(statusEvents.length).toBe(4);
+
+    const deltas = events.filter(e => e.type === "delta").map(e => (e as any).delta).join("");
+    expect(deltas).toContain("OK final.");
   });
 
   it("seeds the conversation with a synthetic tool_use before the first model call", async () => {

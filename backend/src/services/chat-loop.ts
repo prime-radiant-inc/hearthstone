@@ -4,7 +4,7 @@ import { TOOLS, dispatchTool, type ToolResult } from "./chat-tools";
 import { runHybridSearch } from "./hybrid-search";
 import { buildDocumentInventory } from "./document-inventory";
 import { buildToolCallSystemPrompt } from "./prompt";
-import { startSpan, type Context } from "../tracing";
+import { startSpan, SpanStatusCode, type Context } from "../tracing";
 
 const MAX_TOOL_CALLS = 4;
 const SEED_LIMIT = 5;
@@ -108,12 +108,21 @@ export async function* runChatLoop(
       const response: AssistantMessage = await chatComplete(ctx, messages, TOOLS);
 
       const toolCalls = response.tool_calls ?? [];
-      if (toolCalls.length === 0 || toolCallsRemaining === 0) {
-        // Final answer. Emit content as a single delta. Streaming the final
-        // response would require a second inference and is out of scope for
-        // Phase A; status events already cover the "Charlotte is working" UX.
+      if (toolCalls.length === 0) {
+        // Model produced a final answer naturally. Emit and exit.
         if (response.content) {
           yield { type: "delta", delta: response.content };
+        }
+        return;
+      }
+      if (toolCallsRemaining === 0) {
+        // Cap exhausted — force a text-only final answer with one extra
+        // call that has no tools available. Without this, we'd silently
+        // return with no delta event because the model is still in
+        // tool-calling mode and response.content would be null.
+        const finalResponse = await chatComplete(ctx, messages, []);
+        if (finalResponse.content) {
+          yield { type: "delta", delta: finalResponse.content };
         }
         return;
       }
@@ -131,7 +140,7 @@ export async function* runChatLoop(
         } else if (call.function.name === "read_document") {
           let id = "";
           try { id = JSON.parse(call.function.arguments)?.document_id ?? ""; } catch {}
-          const doc = db.prepare("SELECT title FROM documents WHERE id = ? AND household_id = ?").get(id, householdId) as { title: string } | undefined;
+          const doc = db.prepare("SELECT title FROM documents WHERE id = ? AND household_id = ? AND status = 'ready'").get(id, householdId) as { title: string } | undefined;
           yield { type: "status", status: "reading", document_id: id, title: doc?.title };
         }
 
@@ -178,6 +187,10 @@ export async function* runChatLoop(
         toolCallsRemaining -= 1;
       }
     }
+  } catch (err: any) {
+    span.setStatus({ code: SpanStatusCode.ERROR, message: err?.message });
+    span.recordException(err);
+    throw err;
   } finally {
     span.end();
   }
