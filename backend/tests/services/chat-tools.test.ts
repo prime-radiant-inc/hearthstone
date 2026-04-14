@@ -134,4 +134,16 @@ describe("dispatchTool", () => {
       })
     ).rejects.toThrow();
   });
+
+  it("falls back to the default limit when the limit argument is non-numeric", async () => {
+    const result = await dispatchTool(undefined, db, "h1", {
+      name: "search",
+      arguments: JSON.stringify({ query: "garage", limit: "invalid" }),
+      indexBase: 1,
+    });
+    expect(result.kind).toBe("search");
+    expect(result.payload.chunks.length).toBeGreaterThan(0);
+    // SEARCH_DEFAULT_LIMIT is 5; the seed has 3 chunks, so we expect ≤3 (limited by data, not by the limit value)
+    expect(result.payload.chunks.length).toBeLessThanOrEqual(5);
+  });
 });

@@ -123,8 +123,10 @@ async function dispatchSearch(
       indicesConsumed: 0,
     };
   }
-  const requestedLimit = Number(args?.limit ?? SEARCH_DEFAULT_LIMIT);
-  const limit = Math.max(1, Math.min(SEARCH_MAX_LIMIT, Math.floor(requestedLimit)));
+  const rawLimit = Number(args?.limit ?? SEARCH_DEFAULT_LIMIT);
+  const limit = Number.isFinite(rawLimit)
+    ? Math.max(1, Math.min(SEARCH_MAX_LIMIT, Math.floor(rawLimit)))
+    : SEARCH_DEFAULT_LIMIT;
 
   const results = await runHybridSearch(ctx, db, householdId, query, limit);
   const chunks = results.map((r, i) => ({
