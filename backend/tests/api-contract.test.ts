@@ -448,8 +448,10 @@ describe("API Contract: POST /admin/houses/:id/owner-invite", () => {
     );
     expect(result.status).toBe(200);
     // The newest placeholder person on this household carries the supplied name.
+    // Tiebreak on rowid because both household_members rows are inserted in
+    // the same millisecond — `created_at` alone is not a stable ordering.
     const person = db.prepare(
-      "SELECT p.name FROM household_members hm JOIN persons p ON p.id = hm.person_id WHERE hm.household_id = ? ORDER BY hm.created_at DESC LIMIT 1"
+      "SELECT p.name FROM household_members hm JOIN persons p ON p.id = hm.person_id WHERE hm.household_id = ? ORDER BY hm.created_at DESC, hm.rowid DESC LIMIT 1"
     ).get(houseId) as { name: string };
     expect(person.name).toBe("Bob Newman");
   });
