@@ -3,7 +3,7 @@ import { embed } from "./embeddings";
 import { searchChunks, type SearchResult } from "./search";
 import { ftsSearch } from "./fts-search";
 import { reciprocalRankFusion } from "./rrf";
-import { startSpan, type Context } from "../tracing";
+import { startSpan, SpanStatusCode, type Context } from "../tracing";
 
 const POOL_MULTIPLIER = 2;
 
@@ -32,6 +32,10 @@ export async function runHybridSearch(
     const fused = reciprocalRankFusion(vectorResults, ftsResults, limit);
     span.setAttribute("hybrid.fused_hits", fused.length);
     return fused;
+  } catch (err: any) {
+    span.setStatus({ code: SpanStatusCode.ERROR, message: err?.message });
+    span.recordException(err);
+    throw err;
   } finally {
     span.end();
   }
