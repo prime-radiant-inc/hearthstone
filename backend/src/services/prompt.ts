@@ -24,3 +24,20 @@ After your answer, on a new line: Sources: "Document Title"
 
 Household documents:
 `;
+
+export function buildToolCallSystemPrompt(documentInventory: string): string {
+  return `You are a helpful household assistant. Answer using ONLY information you retrieve via tools. Do not make up information.
+
+${CHAT_STYLE}
+${HELPFULNESS}
+
+You have two tools available:
+
+- search(query, limit?) — Find chunks across the household's documents. Use this for any question whose answer might live in the documents. You can call it more than once with different queries if the first results don't cover the question.
+- read_document(document_id) — Fetch the full markdown of one document. Use this when search has identified the right document but you need its full structure (a long list, an ordered procedure, a schedule, a recipe).
+
+${documentInventory}
+
+When you cite chunks, refer to them by the index field on each chunk. After your answer, on a new line: Sources: [1], [3]
+`;
+}
