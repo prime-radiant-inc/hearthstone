@@ -147,3 +147,80 @@ describe("dispatchTool", () => {
     expect(result.payload.chunks.length).toBeLessThanOrEqual(5);
   });
 });
+
+describe("dispatchTool — read_document", () => {
+  let db: Database;
+
+  beforeEach(() => {
+    db = new Database(":memory:");
+    sqliteVec.load(db);
+    runMigrations(db);
+    seed(db);
+  });
+
+  it("returns the full markdown of a document with chunk markers between chunks", async () => {
+    const result = await dispatchTool(undefined, db, "h1", {
+      name: "read_document",
+      arguments: JSON.stringify({ document_id: "d1" }),
+      indexBase: 1,
+    });
+
+    expect(result.kind).toBe("read_document");
+    expect(result.payload.document_id).toBe("d1");
+    expect(result.payload.title).toBe("House Ops");
+    expect(result.payload.markdown).toContain("<<chunk:c0>>");
+    expect(result.payload.markdown).toContain("<<chunk:c1>>");
+    expect(result.payload.markdown).toContain("<<chunk:c2>>");
+    expect(result.payload.markdown).toContain("garage code 4820");
+  });
+
+  it("orders chunks by chunk_index", async () => {
+    const result = await dispatchTool(undefined, db, "h1", {
+      name: "read_document",
+      arguments: JSON.stringify({ document_id: "d1" }),
+      indexBase: 1,
+    });
+    const md = result.payload.markdown as string;
+    const i0 = md.indexOf("<<chunk:c0>>");
+    const i1 = md.indexOf("<<chunk:c1>>");
+    const i2 = md.indexOf("<<chunk:c2>>");
+    expect(i0).toBeLessThan(i1);
+    expect(i1).toBeLessThan(i2);
+  });
+
+  it("returns indicesConsumed = 0 (read_document does not consume citation indices)", async () => {
+    const result = await dispatchTool(undefined, db, "h1", {
+      name: "read_document",
+      arguments: JSON.stringify({ document_id: "d1" }),
+      indexBase: 1,
+    });
+    expect(result.indicesConsumed).toBe(0);
+  });
+
+  it("throws when document_id does not exist in the household", async () => {
+    await expect(
+      dispatchTool(undefined, db, "h1", {
+        name: "read_document",
+        arguments: JSON.stringify({ document_id: "does-not-exist" }),
+        indexBase: 1,
+      })
+    ).rejects.toThrow();
+  });
+
+  it("scopes by household_id (cannot read another household's doc)", async () => {
+    const now = new Date().toISOString();
+    db.prepare("INSERT INTO persons (id, email, created_at) VALUES (?, ?, ?)").run("p2", "x@t", now);
+    db.prepare("INSERT INTO households (id, owner_id, name, created_at) VALUES (?, ?, ?, ?)").run("h2", "p2", "Other", now);
+    db.prepare(
+      "INSERT INTO documents (id, household_id, drive_file_id, title, markdown, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    ).run("d2", "h2", "drive2", "Other", "secret", "ready", now);
+
+    await expect(
+      dispatchTool(undefined, db, "h1", {
+        name: "read_document",
+        arguments: JSON.stringify({ document_id: "d2" }),
+        indexBase: 1,
+      })
+    ).rejects.toThrow();
+  });
+});

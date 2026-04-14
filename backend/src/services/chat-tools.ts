@@ -148,12 +148,49 @@ async function dispatchSearch(
 }
 
 async function dispatchReadDocument(
-  _ctx: Context | undefined,
-  _db: Database,
-  _householdId: string,
-  _args: any,
+  ctx: Context | undefined,
+  db: Database,
+  householdId: string,
+  args: any,
   _indexBase: number
 ): Promise<ReadDocumentToolResult> {
-  // Implemented in Task 7.
-  throw new Error("read_document not yet implemented");
+  const docId = String(args?.document_id ?? "").trim();
+  if (!docId) {
+    throw new Error("read_document requires a document_id");
+  }
+
+  const doc = db
+    .prepare(
+      "SELECT id, title FROM documents WHERE id = ? AND household_id = ? AND status = 'ready'"
+    )
+    .get(docId, householdId) as { id: string; title: string } | undefined;
+
+  if (!doc) {
+    throw new Error(`Document ${docId} not found in household`);
+  }
+
+  const chunks = db
+    .prepare(
+      `SELECT id, chunk_index, heading, text
+       FROM chunks
+       WHERE document_id = ? AND household_id = ?
+       ORDER BY chunk_index`
+    )
+    .all(docId, householdId) as Array<{
+      id: string;
+      chunk_index: number;
+      heading: string;
+      text: string;
+    }>;
+
+  // Stitch chunks together with inline citation markers. The model can
+  // still cite a specific section even when answering from a full read.
+  const sections = chunks.map((c) => `<<chunk:${c.id}>>\n${c.text}`);
+  const markdown = sections.join("\n\n");
+
+  return {
+    kind: "read_document",
+    payload: { document_id: doc.id, title: doc.title, markdown },
+    indicesConsumed: 0,
+  };
 }
