@@ -6,10 +6,26 @@ final class DocumentsViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var error: String?
 
+    let sessionId: String
+
+    init(sessionId: String) {
+        self.sessionId = sessionId
+    }
+
+    private var client: APIClient? {
+        guard let session = SessionStore.shared.sessions.first(where: { $0.id == sessionId }) else { return nil }
+        return session.apiClient()
+    }
+
     func load() async {
         isLoading = true
+        guard let client else {
+            self.error = "No active session."
+            isLoading = false
+            return
+        }
         do {
-            documents = try await APIClient.shared.listDocuments()
+            documents = try await client.listDocuments()
         } catch {
             self.error = error.localizedDescription
         }
@@ -17,8 +33,9 @@ final class DocumentsViewModel: ObservableObject {
     }
 
     func refresh(documentId: String) async {
+        guard let client else { return }
         do {
-            _ = try await APIClient.shared.refreshDocument(id: documentId)
+            _ = try await client.refreshDocument(id: documentId)
             await load()
         } catch {
             self.error = error.localizedDescription
@@ -26,8 +43,9 @@ final class DocumentsViewModel: ObservableObject {
     }
 
     func remove(documentId: String) async {
+        guard let client else { return }
         do {
-            try await APIClient.shared.deleteDocument(id: documentId)
+            try await client.deleteDocument(id: documentId)
             await load()
         } catch {
             self.error = error.localizedDescription
@@ -36,9 +54,13 @@ final class DocumentsViewModel: ObservableObject {
 
     func refreshAll() async {
         isLoading = true
+        guard let client else {
+            isLoading = false
+            return
+        }
         for doc in documents {
             do {
-                _ = try await APIClient.shared.refreshDocument(id: doc.id)
+                _ = try await client.refreshDocument(id: doc.id)
             } catch {
                 // Continue refreshing remaining docs even if one fails
             }

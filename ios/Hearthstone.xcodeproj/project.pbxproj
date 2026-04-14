@@ -35,7 +35,6 @@
 		91D2682B4D7AA463A931E8B3 /* MessageBubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35B54811E9568D04E41E1D40 /* MessageBubble.swift */; };
 		B0B35FEFC16C499171256985 /* ChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC47B1DB3BC3C8AEB9CB62E2 /* ChatViewModel.swift */; };
 		B11C65BF6167E93105F0E182 /* Document.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8FC1D2FA013BB586A464ADA /* Document.swift */; };
-		B2C3D4E5F60123456789AB01 /* PINEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F601234567890A /* PINEntryView.swift */; };
 		AA05000000000000000005B1 /* QRScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA05000000000000000005A1 /* QRScannerView.swift */; };
 		AA06000000000000000006B1 /* InviteOwnerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA06000000000000000006A1 /* InviteOwnerView.swift */; };
 		B2C3D4E5F6A7B8C9D0E1F2A3 /* DriveFilePickerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F2 /* DriveFilePickerViewModel.swift */; };
@@ -56,6 +55,10 @@
 		AA03000000000000000003B1 /* SidebarOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA03000000000000000003A1 /* SidebarOverlay.swift */; };
 		AA04000000000000000004B1 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA04000000000000000004A1 /* SidebarView.swift */; };
 		AA07000000000000000007B1 /* GuestDocumentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA07000000000000000007A1 /* GuestDocumentsView.swift */; };
+		AA08000000000000000008B1 /* UnauthenticatedClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA08000000000000000008A1 /* UnauthenticatedClient.swift */; };
+		AA09000000000000000009B1 /* JoinURLParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA09000000000000000009A1 /* JoinURLParser.swift */; };
+		AA10000000000000000010B1 /* NewServerPromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10000000000000000010A1 /* NewServerPromptView.swift */; };
+		AA11000000000000000011B1 /* LandingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11000000000000000011A1 /* LandingView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -81,7 +84,6 @@
 		7E20C4A529634EF4AA4FA796 /* DriveFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveFile.swift; sourceTree = "<group>"; };
 		88AA192FF5FDDE7224F434FC /* GuestListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestListView.swift; sourceTree = "<group>"; };
 		911D8BD2218D321FFACC6783 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F601234567890A /* PINEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PINEntryView.swift; sourceTree = "<group>"; };
 		AA05000000000000000005A1 /* QRScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRScannerView.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F6A7B8C9D0E1F2 /* DriveFilePickerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveFilePickerViewModel.swift; sourceTree = "<group>"; };
 		A575226351EBD6A26DB29462 /* Hearthstone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hearthstone.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -109,6 +111,10 @@
 		AA04000000000000000004A1 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
 		AA06000000000000000006A1 /* InviteOwnerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InviteOwnerView.swift; sourceTree = "<group>"; };
 		AA07000000000000000007A1 /* GuestDocumentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestDocumentsView.swift; sourceTree = "<group>"; };
+		AA08000000000000000008A1 /* UnauthenticatedClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnauthenticatedClient.swift; sourceTree = "<group>"; };
+		AA09000000000000000009A1 /* JoinURLParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JoinURLParser.swift; sourceTree = "<group>"; };
+		AA10000000000000000010A1 /* NewServerPromptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewServerPromptView.swift; sourceTree = "<group>"; };
+		AA11000000000000000011A1 /* LandingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandingView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -144,7 +150,8 @@
 			isa = PBXGroup;
 			children = (
 				CE3D7F4ED477BB3A9D6AC4EA /* HouseholdSetupView.swift */,
-				A1B2C3D4E5F601234567890A /* PINEntryView.swift */,
+				AA11000000000000000011A1 /* LandingView.swift */,
+				AA10000000000000000010A1 /* NewServerPromptView.swift */,
 				AA05000000000000000005A1 /* QRScannerView.swift */,
 				722C9536F2D45780DDF60666 /* VerifyCodeView.swift */,
 				EDFF0389459109EAA5A09A74 /* WelcomeView.swift */,
@@ -179,9 +186,11 @@
 			isa = PBXGroup;
 			children = (
 				BE4EE6D15E820ECB1A26F3A3 /* APIClient.swift */,
+				AA09000000000000000009A1 /* JoinURLParser.swift */,
 				EDD84A7F97E32C1775351C2C /* KeychainService.swift */,
 				AA02000000000000000002A1 /* SessionStore.swift */,
 				FDD098C398E3401F959D0287 /* SSEClient.swift */,
+				AA08000000000000000008A1 /* UnauthenticatedClient.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -373,10 +382,13 @@
 				CB814B680110FA221E81687B /* Theme.swift in Sources */,
 				7108A78F317AA431BA9F0046 /* VerifyCodeView.swift in Sources */,
 				5E6D6335D619725F1A7B0005 /* WelcomeView.swift in Sources */,
-				B2C3D4E5F60123456789AB01 /* PINEntryView.swift in Sources */,
 				AA05000000000000000005B1 /* QRScannerView.swift in Sources */,
 				AA03000000000000000003B1 /* SidebarOverlay.swift in Sources */,
 				AA04000000000000000004B1 /* SidebarView.swift in Sources */,
+				AA08000000000000000008B1 /* UnauthenticatedClient.swift in Sources */,
+				AA09000000000000000009B1 /* JoinURLParser.swift in Sources */,
+				AA10000000000000000010B1 /* NewServerPromptView.swift in Sources */,
+				AA11000000000000000011B1 /* LandingView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

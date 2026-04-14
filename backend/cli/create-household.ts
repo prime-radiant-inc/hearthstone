@@ -3,6 +3,7 @@ import { createInterface } from "node:readline";
 import { getDb } from "../src/db/connection";
 import { generateId } from "../src/utils";
 import { createAuthPin } from "../src/services/pins";
+import { config } from "../src/config";
 
 const db = getDb();
 
@@ -52,7 +53,8 @@ async function main() {
   console.log(`\n✓ Created household "${name.trim()}"`);
   console.log(`✓ Owner PIN: ${pin}`);
   console.log(`  Expires: ${expiresDate}`);
-  console.log(`\nEnter this PIN in the Hearthstone app to sign in as the owner.`);
+  console.log(`  Join URL: ${config.hearthstonePublicUrl}/join/${pin}`);
+  console.log(`\nOpen the Join URL on the new owner's phone to sign in.`);
 
   rl.close();
   db.close();

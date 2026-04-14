@@ -30,33 +30,21 @@ final class SSEClient {
     }
 
     static func streamChat(
+        serverURL: URL,
+        token: String,
         message: String,
         history: [HistoryMessage],
         isPreview: Bool = false
     ) -> AsyncThrowingStream<DeltaEvent, Error> {
         AsyncThrowingStream { continuation in
             Task {
-                #if DEBUG
-                let baseURL = "http://localhost:3000"
-                #else
-                let baseURL = "https://hearthstone-mhat.fly.dev"
-                #endif
-
-                let path = isPreview ? "/chat/preview" : "/chat"
-                guard let url = URL(string: baseURL + path) else {
-                    continuation.finish(throwing: URLError(.badURL))
-                    return
-                }
+                let path = isPreview ? "chat/preview" : "chat"
+                let url = serverURL.appendingPathComponent(path)
                 var request = URLRequest(url: url)
                 request.httpMethod = "POST"
                 request.setValue("application/json", forHTTPHeaderField: "Content-Type")
                 request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
-
-                let token = await SessionStore.shared.activeToken
-
-                if let token = token {
-                    request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-                }
+                request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
 
                 let body = ChatRequest(message: message, history: history)
                 request.httpBody = try? JSONEncoder().encode(body)

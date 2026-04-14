@@ -34,6 +34,18 @@ import {
 import { handleChat, handleGetSuggestions, handleChatPreview } from "./routes/chat";
 import { handlePinRedeem } from "./routes/pin-auth";
 import { handleListOwners, handleInviteOwner, handleRemoveOwner } from "./routes/owners";
+import { handleJoinPage } from "./routes/join";
+import { mintAdminToken, getAdminToken } from "./services/admin-token";
+import { handleAdminAuth, handleAdminPage, handleAdminHouses, handleAdminCreateHouse, handleAdminInviteOwner, handleAdminInfo } from "./routes/admin";
+import { requireAdmin } from "./middleware/admin-auth";
+import { publicEmail } from "./utils";
+import pkg from "../package.json" with { type: "json" };
+
+// Read version from package.json directly. Bun does not populate
+// `process.env.npm_package_version` the way npm does, so the old
+// `process.env.npm_package_version || "0.0.0"` always returned "0.0.0"
+// regardless of the value in package.json.
+const PACKAGE_VERSION: string = (pkg as { version?: string }).version ?? "0.0.0";
 
 function json(body: any, status: number = 200): Response {
   if (status === 204) return new Response(null, { status: 204 });
@@ -129,6 +141,7 @@ function matchRoute(method: string, pathname: string): string {
 
   // Parameterized routes
   const paramPatterns = [
+    "/join/:pin",
     "/guests/:id/reinvite",
     "/guests/:id/revoke",
     "/guests/:id",
@@ -249,6 +262,62 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       if (method === "GET" && pathname === "/tos") return html(legalPage("Terms of Service"));
       if (method === "GET" && pathname === "/privacy") return html(legalPage("Privacy Policy"));
 
+      // --- Join landing page ---
+      const joinParams = parsePathParams("/join/:pin", pathname);
+      if (method === "GET" && joinParams) {
+        const result = handleJoinPage(joinParams.pin, config.hearthstonePublicUrl);
+        return new Response(result.body, {
+          status: result.status,
+          headers: { "Content-Type": result.contentType },
+        });
+      }
+
+      // --- Admin routes ---
+      if (method === "POST" && pathname === "/admin/auth") {
+        const result = handleAdminAuth(url.searchParams.get("t"), getAdminToken());
+        return new Response(null, { status: result.status, headers: result.headers });
+      }
+      // Allow GET on /admin/auth too — clicking a link from a terminal is a GET.
+      if (method === "GET" && pathname === "/admin/auth") {
+        const result = handleAdminAuth(url.searchParams.get("t"), getAdminToken());
+        return new Response(null, { status: result.status, headers: result.headers });
+      }
+
+      if (method === "GET" && pathname === "/admin") {
+        if (!requireAdmin(req)) return json({ message: "Unauthorized" }, 401);
+        const result = handleAdminPage();
+        return html(result.body, result.status);
+      }
+
+      if (method === "GET" && pathname === "/admin/houses") {
+        if (!requireAdmin(req)) return json({ message: "Unauthorized" }, 401);
+        const result = handleAdminHouses(getDb());
+        return json(result.body, result.status);
+      }
+
+      if (method === "POST" && pathname === "/admin/houses") {
+        if (!requireAdmin(req)) return json({ message: "Unauthorized" }, 401);
+        const body = await req.json();
+        const result = await handleAdminCreateHouse(getDb(), body, config.hearthstonePublicUrl);
+        return json(result.body, result.status);
+      }
+
+      {
+        const params = parsePathParams("/admin/houses/:id/owner-invite", pathname);
+        if (method === "POST" && params) {
+          if (!requireAdmin(req)) return json({ message: "Unauthorized" }, 401);
+          const body = await req.json().catch(() => null);
+          const result = await handleAdminInviteOwner(getDb(), params.id, body, config.hearthstonePublicUrl);
+          return json(result.body, result.status);
+        }
+      }
+
+      if (method === "GET" && pathname === "/admin/info") {
+        if (!requireAdmin(req)) return json({ message: "Unauthorized" }, 401);
+        const result = handleAdminInfo(getDb(), config.hearthstonePublicUrl, config.databaseUrl, PACKAGE_VERSION);
+        return json(result.body, result.status);
+      }
+
       // --- Auth routes (no auth required) ---
       if (method === "POST" && pathname === "/auth/register") {
         const body = await req.json();
@@ -311,7 +380,7 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
         const household = getDb().prepare(
           "SELECT h.id, h.name, h.created_at FROM households h JOIN household_members hm ON hm.household_id = h.id WHERE hm.person_id = ? AND hm.role = 'owner' LIMIT 1"
         ).get(owner.personId) as any || null;
-        return json({ person: { id: person.id, email: person.email, name: person.name || "" }, household });
+        return json({ person: { id: person.id, email: publicEmail(person.email), name: person.name || "" }, household });
       }
 
       if (method === "PATCH" && pathname === "/me") {
@@ -323,7 +392,7 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
         }
         getDb().prepare("UPDATE persons SET name = ? WHERE id = ?").run(name, owner.personId);
         const person = getDb().prepare("SELECT id, email, name FROM persons WHERE id = ?").get(owner.personId) as any;
-        return json({ person: { id: person.id, email: person.email, name: person.name || "" } });
+        return json({ person: { id: person.id, email: publicEmail(person.email), name: person.name || "" } });
       }
 
       // --- Owner routes ---
@@ -350,14 +419,14 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       if (method === "POST" && pathname === "/guests") {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         const body = await req.json();
-        const result = await handleCreateGuest(getDb(), owner.householdId, owner.personId, body);
+        const result = await handleCreateGuest(getDb(), owner.householdId, owner.personId, body, config.hearthstonePublicUrl);
         return json(result.body, result.status);
       }
 
       const reinviteParams = parsePathParams("/guests/:id/reinvite", pathname);
       if (method === "POST" && reinviteParams) {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
-        const result = handleReinviteGuest(getDb(), owner.householdId, owner.personId, reinviteParams.id);
+        const result = handleReinviteGuest(getDb(), owner.householdId, owner.personId, reinviteParams.id, config.hearthstonePublicUrl);
         return json(result.body, result.status);
       }
 
@@ -385,7 +454,7 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       if (method === "POST" && pathname === "/household/owners") {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         const body = await req.json();
-        const result = handleInviteOwner(getDb(), owner.householdId, owner.personId, body);
+        const result = handleInviteOwner(getDb(), owner.householdId, owner.personId, body, config.hearthstonePublicUrl);
         return json(result.body, result.status);
       }
 
@@ -576,6 +645,15 @@ async function tracedFetch(req: Request): Promise<Response> {
     span.end();
   }
 }
+
+// HEARTHSTONE_PUBLIC_URL is now enforced by config.ts's `required()` — it
+// throws a clear error at import time if the var is missing, which is earlier
+// and louder than a manual boot-time check here.
+
+const _adminToken = mintAdminToken();
+console.log("=== Hearthstone admin ===");
+console.log(`URL: ${config.hearthstonePublicUrl}/admin/auth?t=${_adminToken}`);
+console.log("Valid until process restart.");
 
 Bun.serve({ port: config.port, fetch: tracedFetch });
 console.log(`Hearthstone backend running on http://localhost:${config.port}`);

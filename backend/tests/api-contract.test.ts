@@ -17,6 +17,15 @@ import { handleRegister, handleRegisterVerify, handleLoginEmail, handleLoginEmai
 import { handleCreateHousehold } from "../src/routes/household-create";
 import { handleUpdateHousehold } from "../src/routes/household";
 import { handleListGuests, handleCreateGuest, handleRevokeGuest, handleReinviteGuest, handleDeleteGuest } from "../src/routes/guests";
+import { handleInviteOwner, handleListOwners } from "../src/routes/owners";
+import { handleJoinPage } from "../src/routes/join";
+import {
+  handleAdminHouses,
+  handleAdminCreateHouse,
+  handleAdminInviteOwner,
+  handleAdminInfo,
+  handleAdminAuth,
+} from "../src/routes/admin";
 import { handleListDocuments, handleConnectDocument, handleDeleteDocument, handleGetContent } from "../src/routes/documents";
 import { handleListConnections } from "../src/routes/connections";
 import { handleGetSuggestions } from "../src/routes/chat";
@@ -158,13 +167,15 @@ describe("API Contract: POST /guests", () => {
   let db: Database;
   beforeEach(() => { db = createTestDb(); });
 
-  it("response has { guest: { id, name, status }, pin, expires_at }", async () => {
+  it("response has { guest: { id, name, status }, pin, join_url, expires_at }", async () => {
     const hid = seedOwner(db);
-    const result = await handleCreateGuest(db, hid, "p1", { name: "Maria", email: "maria@test.com" });
+    const result = await handleCreateGuest(db, hid, "p1", { name: "Maria", email: "maria@test.com" }, "http://test.example");
     expect(result.status).toBe(200);
-    hasExactKeys(result.body, ["guest", "pin", "expires_at"]);
+    hasExactKeys(result.body, ["guest", "pin", "join_url", "expires_at"]);
     hasExactKeys(result.body.guest, ["id", "name", "status"]);
     expect(result.body.pin).toMatch(/^\d{6}$/);
+    expect(typeof result.body.join_url).toBe("string");
+    expect(result.body.join_url).toContain(`/join/${result.body.pin}`);
   });
 });
 
@@ -185,13 +196,34 @@ describe("API Contract: POST /guests/:id/reinvite", () => {
   let db: Database;
   beforeEach(() => { db = createTestDb(); });
 
-  it("response has { pin, expires_at }", () => {
+  it("response has { pin, join_url, expires_at }", () => {
     const hid = seedOwner(db);
     seedGuest(db, hid, "pending");
-    const result = handleReinviteGuest(db, hid, "p1", "g1");
+    const result = handleReinviteGuest(db, hid, "p1", "g1", "http://test.example");
     expect(result.status).toBe(200);
-    hasExactKeys(result.body, ["pin", "expires_at"]);
+    hasExactKeys(result.body, ["pin", "join_url", "expires_at"]);
     expect(result.body.pin).toMatch(/^\d{6}$/);
+    expect(result.body.join_url).toContain(`/join/${result.body.pin}`);
+  });
+});
+
+describe("API Contract: POST /household/owners", () => {
+  let db: Database;
+  beforeEach(() => { db = createTestDb(); });
+
+  it("response has { pin, join_url, expires_at }", () => {
+    const hid = seedOwner(db);
+    const result = handleInviteOwner(
+      db,
+      hid,
+      "p1",
+      { name: "Jamie", email: "jamie@test.com" },
+      "http://test.example"
+    );
+    expect(result.status).toBe(200);
+    hasExactKeys(result.body, ["pin", "join_url", "expires_at"]);
+    expect(result.body.pin).toMatch(/^\d{6}$/);
+    expect(result.body.join_url).toContain(`/join/${result.body.pin}`);
   });
 });
 
@@ -299,5 +331,215 @@ describe("API Contract: POST /auth/pin/redeem (guest)", () => {
     hasExactKeys(result.body, ["token", "role", "guest", "household_name"]);
     expect(result.body.role).toBe("guest");
     hasExactKeys(result.body.guest, ["id", "name", "household_id"]);
+  });
+});
+
+// ============================================================
+// JOIN PAGE
+// ============================================================
+
+describe("Contract: GET /join/:pin", () => {
+  it("returns HTML with embedded custom scheme for a 6-digit PIN", () => {
+    const result = handleJoinPage("123456", "https://server.example");
+    expect(result.status).toBe(200);
+    expect(result.contentType).toContain("text/html");
+    expect(result.body).toContain("hearthstone://join?");
+    expect(result.body).toContain("server=https%3A%2F%2Fserver.example");
+    expect(result.body).toContain("pin=123456");
+    expect(result.body).toContain("Open in Hearthstone");
+  });
+
+  it("returns 404 for malformed PIN", () => {
+    const result = handleJoinPage("abc", "https://server.example");
+    expect(result.status).toBe(404);
+  });
+});
+
+// ============================================================
+// ADMIN
+// ============================================================
+
+describe("API Contract: GET /admin/houses", () => {
+  let db: Database;
+  beforeEach(() => { db = createTestDb(); });
+
+  it("response has { houses: [{ id, name, created_at, owner_count, guest_count, document_count }] }", () => {
+    seedOwner(db);
+    seedGuest(db, "h1");
+    seedDocument(db, "h1");
+    const result = handleAdminHouses(db);
+    expect(result.status).toBe(200);
+    hasExactKeys(result.body, ["houses"]);
+    expect(result.body.houses).toHaveLength(1);
+    hasExactKeys(result.body.houses[0], ["id", "name", "created_at", "owner_count", "guest_count", "document_count"]);
+    expect(result.body.houses[0].owner_count).toBe(1);
+    expect(result.body.houses[0].guest_count).toBe(1);
+    expect(result.body.houses[0].document_count).toBe(1);
+  });
+});
+
+describe("API Contract: POST /admin/houses", () => {
+  let db: Database;
+  beforeEach(() => { db = createTestDb(); });
+
+  it("response has { house: { id, name, created_at }, pin, join_url, qr_svg }", async () => {
+    const result = await handleAdminCreateHouse(db, { name: "New Place" }, "http://test.example");
+    expect(result.status).toBe(200);
+    hasExactKeys(result.body, ["house", "pin", "join_url", "qr_svg"]);
+    hasExactKeys(result.body.house, ["id", "name", "created_at"]);
+    expect(result.body.pin).toMatch(/^\d{6}$/);
+    expect(result.body.join_url).toBe(`http://test.example/join/${result.body.pin}`);
+    expect(result.body.qr_svg).toMatch(/^<svg[\s\S]+<\/svg>\s*$/);
+  });
+
+  it("threads owner_name through to the placeholder person row", async () => {
+    const result = await handleAdminCreateHouse(
+      db,
+      { name: "Anderson Home", owner_name: "Jane Anderson" },
+      "http://test.example"
+    );
+    expect(result.status).toBe(200);
+    const person = db.prepare(
+      "SELECT p.name FROM household_members hm JOIN persons p ON p.id = hm.person_id WHERE hm.household_id = ?"
+    ).get(result.body.house.id) as { name: string };
+    expect(person.name).toBe("Jane Anderson");
+  });
+
+  it("defaults owner_name to empty string when omitted", async () => {
+    const result = await handleAdminCreateHouse(db, { name: "Nameless Home" }, "http://test.example");
+    expect(result.status).toBe(200);
+    const person = db.prepare(
+      "SELECT p.name FROM household_members hm JOIN persons p ON p.id = hm.person_id WHERE hm.household_id = ?"
+    ).get(result.body.house.id) as { name: string };
+    expect(person.name).toBe("");
+  });
+});
+
+describe("API Contract: POST /admin/houses/:id/owner-invite", () => {
+  let db: Database;
+  beforeEach(() => { db = createTestDb(); });
+
+  it("response mirrors create-house: { house, pin, join_url, qr_svg } with a fresh PIN", async () => {
+    const created = await handleAdminCreateHouse(db, { name: "Existing Place" }, "http://test.example");
+    const houseId = created.body.house.id as string;
+    const firstPin = created.body.pin as string;
+
+    const result = await handleAdminInviteOwner(db, houseId, null, "http://test.example");
+    expect(result.status).toBe(200);
+    hasExactKeys(result.body, ["house", "pin", "join_url", "qr_svg"]);
+    hasExactKeys(result.body.house, ["id", "name", "created_at"]);
+    expect(result.body.house.id).toBe(houseId);
+    expect(result.body.house.name).toBe("Existing Place");
+    expect(result.body.pin).toMatch(/^\d{6}$/);
+    expect(result.body.pin).not.toBe(firstPin);
+    expect(result.body.join_url).toBe(`http://test.example/join/${result.body.pin}`);
+    expect(result.body.qr_svg).toMatch(/^<svg[\s\S]+<\/svg>\s*$/);
+  });
+
+  it("threads owner_name through to the new placeholder person row", async () => {
+    const created = await handleAdminCreateHouse(db, { name: "Existing Place" }, "http://test.example");
+    const houseId = created.body.house.id as string;
+
+    const result = await handleAdminInviteOwner(
+      db,
+      houseId,
+      { owner_name: "Bob Newman" },
+      "http://test.example"
+    );
+    expect(result.status).toBe(200);
+    // The newest placeholder person on this household carries the supplied name.
+    const person = db.prepare(
+      "SELECT p.name FROM household_members hm JOIN persons p ON p.id = hm.person_id WHERE hm.household_id = ? ORDER BY hm.created_at DESC LIMIT 1"
+    ).get(houseId) as { name: string };
+    expect(person.name).toBe("Bob Newman");
+  });
+
+  it("returns 404 for an unknown house id", async () => {
+    const result = await handleAdminInviteOwner(db, "does-not-exist", null, "http://test.example");
+    expect(result.status).toBe(404);
+  });
+});
+
+describe("Placeholder email is never leaked through admin-create → redeem → list owners", () => {
+  let db: Database;
+  beforeEach(() => { db = createTestDb(); });
+
+  it("pin redeem and owner list both return empty email, not the __placeholder__ sentinel", async () => {
+    // 1. Admin creates a house. This inserts a synthetic persons row
+    //    with a `__placeholder__-<houseId>@local` email.
+    const created = await handleAdminCreateHouse(db, { name: "Placeholder Home" }, "http://test.example");
+    expect(created.status).toBe(200);
+    const pin = created.body.pin as string;
+    const houseId = created.body.house.id as string;
+
+    // Sanity: the raw row does carry the sentinel prefix.
+    const rawPerson = db.prepare(
+      "SELECT p.email FROM household_members hm JOIN persons p ON p.id = hm.person_id WHERE hm.household_id = ?"
+    ).get(houseId) as any;
+    expect(rawPerson.email).toMatch(/^__placeholder__/);
+
+    // 2. Owner redeems the PIN. The response's person.email must be "".
+    const redeemed = await handlePinRedeem(db, { pin }, "test-secret");
+    expect(redeemed.status).toBe(200);
+    expect(redeemed.body.person.email).toBe("");
+    expect(redeemed.body.person.email).not.toContain("__placeholder__");
+
+    // 3. GET /household/owners must scrub the same row.
+    const owners = handleListOwners(db, houseId);
+    expect(owners.status).toBe(200);
+    expect(owners.body.owners).toHaveLength(1);
+    expect(owners.body.owners[0].email).toBe("");
+    expect(owners.body.owners[0].email).not.toContain("__placeholder__");
+    hasExactKeys(owners.body.owners[0], ["id", "name", "email", "created_at"]);
+  });
+});
+
+describe("API Contract: GET /admin/info", () => {
+  let db: Database;
+  beforeEach(() => { db = createTestDb(); });
+
+  it("response has { public_url, db_file_size_bytes, version }", () => {
+    const result = handleAdminInfo(db, "http://test.example", "./nonexistent.db", "0.2.0");
+    expect(result.status).toBe(200);
+    hasExactKeys(result.body, ["public_url", "db_file_size_bytes", "version"]);
+    expect(result.body.public_url).toBe("http://test.example");
+    expect(result.body.version).toBe("0.2.0");
+  });
+});
+
+describe("Admin auth flow", () => {
+  it("handleAdminAuth rejects missing token", () => {
+    const result = handleAdminAuth(null, "hadm_valid");
+    expect(result.status).toBe(401);
+  });
+
+  it("handleAdminAuth rejects wrong token", () => {
+    const result = handleAdminAuth("hadm_wrong", "hadm_valid");
+    expect(result.status).toBe(401);
+  });
+
+  it("accepts both GET and POST on /admin/auth (routing contract)", () => {
+    // The handler itself is a pure function of (queryToken, validToken) — it
+    // doesn't look at the HTTP verb. The route dispatch in src/index.ts
+    // registers the same handler for `GET /admin/auth` and
+    // `POST /admin/auth` on purpose: operators click the admin URL from
+    // `fly logs` (a GET) and curl/scripts use POST. If either branch gets
+    // dropped, this will be the test that hangs the PR until it's put back.
+    const indexSource = require("fs").readFileSync(
+      require("path").join(__dirname, "..", "src", "index.ts"),
+      "utf-8"
+    ) as string;
+    expect(indexSource).toContain('method === "POST" && pathname === "/admin/auth"');
+    expect(indexSource).toContain('method === "GET" && pathname === "/admin/auth"');
+  });
+
+  it("handleAdminAuth 302s and sets cookie on match", () => {
+    const result = handleAdminAuth("hadm_valid", "hadm_valid");
+    expect(result.status).toBe(302);
+    expect(result.headers["Set-Cookie"]).toContain("hadm=hadm_valid");
+    expect(result.headers["Set-Cookie"]).toContain("HttpOnly");
+    expect(result.headers["Set-Cookie"]).toContain("Secure");
+    expect(result.headers["Set-Cookie"]).toContain("SameSite=Strict");
+    expect(result.headers.Location).toBe("/admin");
   });
 });

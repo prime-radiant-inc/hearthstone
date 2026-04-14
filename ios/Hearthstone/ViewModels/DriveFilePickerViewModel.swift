@@ -10,17 +10,28 @@ final class DriveFilePickerViewModel: ObservableObject {
     @Published var connectedFileIds: Set<String> = []
 
     private let connectionId: String
+    let sessionId: String
 
-    init(connectionId: String) {
+    init(sessionId: String, connectionId: String) {
+        self.sessionId = sessionId
         self.connectionId = connectionId
+    }
+
+    private var client: APIClient? {
+        guard let session = SessionStore.shared.sessions.first(where: { $0.id == sessionId }) else { return nil }
+        return session.apiClient()
     }
 
     func load() async {
         isLoading = true
         error = nil
         isAuthError = false
+        guard let client else {
+            isLoading = false
+            return
+        }
         do {
-            files = try await APIClient.shared.listDriveFiles(connectionId: connectionId)
+            files = try await client.listDriveFiles(connectionId: connectionId)
         } catch let apiErr as APIError {
             switch apiErr {
             case .server(401, let msg):
@@ -39,9 +50,10 @@ final class DriveFilePickerViewModel: ObservableObject {
     }
 
     func connect(file: DriveFile) async {
+        guard let client else { return }
         connectingFileIds.insert(file.id)
         do {
-            _ = try await APIClient.shared.connectDocument(driveFileId: file.id, title: file.name)
+            _ = try await client.connectDocument(driveFileId: file.id, title: file.name)
             connectingFileIds.remove(file.id)
             connectedFileIds.insert(file.id)
         } catch {

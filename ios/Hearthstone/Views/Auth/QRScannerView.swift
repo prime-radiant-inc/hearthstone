@@ -113,8 +113,7 @@ struct QRScannerView: UIViewControllerRepresentable {
                   let object = metadataObjects.first as? AVMetadataMachineReadableCodeObject,
                   object.type == .qr,
                   let value = object.stringValue,
-                  value.count == 6,
-                  value.allSatisfy(\.isNumber) else {
+                  !value.isEmpty else {
                 return
             }
 

@@ -48,14 +48,6 @@ struct AnyCodable: Codable {
     }
 }
 
-// MARK: - Auth level
-
-enum APIAuth {
-    case none
-    case owner
-    case guest
-}
-
 // MARK: - Response wrappers
 
 private struct ServerError: Decodable {
@@ -65,45 +57,31 @@ private struct ServerError: Decodable {
 // MARK: - APIClient
 
 final class APIClient {
-    static let shared = APIClient()
-    private init() {}
+    let serverURL: URL
+    let token: String
 
-    #if DEBUG
-    private let baseURL = "http://localhost:3000"
-    #else
-    private let baseURL = "https://hearthstone-mhat.fly.dev"
-    #endif
+    init(serverURL: URL, token: String) {
+        self.serverURL = serverURL
+        self.token = token
+    }
 
     private let session = URLSession.shared
     private let encoder = JSONEncoder()
-    private let decoder: JSONDecoder = {
-        let d = JSONDecoder()
-        return d
-    }()
+    private let decoder: JSONDecoder = JSONDecoder()
 
     // MARK: - Core request machinery
 
     private func request(
         method: String,
         path: String,
-        auth: APIAuth = .none,
         body: (any Encodable)? = nil
     ) async throws -> (Data, HTTPURLResponse) {
-        guard let url = URL(string: baseURL + path) else {
-            throw URLError(.badURL)
-        }
+        let trimmed = path.hasPrefix("/") ? String(path.dropFirst()) : path
+        let url = serverURL.appendingPathComponent(trimmed)
         var req = URLRequest(url: url)
         req.httpMethod = method
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        switch auth {
-        case .none:
-            break
-        case .owner, .guest:
-            if let token = await SessionStore.shared.activeToken {
-                req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-            }
-        }
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
 
         if let body {
             req.httpBody = try encoder.encode(body)
@@ -113,7 +91,7 @@ final class APIClient {
         let http = response as! HTTPURLResponse
 
         guard (200...299).contains(http.statusCode) else {
-            if http.statusCode == 401 && auth == .guest {
+            if http.statusCode == 401 {
                 NotificationCenter.default.post(name: .guestSessionRevoked, object: nil)
             }
             if let serverErr = try? decoder.decode(ServerError.self, from: data) {
@@ -129,10 +107,9 @@ final class APIClient {
     private func call<T: Decodable>(
         method: String,
         path: String,
-        auth: APIAuth = .none,
         body: (any Encodable)? = nil
     ) async throws -> T {
-        let (data, _) = try await request(method: method, path: path, auth: auth, body: body)
+        let (data, _) = try await request(method: method, path: path, body: body)
         return try decoder.decode(T.self, from: data)
     }
 
@@ -140,105 +117,9 @@ final class APIClient {
     private func callVoid(
         method: String,
         path: String,
-        auth: APIAuth = .none,
         body: (any Encodable)? = nil
     ) async throws {
-        _ = try await request(method: method, path: path, auth: auth, body: body)
-    }
-
-    // MARK: - Auth endpoints
-
-    struct RegisterResponse: Decodable {
-        let message: String
-        let email: String
-    }
-
-    func register(email: String) async throws -> RegisterResponse {
-        struct Body: Encodable { let email: String }
-        return try await call(method: "POST", path: "/auth/register",
-                              body: Body(email: email))
-    }
-
-    func registerVerify(email: String, code: String, name: String? = nil) async throws -> AuthResponse {
-        struct Body: Encodable { let email: String; let code: String; let name: String? }
-        return try await call(method: "POST", path: "/auth/register/verify",
-                              body: Body(email: email, code: code, name: name))
-    }
-
-    struct LoginEmailResponse: Decodable {
-        let message: String
-    }
-
-    func loginEmail(email: String) async throws -> LoginEmailResponse {
-        struct Body: Encodable { let email: String }
-        return try await call(method: "POST", path: "/auth/login/email",
-                              body: Body(email: email))
-    }
-
-    struct AuthResponse: Decodable {
-        let token: String
-        let person: Person
-        let household: Household?
-    }
-
-    func loginEmailVerify(email: String, code: String) async throws -> AuthResponse {
-        struct Body: Encodable { let email: String; let code: String }
-        return try await call(method: "POST", path: "/auth/login/email/verify",
-                              body: Body(email: email, code: code))
-    }
-
-    struct InviteRedeemResponse: Decodable {
-        let sessionToken: String
-        let guest: InviteGuest
-        let householdName: String
-
-        struct InviteGuest: Decodable {
-            let id: String
-            let name: String
-            let householdId: String
-
-            enum CodingKeys: String, CodingKey {
-                case id, name
-                case householdId = "household_id"
-            }
-        }
-
-        enum CodingKeys: String, CodingKey {
-            case sessionToken = "session_token"
-            case guest
-            case householdName = "household_name"
-        }
-    }
-
-    func redeemInvite(token: String) async throws -> InviteRedeemResponse {
-        struct Body: Encodable {
-            let inviteToken: String
-            enum CodingKeys: String, CodingKey {
-                case inviteToken = "invite_token"
-            }
-        }
-        return try await call(method: "POST", path: "/auth/invite/redeem",
-                              body: Body(inviteToken: token))
-    }
-
-    struct PinRedeemResponse: Decodable {
-        let token: String
-        let role: String
-        let person: Person?
-        let household: Household?
-        let guest: InviteRedeemResponse.InviteGuest?
-        let householdName: String?
-
-        enum CodingKeys: String, CodingKey {
-            case token, role, person, household, guest
-            case householdName = "household_name"
-        }
-    }
-
-    func redeemPin(pin: String) async throws -> PinRedeemResponse {
-        struct Body: Encodable { let pin: String }
-        return try await call(method: "POST", path: "/auth/pin/redeem",
-                              body: Body(pin: pin))
+        _ = try await request(method: method, path: path, body: body)
     }
 
     // MARK: - Me
@@ -249,7 +130,7 @@ final class APIClient {
     }
 
     func getMe() async throws -> MeResponse {
-        try await call(method: "GET", path: "/me", auth: .owner)
+        try await call(method: "GET", path: "/me")
     }
 
     struct UpdateMeResponse: Decodable {
@@ -258,35 +139,33 @@ final class APIClient {
 
     func updateMe(name: String) async throws -> UpdateMeResponse {
         struct Body: Encodable { let name: String }
-        return try await call(method: "PATCH", path: "/me", auth: .owner,
-                              body: Body(name: name))
+        return try await call(method: "PATCH", path: "/me", body: Body(name: name))
     }
 
     // MARK: - Household endpoints
 
     func createHousehold(name: String) async throws -> Household {
         struct Body: Encodable { let name: String }
-        return try await call(method: "POST", path: "/household", auth: .owner,
-                              body: Body(name: name))
+        return try await call(method: "POST", path: "/household", body: Body(name: name))
     }
 
     func updateHousehold(name: String) async throws -> Household {
         struct Body: Encodable { let name: String }
-        return try await call(method: "PATCH", path: "/household", auth: .owner,
-                              body: Body(name: name))
+        return try await call(method: "PATCH", path: "/household", body: Body(name: name))
     }
 
     // MARK: - Guest endpoints
 
     func listGuests() async throws -> [Guest] {
         struct Response: Decodable { let guests: [Guest] }
-        let r: Response = try await call(method: "GET", path: "/guests", auth: .owner)
+        let r: Response = try await call(method: "GET", path: "/guests")
         return r.guests
     }
 
     struct CreateGuestResponse: Decodable {
         let guest: CreatedGuest
         let pin: String
+        let joinUrl: String
         let expiresAt: String
 
         struct CreatedGuest: Decodable {
@@ -297,42 +176,45 @@ final class APIClient {
 
         enum CodingKeys: String, CodingKey {
             case guest, pin
+            case joinUrl = "join_url"
             case expiresAt = "expires_at"
         }
     }
 
     func createGuest(name: String, email: String?) async throws -> CreateGuestResponse {
         struct Body: Encodable { let name: String; let email: String? }
-        return try await call(method: "POST", path: "/guests", auth: .owner,
+        return try await call(method: "POST", path: "/guests",
                               body: Body(name: name, email: email))
     }
 
     func revokeGuest(id: String) async throws {
-        try await callVoid(method: "POST", path: "/guests/\(id)/revoke", auth: .owner)
+        try await callVoid(method: "POST", path: "/guests/\(id)/revoke")
     }
 
     struct ReinviteResponse: Decodable {
         let pin: String
+        let joinUrl: String
         let expiresAt: String
         enum CodingKeys: String, CodingKey {
             case pin
+            case joinUrl = "join_url"
             case expiresAt = "expires_at"
         }
     }
 
     func reinviteGuest(id: String) async throws -> ReinviteResponse {
-        return try await call(method: "POST", path: "/guests/\(id)/reinvite", auth: .owner)
+        return try await call(method: "POST", path: "/guests/\(id)/reinvite")
     }
 
     func deleteGuest(id: String) async throws {
-        try await callVoid(method: "DELETE", path: "/guests/\(id)", auth: .owner)
+        try await callVoid(method: "DELETE", path: "/guests/\(id)")
     }
 
     // MARK: - Connection endpoints
 
     func listConnections() async throws -> [Connection] {
         struct Response: Decodable { let connections: [Connection] }
-        let r: Response = try await call(method: "GET", path: "/connections", auth: .owner)
+        let r: Response = try await call(method: "GET", path: "/connections")
         return r.connections
     }
 
@@ -342,16 +224,16 @@ final class APIClient {
     }
 
     func connectGoogleDrive() async throws -> GoogleDriveAuthResponse {
-        return try await call(method: "POST", path: "/connections/google-drive", auth: .owner)
+        return try await call(method: "POST", path: "/connections/google-drive")
     }
 
     func deleteConnection(id: String) async throws {
-        try await callVoid(method: "DELETE", path: "/connections/\(id)", auth: .owner)
+        try await callVoid(method: "DELETE", path: "/connections/\(id)")
     }
 
     func listDriveFiles(connectionId: String) async throws -> [DriveFile] {
         struct Response: Decodable { let files: [DriveFile] }
-        let r: Response = try await call(method: "GET", path: "/connections/\(connectionId)/files", auth: .owner)
+        let r: Response = try await call(method: "GET", path: "/connections/\(connectionId)/files")
         return r.files
     }
 
@@ -359,13 +241,13 @@ final class APIClient {
 
     func listDocuments() async throws -> [Document] {
         struct Response: Decodable { let documents: [Document] }
-        let r: Response = try await call(method: "GET", path: "/documents", auth: .owner)
+        let r: Response = try await call(method: "GET", path: "/documents")
         return r.documents
     }
 
     func listGuestDocuments() async throws -> [Document] {
         struct Response: Decodable { let documents: [Document] }
-        let r: Response = try await call(method: "GET", path: "/guest/documents", auth: .guest)
+        let r: Response = try await call(method: "GET", path: "/guest/documents")
         return r.documents
     }
 
@@ -378,31 +260,26 @@ final class APIClient {
                 case title
             }
         }
-        return try await call(method: "POST", path: "/documents", auth: .owner,
+        return try await call(method: "POST", path: "/documents",
                               body: Body(driveFileId: driveFileId, title: title))
     }
 
     func refreshDocument(id: String) async throws -> Document {
-        return try await call(method: "POST", path: "/documents/\(id)/refresh", auth: .owner)
+        return try await call(method: "POST", path: "/documents/\(id)/refresh")
     }
 
     func deleteDocument(id: String) async throws {
-        try await callVoid(method: "DELETE", path: "/documents/\(id)", auth: .owner)
+        try await callVoid(method: "DELETE", path: "/documents/\(id)")
     }
 
     func uploadDocument(title: String, docxData: Data) async throws -> Document {
-        guard let url = URL(string: baseURL + "/documents/upload") else {
-            throw URLError(.badURL)
-        }
+        let url = serverURL.appendingPathComponent("documents/upload")
         var req = URLRequest(url: url)
         req.httpMethod = "POST"
 
         let boundary = UUID().uuidString
         req.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-
-        if let token = await SessionStore.shared.activeToken {
-            req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
 
         var body = Data()
         // Title field
@@ -429,30 +306,42 @@ final class APIClient {
         return try decoder.decode(Document.self, from: data)
     }
 
-    func getDocumentContent(id: String, auth: APIAuth) async throws -> DocumentContent {
-        return try await call(method: "GET", path: "/documents/\(id)/content", auth: auth)
+    func getDocumentContent(id: String) async throws -> DocumentContent {
+        return try await call(method: "GET", path: "/documents/\(id)/content")
     }
 
     // MARK: - Owner endpoints
 
     struct InviteOwnerResponse: Decodable {
         let pin: String
+        let joinUrl: String
         let expiresAt: String
         enum CodingKeys: String, CodingKey {
             case pin
+            case joinUrl = "join_url"
             case expiresAt = "expires_at"
         }
     }
 
     func inviteOwner(name: String, email: String) async throws -> InviteOwnerResponse {
         struct Body: Encodable { let name: String; let email: String }
-        return try await call(method: "POST", path: "/household/owners", auth: .owner,
+        return try await call(method: "POST", path: "/household/owners",
                               body: Body(name: name, email: email))
     }
 
     // MARK: - Chat endpoints
 
-    func getSuggestions(asOwner: Bool = false) async throws -> SuggestionsResponse {
-        return try await call(method: "GET", path: "/chat/suggestions", auth: asOwner ? .owner : .guest)
+    func getSuggestions() async throws -> SuggestionsResponse {
+        return try await call(method: "GET", path: "/chat/suggestions")
+    }
+}
+
+// MARK: - HouseSession convenience
+
+extension HouseSession {
+    @MainActor
+    func apiClient() -> APIClient? {
+        guard let token = KeychainService.shared.read(key: "hst_\(id)") else { return nil }
+        return APIClient(serverURL: serverURL, token: token)
     }
 }

@@ -89,6 +89,38 @@ Exchange a single-use `hsi_` invite token for a long-lived `hss_` session token.
 
 ---
 
+### `POST /auth/pin/redeem`
+Exchange a short-lived PIN for a session.
+
+**Request:**
+```json
+{ "pin": "123456" }
+```
+
+**Response (owner role):**
+```json
+{
+  "token": "jwt_here",
+  "role": "owner",
+  "person": { "id": "uuid", "email": "alice@example.com", "name": "Alice" },
+  "household": { "id": "uuid", "name": "The Anderson Home", "created_at": "2024-01-01T00:00:00Z" }
+}
+```
+
+**Response (guest role):**
+```json
+{
+  "token": "hss_xyz...",
+  "role": "guest",
+  "guest": { "id": "uuid", "name": "Maria", "household_id": "uuid" },
+  "household_name": "The Anderson Home"
+}
+```
+
+**Errors:** `404` not found · `410` already used · `410` expired
+
+---
+
 ## Owner — Household
 
 ### `PATCH /household`
@@ -115,15 +147,16 @@ Update household name.
 ---
 
 ### `POST /guests/:id/reinvite`
-Generate a new invite token for an existing guest. For revoked guests, reactivates them to pending.
+Generate a new PIN for an existing guest. For revoked guests, reactivates them to pending.
 
 **Auth:** Owner session
 
 **Response:**
 ```json
 {
-  "magic_link": "https://hearthstone.app/join/hsi_abc123",
-  "invite_token": "hsi_abc123"
+  "pin": "123456",
+  "join_url": "https://hearthstone-mhat.fly.dev/join/123456",
+  "expires_at": "2024-01-08T00:00:00Z"
 }
 ```
 
@@ -183,14 +216,43 @@ Either `email` or `phone` must be present. If both provided, email is used for d
     "name": "Maria",
     "status": "pending"
   },
-  "magic_link": "https://hearthstone.app/join/hsi_abc123",
-  "invite_token": "hsi_abc123"
+  "pin": "123456",
+  "join_url": "https://hearthstone-mhat.fly.dev/join/123456",
+  "expires_at": "2024-01-08T00:00:00Z"
 }
 ```
 
 **Errors:**
 - `422` — name missing
 - `422` — neither email nor phone provided
+
+---
+
+### `POST /household/owners`
+Invite a co-owner to the household. Mints an owner PIN.
+
+**Auth:** Owner session
+
+**Request:**
+```json
+{
+  "name": "Jamie",
+  "email": "jamie@example.com"
+}
+```
+
+**Response:**
+```json
+{
+  "pin": "123456",
+  "join_url": "https://hearthstone-mhat.fly.dev/join/123456",
+  "expires_at": "2024-01-08T00:00:00Z"
+}
+```
+
+**Errors:**
+- `422` — email missing
+- `409` — person is already an owner
 
 ---
 
@@ -605,4 +667,83 @@ This keeps the guest experience frictionless. If a future version wants to link 
 - Guest↔Person account linking
 - Guest-proposed edits to documents
 - Native iOS / Android apps
+
+## Admin
+
+Admin routes are gated by an in-memory token minted on every server start. The token is logged via `console.log` to stdout at boot, never through any tracing exporter. The server operator reads the token from `fly logs` (or equivalent).
+
+### `GET /join/:pin`
+Public HTML landing page. Returns an HTML document that redirects to `hearthstone://join?server=<url>&pin=<pin>` via meta-refresh, JavaScript, and a visible **Open in Hearthstone** button.
+
+**Auth:** none
+
+**Response:** `200 text/html`
+
+### `GET /admin/auth?t=<token>` or `POST /admin/auth?t=<token>`
+Exchanges the token query param for a `hadm` cookie, then redirects to `/admin`. Cookie is `httponly`, `secure`, `samesite=strict`, browser-session lifetime.
+
+Both verbs are accepted because operators commonly click the admin URL from `fly logs` or a terminal, which issues a GET. POST is kept for curl/scripted use. The handler is verb-agnostic — it only inspects the `t` query param and the in-memory token.
+
+**Response:** `302` to `/admin` with `Set-Cookie: hadm=<token>`
+
+### `GET /admin`
+Server-rendered admin HTML page.
+
+**Auth:** `Cookie: hadm=<token>` or `Authorization: Bearer hadm_<token>`
+
+**Response:** `200 text/html`
+
+### `GET /admin/houses`
+JSON list of houses with counts.
+
+**Auth:** admin
+
+**Response:**
+```json
+{
+  "houses": [
+    {
+      "id": "uuid",
+      "name": "The Anderson Home",
+      "created_at": "2024-01-01T00:00:00Z",
+      "owner_count": 2,
+      "guest_count": 5,
+      "document_count": 12
+    }
+  ]
+}
+```
+
+### `POST /admin/houses`
+Create a house and mint the first owner PIN.
+
+**Auth:** admin
+
+**Request:**
+```json
+{ "name": "The Anderson Home" }
+```
+
+**Response:**
+```json
+{
+  "house": { "id": "uuid", "name": "The Anderson Home", "created_at": "2024-01-01T00:00:00Z" },
+  "pin": "123456",
+  "join_url": "https://hearthstone-mhat.fly.dev/join/123456"
+}
+```
+
+### `GET /admin/info`
+Server diagnostics.
+
+**Auth:** admin
+
+**Response:**
+```json
+{
+  "public_url": "https://hearthstone-mhat.fly.dev",
+  "db_file_size_bytes": 123456,
+  "version": "0.2.0"
+}
+```
 - On-device AI inference

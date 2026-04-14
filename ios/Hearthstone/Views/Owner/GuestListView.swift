@@ -1,11 +1,18 @@
 import SwiftUI
 
 struct GuestListView: View {
-    @StateObject private var viewModel = GuestListViewModel()
+    let sessionId: String
+
+    @StateObject private var viewModel: GuestListViewModel
     @State private var showAddGuest = false
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
+
+    init(sessionId: String) {
+        self.sessionId = sessionId
+        _viewModel = StateObject(wrappedValue: GuestListViewModel(sessionId: sessionId))
+    }
 
     var body: some View {
         ZStack {
@@ -104,12 +111,15 @@ struct GuestListView: View {
             })
         }
         .sheet(item: $viewModel.reinviteResult) { result in
-            GuestPINView(
-                guestName: result.guestName,
-                pin: result.pin,
-                expiresAt: result.expiresAt
-            ) {
-                viewModel.reinviteResult = nil
+            if let joinURL = URL(string: result.joinUrl) {
+                GuestPINView(
+                    guestName: result.guestName,
+                    pin: result.pin,
+                    joinURL: joinURL,
+                    expiresAt: result.expiresAt
+                ) {
+                    viewModel.reinviteResult = nil
+                }
             }
         }
     }
@@ -311,5 +321,5 @@ private struct GuestActionButton: View {
 }
 
 #Preview {
-    GuestListView()
+    GuestListView(sessionId: "preview")
 }

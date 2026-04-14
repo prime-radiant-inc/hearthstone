@@ -17,10 +17,11 @@ struct AddGuestView: View {
         ZStack {
             theme.cream.ignoresSafeArea()
 
-            if let guest = createdGuest {
+            if let guest = createdGuest, let joinURL = URL(string: guest.joinUrl) {
                 GuestPINView(
                     guestName: guest.guest.name,
                     pin: guest.pin,
+                    joinURL: joinURL,
                     expiresAt: guest.expiresAt
                 ) {
                     onSuccess()
@@ -92,9 +93,13 @@ struct AddGuestView: View {
             error = "Name is required."
             return
         }
+        guard let client = SessionStore.shared.activeSession?.apiClient() else {
+            error = "No active session."
+            return
+        }
         isLoading = true
         do {
-            let response = try await APIClient.shared.createGuest(
+            let response = try await client.createGuest(
                 name: name.trimmingCharacters(in: .whitespaces),
                 email: email.isEmpty ? nil : email.trimmingCharacters(in: .whitespaces)
             )

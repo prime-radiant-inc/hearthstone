@@ -10,7 +10,7 @@ struct DashboardView: View {
     @Environment(\.colorScheme) private var colorScheme
     private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
 
-    @StateObject private var viewModel = DashboardViewModel()
+    @StateObject private var viewModel: DashboardViewModel
     @State private var showDocuments = false
     @State private var showGuestList = false
     @State private var showOwnerPreview = false
@@ -20,6 +20,13 @@ struct DashboardView: View {
     @State private var isSavingName = false
     @State private var showNamePrompt = false
     @State private var promptedName = ""
+
+    init(sessionId: String, householdName: String, ownerName: String) {
+        self.sessionId = sessionId
+        _householdName = State(initialValue: householdName)
+        _ownerName = State(initialValue: ownerName)
+        _viewModel = StateObject(wrappedValue: DashboardViewModel(sessionId: sessionId))
+    }
 
     var body: some View {
         GeometryReader { geo in
@@ -40,10 +47,13 @@ struct DashboardView: View {
                             }
                             isSavingName = true
                             Task {
-                                do {
-                                    let updated = try await APIClient.shared.updateHousehold(name: newName)
-                                    householdName = updated.name
-                                } catch {}
+                                if let session = SessionStore.shared.sessions.first(where: { $0.id == sessionId }),
+                                   let client = session.apiClient() {
+                                    do {
+                                        let updated = try await client.updateHousehold(name: newName)
+                                        householdName = updated.name
+                                    } catch {}
+                                }
                                 isSavingName = false
                                 isEditingName = false
                             }
@@ -86,10 +96,10 @@ struct DashboardView: View {
         }
         .task { await viewModel.load() }
         .sheet(isPresented: $showDocuments) {
-            ConnectDocsView()
+            ConnectDocsView(sessionId: sessionId)
         }
         .sheet(isPresented: $showGuestList) {
-            GuestListView()
+            GuestListView(sessionId: sessionId)
         }
         .sheet(isPresented: $showOwnerPreview) {
             OwnerPreviewView(householdName: householdName)
@@ -109,11 +119,14 @@ struct DashboardView: View {
                 let name = promptedName.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !name.isEmpty else { return }
                 Task {
-                    do {
-                        _ = try await APIClient.shared.updateMe(name: name)
-                        ownerName = name
-                        SessionStore.shared.updateSession(id: sessionId, personName: name)
-                    } catch { }
+                    if let session = SessionStore.shared.sessions.first(where: { $0.id == sessionId }),
+                       let client = session.apiClient() {
+                        do {
+                            _ = try await client.updateMe(name: name)
+                            ownerName = name
+                            SessionStore.shared.updateSession(id: sessionId, personName: name)
+                        } catch { }
+                    }
                 }
             }
             Button("Skip", role: .cancel) {}

@@ -20,7 +20,8 @@ export async function handleCreateGuest(
   db: Database,
   householdId: string,
   personId: string,
-  body: { name: string | null; email: string | null }
+  body: { name: string | null; email: string | null },
+  publicUrl: string
 ): Promise<{ status: number; body: any }> {
   if (!body.name || !body.name.trim()) {
     return { status: 422, body: { message: "Name is required" } };
@@ -47,6 +48,7 @@ export async function handleCreateGuest(
     body: {
       guest: { id: guestId, name: body.name.trim(), status: "pending" },
       pin,
+      join_url: `${publicUrl}/join/${pin}`,
       expires_at: expiresAt,
     },
   };
@@ -76,7 +78,8 @@ export function handleReinviteGuest(
   db: Database,
   householdId: string,
   personId: string,
-  guestId: string
+  guestId: string,
+  publicUrl: string
 ): { status: number; body: any } {
   const guest = db
     .prepare("SELECT * FROM guests WHERE id = ? AND household_id = ?")
@@ -99,7 +102,7 @@ export function handleReinviteGuest(
 
   return {
     status: 200,
-    body: { pin, expires_at: expiresAt },
+    body: { pin, join_url: `${publicUrl}/join/${pin}`, expires_at: expiresAt },
   };
 }
 

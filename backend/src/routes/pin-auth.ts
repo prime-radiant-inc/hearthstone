@@ -1,7 +1,7 @@
 import type { Database } from "bun:sqlite";
 import { redeemPin } from "../services/pins";
 import { generateToken } from "../services/tokens";
-import { generateId } from "../utils";
+import { generateId, publicEmail } from "../utils";
 
 async function issueOwnerJwt(personId: string, householdId: string, jwtSecret: string): Promise<string> {
   const { SignJWT } = await import("jose");
@@ -40,7 +40,7 @@ export async function handlePinRedeem(
         body: {
           token,
           role: "owner",
-          person: { id: person.id, email: person.email, name: person.name || "" },
+          person: { id: person.id, email: publicEmail(person.email), name: person.name || "" },
           household: { id: household.id, name: household.name, created_at: household.created_at },
         },
       };

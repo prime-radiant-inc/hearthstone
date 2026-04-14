@@ -9,17 +9,33 @@ final class ConnectionsViewModel: ObservableObject {
     @Published var error: String?
     @Published var newConnectionId: String?
 
+    let sessionId: String
+
+    init(sessionId: String) {
+        self.sessionId = sessionId
+    }
+
+    private var client: APIClient? {
+        guard let session = SessionStore.shared.sessions.first(where: { $0.id == sessionId }) else { return nil }
+        return session.apiClient()
+    }
+
     func load() async {
+        guard let client else { return }
         do {
-            connections = try await APIClient.shared.listConnections()
+            connections = try await client.listConnections()
         } catch {
             self.error = error.localizedDescription
         }
     }
 
     func connectGoogleDrive() async {
+        guard let client else {
+            self.error = "No active session."
+            return
+        }
         do {
-            let response = try await APIClient.shared.connectGoogleDrive()
+            let response = try await client.connectGoogleDrive()
             guard let authURL = URL(string: response.authUrl) else {
                 self.error = "Invalid auth URL"
                 return
@@ -44,8 +60,9 @@ final class ConnectionsViewModel: ObservableObject {
     }
 
     func removeConnection(id: String) async {
+        guard let client else { return }
         do {
-            try await APIClient.shared.deleteConnection(id: id)
+            try await client.deleteConnection(id: id)
             await load()
         } catch {
             self.error = error.localizedDescription

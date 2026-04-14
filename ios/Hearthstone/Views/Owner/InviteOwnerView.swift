@@ -10,16 +10,19 @@ struct InviteOwnerView: View {
     @State private var isLoading = false
     @State private var error: String?
     @State private var resultPin: String?
+    @State private var resultJoinUrl: String?
     @State private var resultExpiry: String?
 
     var body: some View {
         ZStack {
             theme.cream.ignoresSafeArea()
 
-            if let pin = resultPin, let expiry = resultExpiry {
+            if let pin = resultPin, let expiry = resultExpiry,
+               let urlString = resultJoinUrl, let joinURL = URL(string: urlString) {
                 GuestPINView(
                     guestName: name,
                     pin: pin,
+                    joinURL: joinURL,
                     expiresAt: expiry
                 ) {
                     dismiss()
@@ -90,13 +93,18 @@ struct InviteOwnerView: View {
             error = "Email is required."
             return
         }
+        guard let client = SessionStore.shared.activeSession?.apiClient() else {
+            error = "No active session."
+            return
+        }
         isLoading = true
         do {
-            let response = try await APIClient.shared.inviteOwner(
+            let response = try await client.inviteOwner(
                 name: name.trimmingCharacters(in: .whitespaces),
                 email: email.trimmingCharacters(in: .whitespaces)
             )
             resultPin = response.pin
+            resultJoinUrl = response.joinUrl
             resultExpiry = response.expiresAt
         } catch {
             self.error = error.localizedDescription

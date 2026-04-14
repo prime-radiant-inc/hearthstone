@@ -1,19 +1,26 @@
 // src/routes/owners.ts
 import type { Database } from "bun:sqlite";
 import { createAuthPin } from "../services/pins";
-import { generateId } from "../utils";
+import { generateId, publicEmail } from "../utils";
 
 export function handleListOwners(
   db: Database,
   householdId: string
 ): { status: number; body: any } {
-  const owners = db.prepare(`
+  const rows = db.prepare(`
     SELECT p.id, p.name, p.email, hm.created_at
     FROM household_members hm
     JOIN persons p ON p.id = hm.person_id
     WHERE hm.household_id = ? AND hm.role = 'owner'
     ORDER BY hm.created_at
-  `).all(householdId);
+  `).all(householdId) as Array<{ id: string; name: string; email: string; created_at: string }>;
+
+  const owners = rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    email: publicEmail(row.email),
+    created_at: row.created_at,
+  }));
 
   return { status: 200, body: { owners } };
 }
@@ -22,7 +29,8 @@ export function handleInviteOwner(
   db: Database,
   householdId: string,
   inviterPersonId: string,
-  body: { name: string; email: string }
+  body: { name: string; email: string },
+  publicUrl: string
 ): { status: number; body: any } {
   if (!body.email || !body.email.trim()) {
     return { status: 422, body: { message: "Email is required" } };
@@ -63,7 +71,7 @@ export function handleInviteOwner(
 
   return {
     status: 200,
-    body: { pin, expires_at: expiresAt },
+    body: { pin, join_url: `${publicUrl}/join/${pin}`, expires_at: expiresAt },
   };
 }
 

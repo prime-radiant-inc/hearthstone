@@ -6,6 +6,7 @@ final class GuestListViewModel: ObservableObject {
         let id = UUID()
         let guestName: String
         let pin: String
+        let joinUrl: String
         let expiresAt: String
     }
 
@@ -14,10 +15,25 @@ final class GuestListViewModel: ObservableObject {
     @Published var error: String?
     @Published var reinviteResult: ReinviteResult?
 
+    let sessionId: String
+
+    init(sessionId: String) {
+        self.sessionId = sessionId
+    }
+
+    private var client: APIClient? {
+        guard let session = SessionStore.shared.sessions.first(where: { $0.id == sessionId }) else { return nil }
+        return session.apiClient()
+    }
+
     func load() async {
         isLoading = true
+        guard let client else {
+            isLoading = false
+            return
+        }
         do {
-            guests = try await APIClient.shared.listGuests()
+            guests = try await client.listGuests()
         } catch {
             self.error = error.localizedDescription
         }
@@ -25,8 +41,9 @@ final class GuestListViewModel: ObservableObject {
     }
 
     func revoke(guestId: String) async {
+        guard let client else { return }
         do {
-            try await APIClient.shared.revokeGuest(id: guestId)
+            try await client.revokeGuest(id: guestId)
             await load()
         } catch {
             self.error = error.localizedDescription
@@ -34,10 +51,16 @@ final class GuestListViewModel: ObservableObject {
     }
 
     func reinvite(guestId: String) async {
+        guard let client else { return }
         do {
             let guest = guests.first { $0.id == guestId }
-            let response = try await APIClient.shared.reinviteGuest(id: guestId)
-            reinviteResult = ReinviteResult(guestName: guest?.name ?? "Guest", pin: response.pin, expiresAt: response.expiresAt)
+            let response = try await client.reinviteGuest(id: guestId)
+            reinviteResult = ReinviteResult(
+                guestName: guest?.name ?? "Guest",
+                pin: response.pin,
+                joinUrl: response.joinUrl,
+                expiresAt: response.expiresAt
+            )
             await load()
         } catch {
             self.error = error.localizedDescription
@@ -45,8 +68,9 @@ final class GuestListViewModel: ObservableObject {
     }
 
     func remove(guestId: String) async {
+        guard let client else { return }
         do {
-            try await APIClient.shared.deleteGuest(id: guestId)
+            try await client.deleteGuest(id: guestId)
             await load()
         } catch {
             self.error = error.localizedDescription

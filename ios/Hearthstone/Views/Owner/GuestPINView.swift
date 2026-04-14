@@ -4,6 +4,7 @@ import CoreImage.CIFilterBuiltins
 struct GuestPINView: View {
     let guestName: String
     let pin: String
+    let joinURL: URL
     let expiresAt: String
     let onDone: () -> Void
 
@@ -29,45 +30,43 @@ struct GuestPINView: View {
 
             ScrollView {
                 VStack(spacing: 24) {
-                    Text("Share this code with \(guestName)")
+                    Text("Send this to \(guestName) — they can tap the link or scan the QR.")
                         .font(.system(size: 16))
                         .foregroundColor(theme.charcoalSoft)
                         .multilineTextAlignment(.center)
 
-                    Text(pin)
-                        .font(.system(size: 40, weight: .bold, design: .monospaced))
-                        .foregroundColor(theme.charcoal)
-                        .kerning(8)
-                        .padding(.vertical, 20)
-                        .frame(maxWidth: .infinity)
-                        .background(theme.creamWarm)
-                        .clipShape(RoundedRectangle(cornerRadius: Theme.radiusMedium))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: Theme.radiusMedium)
-                                .stroke(theme.creamDeep, lineWidth: 1.5)
-                        )
-
-                    if let qrImage = generateQR(from: pin) {
+                    if let qrImage = generateQR(from: joinURL.absoluteString) {
                         Image(uiImage: qrImage)
                             .interpolation(.none)
                             .resizable()
                             .scaledToFit()
-                            .frame(width: 180, height: 180)
+                            .frame(width: 220, height: 220)
                             .padding(16)
                             .background(theme.creamWarm)
                             .clipShape(RoundedRectangle(cornerRadius: Theme.radiusMedium))
                     }
 
+                    ShareLink(item: joinURL) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "square.and.arrow.up")
+                            Text("Share link")
+                        }
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(theme.hearth)
+                        .padding(.vertical, 10)
+                        .padding(.horizontal, 20)
+                        .background(theme.creamWarm)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                    }
+
+                    Text(pin)
+                        .font(.system(size: 28, weight: .semibold, design: .monospaced))
+                        .foregroundColor(theme.charcoalSoft)
+                        .kerning(4)
+
                     Text("Expires \(formattedExpiry)")
                         .font(.system(size: 13))
                         .foregroundColor(theme.stone)
-
-                    Text("The guest enters this code in the Hearthstone app — or scans the QR code.")
-                        .font(.system(size: 14))
-                        .foregroundColor(theme.charcoalSoft)
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(3)
-                        .padding(.horizontal, 20)
                 }
                 .padding(.horizontal, 24)
                 .padding(.vertical, 24)
