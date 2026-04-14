@@ -8,7 +8,7 @@ import { resolve } from "node:path";
 // --- Args ---
 
 const args = process.argv.slice(2);
-const ALL_MODES: Mode[] = ["rag", "full"];
+const ALL_MODES: Mode[] = ["rag", "full", "tool-call"];
 
 function getArg(name: string): string | undefined {
   const flag = `--${name}=`;

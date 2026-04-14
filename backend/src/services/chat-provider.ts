@@ -61,3 +61,53 @@ export async function chatComplete(ctx: Context | undefined, messages: ChatMessa
   }
   throw new Error(`Unknown chat provider: ${config.chatProvider}`);
 }
+
+export interface AssistantMessage {
+  role: "assistant";
+  content: string | null;
+  tool_calls?: Array<{
+    id: string;
+    type: "function";
+    function: { name: string; arguments: string };
+  }>;
+}
+
+export type LoopMessage =
+  | { role: "system"; content: string }
+  | { role: "user"; content: string }
+  | AssistantMessage
+  | { role: "tool"; tool_call_id: string; content: string };
+
+export async function chatCompleteWithTools(
+  ctx: Context | undefined,
+  messages: LoopMessage[],
+  tools: any[]
+): Promise<AssistantMessage> {
+  if (config.chatProvider !== "openai") {
+    throw new Error(`chatCompleteWithTools only supports openai provider, got: ${config.chatProvider}`);
+  }
+  const span = startSpan("openai.chat.complete.tools", ctx);
+  span.setAttribute("openai.model", "gpt-5.4");
+  span.setAttribute("tools.count", tools.length);
+  try {
+    const client = new OpenAI({ apiKey: config.openaiApiKey });
+    const response = await client.chat.completions.create({
+      model: "gpt-5.4",
+      messages: messages as any,
+      tools,
+    });
+    const message = response.choices[0]?.message;
+    if (!message) throw new Error("OpenAI returned no message");
+    return {
+      role: "assistant",
+      content: message.content ?? null,
+      tool_calls: (message as any).tool_calls,
+    };
+  } catch (err: any) {
+    span.setStatus({ code: SpanStatusCode.ERROR, message: err?.message });
+    span.recordException(err);
+    throw err;
+  } finally {
+    span.end();
+  }
+}

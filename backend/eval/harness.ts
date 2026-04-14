@@ -5,6 +5,8 @@ import OpenAI from "openai";
 import { resolve } from "node:path";
 import { readFileSync } from "node:fs";
 import { RAG_SYSTEM, FULL_SYSTEM } from "../src/services/prompt";
+import { runChatLoop } from "../src/services/chat-loop";
+import { runMigrations } from "../src/db/migrations";
 
 // --- Env loading (same approach as cli-chat.ts) ---
 
@@ -33,7 +35,7 @@ export const CHAT_MODEL = process.env.EVAL_CHAT_MODEL || "gpt-5.4";
 
 // --- Types ---
 
-export type Mode = "rag" | "full";
+export type Mode = "rag" | "full" | "tool-call";
 
 export interface TokenUsage {
   promptTokens: number;
@@ -69,6 +71,20 @@ interface Doc {
 const dbPath = resolve(import.meta.dirname, "..", "hearthstone.db");
 const db = new Database(dbPath, { readonly: true });
 sqliteVec.load(db);
+
+// Writable handle for the chat-loop runner. The loop only reads, but
+// runMigrations is called to ensure chunks_fts exists — readonly fails
+// on the CREATE TRIGGER calls.
+const loopDb = new Database(dbPath);
+sqliteVec.load(loopDb);
+runMigrations(loopDb);
+
+// Eval DB has a single household. Resolve its id once at module load.
+const evalHouseholdId: string = (
+  loopDb.prepare("SELECT id FROM households LIMIT 1").get() as { id: string } | undefined
+)?.id ?? (() => {
+  throw new Error("Eval database has no household — run reindex first");
+})();
 
 // --- Data loading ---
 
@@ -186,11 +202,35 @@ async function runFull(question: string): Promise<EvalResult> {
   };
 }
 
+async function runToolCall(question: string): Promise<EvalResult> {
+  const start = Date.now();
+  let fullResponse = "";
+  const docs = new Set<string>();
+
+  for await (const ev of runChatLoop(undefined, loopDb, evalHouseholdId, question, [])) {
+    if (ev.type === "delta") {
+      fullResponse += ev.delta;
+    } else if (ev.type === "chunks") {
+      for (const c of ev.chunks) docs.add(c.title);
+    }
+  }
+
+  return {
+    questionId: "",
+    mode: "tool-call",
+    response: fullResponse,
+    retrievedDocs: Array.from(docs),
+    latencyMs: Date.now() - start,
+    usage: undefined,
+  };
+}
+
 // --- Public API ---
 
 const MODE_RUNNERS: Record<Mode, (q: string) => Promise<EvalResult>> = {
   rag: runRag,
   full: runFull,
+  "tool-call": runToolCall,
 };
 
 export async function runQuestion(question: string, mode: Mode, questionId: string): Promise<EvalResult> {
