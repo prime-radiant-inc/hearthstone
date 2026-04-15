@@ -5,25 +5,6 @@ export const SCHEMA_SQL = `
     created_at TEXT NOT NULL
   );
 
-  CREATE TABLE IF NOT EXISTS passkey_credentials (
-    id TEXT PRIMARY KEY,
-    person_id TEXT NOT NULL REFERENCES persons(id),
-    credential_id TEXT UNIQUE NOT NULL,
-    public_key TEXT NOT NULL,
-    counter INTEGER NOT NULL DEFAULT 0,
-    created_at TEXT NOT NULL
-  );
-
-  CREATE TABLE IF NOT EXISTS email_verifications (
-    id TEXT PRIMARY KEY,
-    email TEXT NOT NULL,
-    code TEXT NOT NULL,
-    purpose TEXT NOT NULL CHECK(purpose IN ('register', 'login')),
-    expires_at TEXT NOT NULL,
-    used_at TEXT,
-    created_at TEXT NOT NULL
-  );
-
   CREATE TABLE IF NOT EXISTS households (
     id TEXT PRIMARY KEY,
     owner_id TEXT NOT NULL REFERENCES persons(id),
@@ -38,16 +19,6 @@ export const SCHEMA_SQL = `
     contact TEXT NOT NULL,
     contact_type TEXT NOT NULL CHECK(contact_type IN ('email', 'phone')),
     status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'active', 'revoked')),
-    created_at TEXT NOT NULL
-  );
-
-  CREATE TABLE IF NOT EXISTS invite_tokens (
-    id TEXT PRIMARY KEY,
-    token TEXT UNIQUE NOT NULL,
-    household_id TEXT NOT NULL REFERENCES households(id),
-    guest_id TEXT NOT NULL REFERENCES guests(id),
-    expires_at TEXT NOT NULL,
-    used_at TEXT,
     created_at TEXT NOT NULL
   );
 

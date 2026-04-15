@@ -36,13 +36,6 @@ export function renderJoinPage(pin: string, publicUrl: string): string {
       font-size: 1.05rem;
       box-shadow: 0 6px 16px rgba(166, 90, 62, 0.25);
     }
-    .pin {
-      margin-top: 2rem;
-      font-family: ui-monospace, "SF Mono", Menlo, monospace;
-      font-size: 1.4rem;
-      letter-spacing: 0.35rem;
-      color: #9b9488;
-    }
     .footnote {
       margin-top: 2.5rem;
       font-size: 0.85rem;
@@ -57,9 +50,8 @@ export function renderJoinPage(pin: string, publicUrl: string): string {
   <h1>Open Hearthstone</h1>
   <p>Tap below to accept your invite in the Hearthstone app.</p>
   <a class="open-btn" href="${customScheme}">Open in Hearthstone</a>
-  <div class="pin">${pin}</div>
   <p class="footnote">
-    Don't have Hearthstone yet? Install the app, then return to this page and tap the button above. Your invite code is shown for reference — you won't need to type it.
+    Don't have Hearthstone yet? Install the app, then return to this page and tap the button above.
   </p>
   <script>
     setTimeout(function () { window.location.href = ${JSON.stringify(customScheme)}; }, 50);

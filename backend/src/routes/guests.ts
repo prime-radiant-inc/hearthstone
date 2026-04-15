@@ -123,7 +123,6 @@ export function handleDeleteGuest(
   }
 
   db.prepare("DELETE FROM session_tokens WHERE guest_id = ?").run(guestId);
-  db.prepare("DELETE FROM invite_tokens WHERE guest_id = ?").run(guestId);
   db.prepare("DELETE FROM auth_pins WHERE guest_id = ?").run(guestId);
   db.prepare("DELETE FROM guests WHERE id = ?").run(guestId);
 

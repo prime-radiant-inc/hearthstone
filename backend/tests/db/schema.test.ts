@@ -15,12 +15,11 @@ describe("database schema", () => {
     expect(tables).toContain("persons");
     expect(tables).toContain("households");
     expect(tables).toContain("guests");
-    expect(tables).toContain("invite_tokens");
     expect(tables).toContain("session_tokens");
+    expect(tables).toContain("auth_pins");
+    expect(tables).toContain("household_members");
     expect(tables).toContain("documents");
     expect(tables).toContain("chunks");
-    expect(tables).toContain("passkey_credentials");
-    expect(tables).toContain("email_verifications");
   });
 
   it("enforces household_id foreign key on guests", () => {

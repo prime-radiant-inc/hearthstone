@@ -1,0 +1,29 @@
+# Copy this file to fly.toml, edit the placeholders, then `fly deploy`.
+# The real fly.toml is gitignored so your app name and region don't leak into
+# an OSS fork.
+
+app = "your-hearthstone-app"
+primary_region = "iad"  # pick the closest Fly region to your users
+
+[build]
+
+[env]
+  # Path inside the container; the volume is mounted at /data below.
+  DATABASE_URL = "/data/hearthstone.db"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = "suspend"
+  auto_start_machines = true
+  min_machines_running = 0
+
+[mounts]
+  # Create the volume once with:
+  #   fly volumes create hearthstone_data --size 1 --region <same region as above>
+  source = "hearthstone_data"
+  destination = "/data"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

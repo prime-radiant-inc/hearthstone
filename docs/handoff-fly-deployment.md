@@ -1,18 +1,19 @@
 # Handoff: Fly.io Deployment
 
+> **Status: shipped.** This document was the pre-deployment handoff — "here's what we need to build to get Fly working." All six items under *What Needs to Happen* have since been built and are running in production. The live operator guidance is now in `docs/decisions/decisions-tech.md` (deployment table, secrets, admin bootstrap) and `README.md` (the step-by-step for a fresh fork). This file is kept as a historical record of the pre-work thinking; don't treat it as a todo list.
+
 ## What This Is
 
 Hearthstone is a household Q&A app — owners connect Google Docs, guests ask questions via chat. The backend is Bun/TypeScript with SQLite + sqlite-vec for vector search. The iOS app is SwiftUI.
 
 The app is functionally complete and runs locally. This handoff is about getting the backend deployed to Fly.io so it can serve real users.
 
-## Current State
+## Current State (as of the original handoff)
 
 - **Backend:** Bun/TypeScript, `bun:sqlite` + `sqlite-vec`, runs on port 3000
 - **Database:** Single SQLite file (`hearthstone.db`) with sqlite-vec virtual tables for vector search
-- **Auth:** PIN-based (6-digit codes, no email delivery needed)
+- **Auth:** PIN-based (short codes, no email delivery needed)
 - **External dependencies:** OpenAI API (embeddings + chat), Google Drive API (doc fetching)
-- **No Dockerfile exists yet.** No `fly.toml`. No deployment config of any kind.
 
 ## What Needs to Happen
 
@@ -31,8 +32,8 @@ The backend runs under Bun natively (not Node). The Dockerfile needs:
 Standard Fly config. Key considerations:
 - **Single instance** — SQLite doesn't support concurrent writers across instances
 - **Persistent volume** for the SQLite database file. Without this, the DB resets on every deploy.
-- **Secrets** for env vars: `OPENAI_API_KEY`, `JWT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
-- `APP_BASE_URL` must be set to the Fly app's public URL (e.g. `https://hearthstone.fly.dev`)
+- **Secrets** for env vars: `OPENAI_API_KEY`, `JWT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `HEARTHSTONE_PUBLIC_URL`
+- `HEARTHSTONE_PUBLIC_URL` must be set to the Fly app's full public URL including scheme (e.g. `https://your-app-name.fly.dev`). Every `join_url` handed out by the server is built from it; the server fails loudly at boot if it's missing or schemeless.
 
 ### 3. Volume Setup
 
@@ -46,10 +47,10 @@ Mount the volume and point `DATABASE_URL` at the mounted path (e.g. `/data/heart
 
 When deploying, the Google Cloud Console authorized redirect URI must be updated to match the production URL:
 ```
-https://hearthstone.fly.dev/connections/google-drive/callback
+https://your-app-name.fly.dev/connections/google-drive/callback
 ```
 
-The `APP_BASE_URL` env var and the Google redirect URI must always match. See `CLAUDE.md` for details.
+The `APP_BASE_URL` env var (consumed only by the Google Drive callback constructor in `services/google-auth.ts`) and the redirect URI registered with Google must always match.
 
 ### 5. CLI Commands in Production
 

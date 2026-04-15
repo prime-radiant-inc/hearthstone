@@ -1,13 +1,13 @@
 ---
-name: Design decisions — v0 scope and future ideas
-description: Key design decisions and deferred features for Hearthstone iOS app
+name: Design decisions — current auth and product scope
+description: How auth actually works in Hearthstone today (PIN redeem), plus scope decisions that outlive individual features
 type: project
 ---
 
-Auth architecture: Passkey + email verification for owner identity. Google Drive is a "connection" (document source), not identity. **Why:** Decouples identity from doc sources, simpler than multi-SSO. **How to apply:** Sign-in flow is email → verify code → create passkey. Drive connection is a separate step in settings/onboarding.
+Auth architecture: short-lived numeric PINs redeemed at `POST /auth/pin/redeem`, returning either an owner JWT or a guest `hss_` session token. There is no email/password login, no magic link, and no WebAuthn — those were considered in early planning docs but never shipped. **Why:** PIN-over-QR is dramatically simpler for the "guest is standing next to the owner" case the product actually targets, and dropping the email stack removed an entire class of deliverability bugs. **How to apply:** when something in the codebase still references `email_verifications`, `passkey_credentials`, `invite_tokens`, `handleRegister`, or `/auth/invite/redeem`, it's stale — the current paths are `/admin/houses` + `/household/owners` (owner invites) and `POST /guests` (guest invites), each of which mints an auth PIN and returns a `join_url`. See `backend/src/routes/pin-auth.ts` and `backend/src/services/pins.ts` for the live implementation.
 
-Guest access (v0): Magic link via email. **Future:** QR code option for in-person scenarios (guest is standing there). Email code as alternative to magic link. Defer to post-v0.
+Google Drive is a _document source_, not an identity provider. **Why:** keeps identity orthogonal to "where does this house's knowledge live" so a future second source (Notion, Dropbox, plain upload — upload already exists via `POST /documents/upload`) doesn't force a parallel auth stack. **How to apply:** Drive OAuth lives under `/connections/google-drive/*` and only touches the `connections` table. It must not mint sessions.
 
-Documents (v0): Flat list, no folder hierarchy in the picker. **How to apply:** Connect Documents screen shows individual docs, not grouped by Drive folder.
+Documents (v0): flat list, no folder hierarchy. **How to apply:** Connect Documents screen shows individual docs, not grouped by Drive folder.
 
-Visual direction: Warm and homey but not hokey. Fraunces (serif) for headings, DM Sans for body. Amber/sienna/cream palette. Mocks finalized in mocks/ directory (3 clusters, 16 screens).
+Visual direction: warm and homey but not hokey. Fraunces (serif) for headings, DM Sans for body. Amber/sienna/cream palette, with a warm dark mode sibling (see `project_dark_mode.md`). Early mocks live in `mocks/` at the repo root — they're kept for historical reference, not as the source of truth.

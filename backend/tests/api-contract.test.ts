@@ -2,7 +2,7 @@
  * API Contract Tests
  *
  * These tests verify that every endpoint's response body matches the shape
- * defined in the API spec (.brainstorm/spec.md). They catch field name
+ * defined in the API spec (docs/api-spec.md). They catch field name
  * mismatches, missing fields, and wrong types BEFORE they reach the iOS app.
  *
  * If you change a response shape, update the spec first, then update these tests.
@@ -13,7 +13,6 @@ import { describe, it, expect, beforeEach } from "bun:test";
 import { createTestDb } from "./helpers";
 import { Database } from "bun:sqlite";
 
-import { handleRegister, handleRegisterVerify, handleLoginEmail, handleLoginEmailVerify, handleInviteRedeem } from "../src/routes/auth";
 import { handleCreateHousehold } from "../src/routes/household-create";
 import { handleUpdateHousehold } from "../src/routes/household";
 import { handleListGuests, handleCreateGuest, handleRevokeGuest, handleReinviteGuest, handleDeleteGuest } from "../src/routes/guests";
@@ -29,7 +28,6 @@ import {
 import { handleListDocuments, handleConnectDocument, handleDeleteDocument, handleGetContent } from "../src/routes/documents";
 import { handleListConnections } from "../src/routes/connections";
 import { handleGetSuggestions } from "../src/routes/chat";
-import { generateInviteToken } from "../src/services/tokens";
 import { handlePinRedeem } from "../src/routes/pin-auth";
 import { createAuthPin } from "../src/services/pins";
 
@@ -64,56 +62,6 @@ function seedDocument(db: Database, householdId: string): string {
   ).run("d1", householdId, "drive1", "House Ops", "# Ops\nContent", "ready", 3, now, now);
   return "d1";
 }
-
-// ============================================================
-// AUTH
-// ============================================================
-
-describe("API Contract: POST /auth/register", () => {
-  let db: Database;
-  beforeEach(() => { db = createTestDb(); });
-
-  it("response has { message, email }", async () => {
-    const result = await handleRegister(db, { email: "alice@test.com" });
-    expect(result.status).toBe(200);
-    hasExactKeys(result.body, ["message", "email"]);
-    expect(typeof result.body.message).toBe("string");
-    expect(typeof result.body.email).toBe("string");
-  });
-});
-
-describe("API Contract: POST /auth/register/verify", () => {
-  let db: Database;
-  beforeEach(() => { db = createTestDb(); });
-
-  it("response has { token, person, household, is_new }", async () => {
-    await handleRegister(db, { email: "alice@test.com" });
-    const code = (db.prepare("SELECT code FROM email_verifications WHERE email = ?").get("alice@test.com") as any).code;
-    const result = await handleRegisterVerify(db, { email: "alice@test.com", code });
-    expect(result.status).toBe(200);
-    hasExactKeys(result.body, ["token", "person", "household", "is_new"]);
-    hasExactKeys(result.body.person, ["id", "email", "name"]);
-    expect(typeof result.body.token).toBe("string");
-  });
-});
-
-describe("API Contract: POST /auth/invite/redeem", () => {
-  let db: Database;
-  beforeEach(() => { db = createTestDb(); });
-
-  it("response has { session_token, guest: { id, name, household_id }, household_name }", async () => {
-    const hid = seedOwner(db);
-    seedGuest(db, hid, "pending");
-    const invite = generateInviteToken(db, hid, "g1");
-
-    const result = await handleInviteRedeem(db, { invite_token: invite.token });
-    expect(result.status).toBe(200);
-    hasExactKeys(result.body, ["session_token", "guest", "household_name"]);
-    hasExactKeys(result.body.guest, ["id", "name", "household_id"]);
-    expect(typeof result.body.session_token).toBe("string");
-    expect(typeof result.body.household_name).toBe("string");
-  });
-});
 
 // ============================================================
 // HOUSEHOLD
@@ -173,7 +121,7 @@ describe("API Contract: POST /guests", () => {
     expect(result.status).toBe(200);
     hasExactKeys(result.body, ["guest", "pin", "join_url", "expires_at"]);
     hasExactKeys(result.body.guest, ["id", "name", "status"]);
-    expect(result.body.pin).toMatch(/^\d{6}$/);
+    expect(result.body.pin).toMatch(/^[0-9A-HJKMNP-TV-Z]{6}$/);
     expect(typeof result.body.join_url).toBe("string");
     expect(result.body.join_url).toContain(`/join/${result.body.pin}`);
   });
@@ -202,7 +150,7 @@ describe("API Contract: POST /guests/:id/reinvite", () => {
     const result = handleReinviteGuest(db, hid, "p1", "g1", "http://test.example");
     expect(result.status).toBe(200);
     hasExactKeys(result.body, ["pin", "join_url", "expires_at"]);
-    expect(result.body.pin).toMatch(/^\d{6}$/);
+    expect(result.body.pin).toMatch(/^[0-9A-HJKMNP-TV-Z]{6}$/);
     expect(result.body.join_url).toContain(`/join/${result.body.pin}`);
   });
 });
@@ -222,7 +170,7 @@ describe("API Contract: POST /household/owners", () => {
     );
     expect(result.status).toBe(200);
     hasExactKeys(result.body, ["pin", "join_url", "expires_at"]);
-    expect(result.body.pin).toMatch(/^\d{6}$/);
+    expect(result.body.pin).toMatch(/^[0-9A-HJKMNP-TV-Z]{6}$/);
     expect(result.body.join_url).toContain(`/join/${result.body.pin}`);
   });
 });
@@ -339,7 +287,7 @@ describe("API Contract: POST /auth/pin/redeem (guest)", () => {
 // ============================================================
 
 describe("Contract: GET /join/:pin", () => {
-  it("returns HTML with embedded custom scheme for a 6-digit PIN", () => {
+  it("renders the deeplink page for a numeric PIN", () => {
     const result = handleJoinPage("123456", "https://server.example");
     expect(result.status).toBe(200);
     expect(result.contentType).toContain("text/html");
@@ -349,8 +297,33 @@ describe("Contract: GET /join/:pin", () => {
     expect(result.body).toContain("Open in Hearthstone");
   });
 
-  it("returns 404 for malformed PIN", () => {
+  it("renders the deeplink page for an alphanumeric Crockford PIN", () => {
+    const result = handleJoinPage("HJ3K7X", "https://server.example");
+    expect(result.status).toBe(200);
+    expect(result.body).toContain("pin=HJ3K7X");
+  });
+
+  it("uppercases a lowercase PIN before rendering", () => {
+    const result = handleJoinPage("hj3k7x", "https://server.example");
+    expect(result.status).toBe(200);
+    expect(result.body).toContain("pin=HJ3K7X");
+  });
+
+  it("does not leak the PIN into the visible body copy", () => {
+    // The rendered HTML used to show a .pin div below the button; it was
+    // removed because nothing in the app asks the user to type a PIN.
+    const result = handleJoinPage("HJ3K7X", "https://server.example");
+    expect(result.body).not.toContain('class="pin"');
+  });
+
+  it("returns 404 for a too-short PIN", () => {
     const result = handleJoinPage("abc", "https://server.example");
+    expect(result.status).toBe(404);
+  });
+
+  it("returns 404 for a PIN with disallowed Crockford characters", () => {
+    // I, L, O, U are deliberately excluded from the alphabet.
+    const result = handleJoinPage("ILOU12", "https://server.example");
     expect(result.status).toBe(404);
   });
 });
@@ -387,7 +360,7 @@ describe("API Contract: POST /admin/houses", () => {
     expect(result.status).toBe(200);
     hasExactKeys(result.body, ["house", "pin", "join_url", "qr_svg"]);
     hasExactKeys(result.body.house, ["id", "name", "created_at"]);
-    expect(result.body.pin).toMatch(/^\d{6}$/);
+    expect(result.body.pin).toMatch(/^[0-9A-HJKMNP-TV-Z]{6}$/);
     expect(result.body.join_url).toBe(`http://test.example/join/${result.body.pin}`);
     expect(result.body.qr_svg).toMatch(/^<svg[\s\S]+<\/svg>\s*$/);
   });
@@ -430,7 +403,7 @@ describe("API Contract: POST /admin/houses/:id/owner-invite", () => {
     hasExactKeys(result.body.house, ["id", "name", "created_at"]);
     expect(result.body.house.id).toBe(houseId);
     expect(result.body.house.name).toBe("Existing Place");
-    expect(result.body.pin).toMatch(/^\d{6}$/);
+    expect(result.body.pin).toMatch(/^[0-9A-HJKMNP-TV-Z]{6}$/);
     expect(result.body.pin).not.toBe(firstPin);
     expect(result.body.join_url).toBe(`http://test.example/join/${result.body.pin}`);
     expect(result.body.qr_svg).toMatch(/^<svg[\s\S]+<\/svg>\s*$/);

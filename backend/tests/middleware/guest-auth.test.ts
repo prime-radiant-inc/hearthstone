@@ -2,7 +2,16 @@ import { describe, it, expect, beforeEach } from "bun:test";
 import { Database } from "bun:sqlite";
 import { runMigrations } from "../../src/db/migrations";
 import { authenticateGuest } from "../../src/middleware/guest-auth";
-import { generateInviteToken, redeemInviteToken, revokeGuestTokens } from "../../src/services/tokens";
+import { generateToken, revokeGuestTokens } from "../../src/services/tokens";
+import { generateId } from "../../src/utils";
+
+function issueSessionToken(db: Database, householdId: string, guestId: string): string {
+  const token = generateToken("hss_");
+  db.prepare(
+    "INSERT INTO session_tokens (id, token, household_id, guest_id, created_at) VALUES (?, ?, ?, ?, ?)"
+  ).run(generateId(), token, householdId, guestId, new Date().toISOString());
+  return token;
+}
 
 describe("guest auth middleware", () => {
   let db: Database;
@@ -18,22 +27,20 @@ describe("guest auth middleware", () => {
     );
     db.prepare(
       "INSERT INTO guests (id, household_id, name, contact, contact_type, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
-    ).run("g1", "h1", "Maria", "maria@test.com", "email", "pending", new Date().toISOString());
+    ).run("g1", "h1", "Maria", "maria@test.com", "email", "active", new Date().toISOString());
   });
 
   it("returns guest info for valid hss_ token", () => {
-    const invite = generateInviteToken(db, "h1", "g1");
-    const session = redeemInviteToken(db, invite.token);
-    const result = authenticateGuest(db, `Bearer ${session.token}`);
+    const token = issueSessionToken(db, "h1", "g1");
+    const result = authenticateGuest(db, `Bearer ${token}`);
     expect(result.guestId).toBe("g1");
     expect(result.householdId).toBe("h1");
   });
 
   it("throws for revoked token", () => {
-    const invite = generateInviteToken(db, "h1", "g1");
-    const session = redeemInviteToken(db, invite.token);
+    const token = issueSessionToken(db, "h1", "g1");
     revokeGuestTokens(db, "g1");
-    expect(() => authenticateGuest(db, `Bearer ${session.token}`)).toThrow("session_expired");
+    expect(() => authenticateGuest(db, `Bearer ${token}`)).toThrow("session_expired");
   });
 
   it("throws for missing header", () => {

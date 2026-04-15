@@ -7,8 +7,6 @@ final class SessionStore: ObservableObject {
     @Published private(set) var sessions: [HouseSession] = []
     @Published var activeSessionId: String?
 
-    static let legacyDefaultServer = URL(string: "https://hearthstone-mhat.fly.dev")!
-
     var activeSession: HouseSession? {
         guard let id = activeSessionId else { return nil }
         return sessions.first { $0.id == id }
@@ -26,91 +24,13 @@ final class SessionStore: ObservableObject {
 
     private init() {
         load()
-        migrateFromLegacyIfNeeded()
-    }
-
-    private func migrateFromLegacyIfNeeded() {
-        guard sessions.isEmpty else { return }
-
-        if let ownerToken = KeychainService.shared.read(key: "hearthstone_owner_jwt") {
-            let session = HouseSession(
-                id: UUID().uuidString,
-                serverURL: Self.legacyDefaultServer,
-                householdId: "migrated-owner",
-                householdName: "My House",
-                role: .owner,
-                addedAt: Date()
-            )
-            add(session: session, token: ownerToken)
-            KeychainService.shared.delete(key: "hearthstone_owner_jwt")
-
-            let migratedSession = sessions.first(where: { $0.role == .owner && $0.householdId == "migrated-owner" })
-            Task {
-                guard let me = try? await migratedSession?.apiClient()?.getMe() else { return }
-                if let household = me.household {
-                    if let idx = sessions.firstIndex(where: { $0.role == .owner && $0.householdId == "migrated-owner" }) {
-                        let old = sessions[idx]
-                        let updated = HouseSession(
-                            id: old.id,
-                            serverURL: old.serverURL,
-                            householdId: household.id,
-                            householdName: household.name,
-                            role: .owner,
-                            addedAt: old.addedAt
-                        )
-                        sessions[idx] = updated
-                        persist()
-                    }
-                }
-            }
-        }
-
-        if let guestToken = KeychainService.shared.read(key: "hearthstone_guest_hss") {
-            let householdName = UserDefaults.standard.string(forKey: "guestHouseholdName") ?? "Guest House"
-            let session = HouseSession(
-                id: UUID().uuidString,
-                serverURL: Self.legacyDefaultServer,
-                householdId: "migrated-guest",
-                householdName: householdName,
-                role: .guest,
-                addedAt: Date()
-            )
-            add(session: session, token: guestToken)
-            KeychainService.shared.delete(key: "hearthstone_guest_hss")
-            UserDefaults.standard.removeObject(forKey: "guestHouseholdName")
-        }
     }
 
     private func load() {
         guard let data = try? Data(contentsOf: metadataURL) else { return }
-
-        // Try the new shape first.
-        if let decoded = try? JSONDecoder().decode(StoredState.self, from: data) {
-            sessions = decoded.sessions
-            activeSessionId = decoded.activeSessionId ?? decoded.sessions.first?.id
-            return
-        }
-
-        // Fall back: decode sessions as dictionaries and fill in serverURL for any missing ones.
-        guard let raw = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let rawSessions = raw["sessions"] as? [[String: Any]] else {
-            return
-        }
-
-        var migrated: [HouseSession] = []
-        for dict in rawSessions {
-            var d = dict
-            if d["serverURL"] == nil {
-                d["serverURL"] = Self.legacyDefaultServer.absoluteString
-            }
-            if let fixedData = try? JSONSerialization.data(withJSONObject: d),
-               let session = try? JSONDecoder().decode(HouseSession.self, from: fixedData) {
-                migrated.append(session)
-            }
-        }
-        sessions = migrated
-        activeSessionId = raw["activeSessionId"] as? String ?? migrated.first?.id
-        persist()  // re-save in new format
+        guard let decoded = try? JSONDecoder().decode(StoredState.self, from: data) else { return }
+        sessions = decoded.sessions
+        activeSessionId = decoded.activeSessionId ?? decoded.sessions.first?.id
     }
 
     private func persist() {

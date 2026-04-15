@@ -15,6 +15,7 @@ node_modules/
 # Backend
 backend/.env
 backend/.env.*.local
+backend/fly.toml
 backend/*.db
 backend/*.db-wal
 backend/*.db-shm

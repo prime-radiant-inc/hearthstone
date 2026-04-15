@@ -4,50 +4,6 @@ extension Notification.Name {
     static let guestSessionRevoked = Notification.Name("guestSessionRevoked")
 }
 
-// MARK: - AnyCodable
-
-/// Minimal wrapper for round-tripping arbitrary JSON from the server (e.g. WebAuthn registration options).
-struct AnyCodable: Codable {
-    let value: Any
-
-    init(_ value: Any) {
-        self.value = value
-    }
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        if let v = try? container.decode(Bool.self)   { value = v; return }
-        if let v = try? container.decode(Int.self)    { value = v; return }
-        if let v = try? container.decode(Double.self) { value = v; return }
-        if let v = try? container.decode(String.self) { value = v; return }
-        if let v = try? container.decode([String: AnyCodable].self) {
-            value = v.mapValues { $0.value }; return
-        }
-        if let v = try? container.decode([AnyCodable].self) {
-            value = v.map { $0.value }; return
-        }
-        if container.decodeNil() { value = NSNull(); return }
-        throw DecodingError.dataCorruptedError(in: container,
-            debugDescription: "AnyCodable: unsupported JSON type")
-    }
-
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-        switch value {
-        case let v as Bool:              try container.encode(v)
-        case let v as Int:               try container.encode(v)
-        case let v as Double:            try container.encode(v)
-        case let v as String:            try container.encode(v)
-        case let v as [String: Any]:
-            try container.encode(v.mapValues { AnyCodable($0) })
-        case let v as [Any]:
-            try container.encode(v.map { AnyCodable($0) })
-        default:
-            try container.encodeNil()
-        }
-    }
-}
-
 // MARK: - Response wrappers
 
 private struct ServerError: Decodable {

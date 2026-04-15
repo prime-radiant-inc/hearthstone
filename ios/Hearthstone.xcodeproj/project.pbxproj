@@ -14,7 +14,6 @@
 		17B3613E09E957F555D69E68 /* SuggestionChips.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB4504D789BCA1AA870DFA83 /* SuggestionChips.swift */; };
 		2AD942D2361699DEDFB8F7C5 /* ConnectionsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A8AE83C7D0361CC02AF5A82 /* ConnectionsViewModel.swift */; };
 		2BCB642D1B334674ABD76405 /* Guest.swift in Sources */ = {isa = PBXBuildFile; fileRef = C13A6D4C6E55200DD77A249E /* Guest.swift */; };
-		3253596E11C04A8BCB6EA422 /* HouseholdSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE3D7F4ED477BB3A9D6AC4EA /* HouseholdSetupView.swift */; };
 		34DCE9B015F5FCCF51E170EB /* Suggestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 270789DC8776F9F1F8983D00 /* Suggestion.swift */; };
 		34ED59C4E0B7AF817BB55A52 /* AccessRevokedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3DA8695C636234B1C9F517 /* AccessRevokedView.swift */; };
 		3A0811009ACF47A3F8B97C80 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE4EE6D15E820ECB1A26F3A3 /* APIClient.swift */; };
@@ -23,11 +22,8 @@
 		4A49FA39AE916008A6E3F830 /* OwnerPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB03D07BB9EF9F7E63B840F /* OwnerPreviewView.swift */; };
 		5083441DA7742299EF84AB81 /* SSEClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDD098C398E3401F959D0287 /* SSEClient.swift */; };
 		52E8F72D0B9D0D7A5FA42471 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDD84A7F97E32C1775351C2C /* KeychainService.swift */; };
-		5E6D6335D619725F1A7B0005 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDFF0389459109EAA5A09A74 /* WelcomeView.swift */; };
 		61688CC2624117D0895B5BC9 /* GuestListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88AA192FF5FDDE7224F434FC /* GuestListView.swift */; };
 		6AEF81B92627FEB704C7EA2C /* SourceDocumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBD36E61ABE11EF9988D51C7 /* SourceDocumentView.swift */; };
-		7108A78F317AA431BA9F0046 /* VerifyCodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 722C9536F2D45780DDF60666 /* VerifyCodeView.swift */; };
-		74BC707D374A562F4E350157 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C0D3E61418EA2173420116F /* AuthViewModel.swift */; };
 		7AE242FCB26AB450761EA112 /* ConnectDocsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 066D70BA714F154CA16063BD /* ConnectDocsView.swift */; };
 		7B07E3ACE9272D7FA428DC25 /* HearthTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27683AA32579AAAA8D655960 /* HearthTextField.swift */; };
 		8207F2214F4F1B1DEC1360FF /* HearthstoneApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 637898B473FDD1C99019571D /* HearthstoneApp.swift */; };
@@ -77,9 +73,7 @@
 		6281E5FF7DCC0E72163CE472 /* Household.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Household.swift; sourceTree = "<group>"; };
 		637898B473FDD1C99019571D /* HearthstoneApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HearthstoneApp.swift; sourceTree = "<group>"; };
 		6A8AE83C7D0361CC02AF5A82 /* ConnectionsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionsViewModel.swift; sourceTree = "<group>"; };
-		6C0D3E61418EA2173420116F /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
 		70C443F691027605AC072729 /* ProgressDots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressDots.swift; sourceTree = "<group>"; };
-		722C9536F2D45780DDF60666 /* VerifyCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerifyCodeView.swift; sourceTree = "<group>"; };
 		7508202142FDC4B09A8F1239 /* DashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardViewModel.swift; sourceTree = "<group>"; };
 		7E20C4A529634EF4AA4FA796 /* DriveFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveFile.swift; sourceTree = "<group>"; };
 		88AA192FF5FDDE7224F434FC /* GuestListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestListView.swift; sourceTree = "<group>"; };
@@ -96,10 +90,8 @@
 		C3D4E5F6A7B8C9D0E1F2A3B4 /* DriveFilePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveFilePickerView.swift; sourceTree = "<group>"; };
 		C8FC1D2FA013BB586A464ADA /* Document.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Document.swift; sourceTree = "<group>"; };
 		CA7AF9F5111428B104E32108 /* GuestListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestListViewModel.swift; sourceTree = "<group>"; };
-		CE3D7F4ED477BB3A9D6AC4EA /* HouseholdSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HouseholdSetupView.swift; sourceTree = "<group>"; };
 		D2EE14D81019E0E37D8489D8 /* Connection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Connection.swift; sourceTree = "<group>"; };
 		EDD84A7F97E32C1775351C2C /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
-		EDFF0389459109EAA5A09A74 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
 		F3A8B2C1D4E5F6A7B8C9D0E1 /* GuestPINView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestPINView.swift; sourceTree = "<group>"; };
 		F54456FA5D506B133989EEAD /* ChatMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessage.swift; sourceTree = "<group>"; };
 		FB09FB0849CA8E2DCA07AED5 /* Person.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Person.swift; sourceTree = "<group>"; };
@@ -149,12 +141,9 @@
 		5F71BAB7E589469F9937F1F8 /* Auth */ = {
 			isa = PBXGroup;
 			children = (
-				CE3D7F4ED477BB3A9D6AC4EA /* HouseholdSetupView.swift */,
 				AA11000000000000000011A1 /* LandingView.swift */,
 				AA10000000000000000010A1 /* NewServerPromptView.swift */,
 				AA05000000000000000005A1 /* QRScannerView.swift */,
-				722C9536F2D45780DDF60666 /* VerifyCodeView.swift */,
-				EDFF0389459109EAA5A09A74 /* WelcomeView.swift */,
 			);
 			path = Auth;
 			sourceTree = "<group>";
@@ -229,7 +218,6 @@
 		ACD1C48E0DFDB8C9E306BCCA /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
-				6C0D3E61418EA2173420116F /* AuthViewModel.swift */,
 				BC47B1DB3BC3C8AEB9CB62E2 /* ChatViewModel.swift */,
 				6A8AE83C7D0361CC02AF5A82 /* ConnectionsViewModel.swift */,
 				7508202142FDC4B09A8F1239 /* DashboardViewModel.swift */,
@@ -341,7 +329,6 @@
 				3A0811009ACF47A3F8B97C80 /* APIClient.swift in Sources */,
 				34ED59C4E0B7AF817BB55A52 /* AccessRevokedView.swift in Sources */,
 				8A5DA70B1A534E9699E50363 /* AddGuestView.swift in Sources */,
-				74BC707D374A562F4E350157 /* AuthViewModel.swift in Sources */,
 				B3C7012EC5EE28B776AB5C3F /* ChatMessage.swift in Sources */,
 				030EAB73DED596CB0BA20F1D /* ChatView.swift in Sources */,
 				B0B35FEFC16C499171256985 /* ChatViewModel.swift in Sources */,
@@ -364,7 +351,6 @@
 				7B07E3ACE9272D7FA428DC25 /* HearthTextField.swift in Sources */,
 				8207F2214F4F1B1DEC1360FF /* HearthstoneApp.swift in Sources */,
 				CE52493836C4597D23E0D480 /* Household.swift in Sources */,
-				3253596E11C04A8BCB6EA422 /* HouseholdSetupView.swift in Sources */,
 				F33BDECE29CD924BC3776F49 /* InviteErrorView.swift in Sources */,
 				AA06000000000000000006B1 /* InviteOwnerView.swift in Sources */,
 				AA01000000000000000001B1 /* HouseSession.swift in Sources */,
@@ -380,8 +366,6 @@
 				34DCE9B015F5FCCF51E170EB /* Suggestion.swift in Sources */,
 				17B3613E09E957F555D69E68 /* SuggestionChips.swift in Sources */,
 				CB814B680110FA221E81687B /* Theme.swift in Sources */,
-				7108A78F317AA431BA9F0046 /* VerifyCodeView.swift in Sources */,
-				5E6D6335D619725F1A7B0005 /* WelcomeView.swift in Sources */,
 				AA05000000000000000005B1 /* QRScannerView.swift in Sources */,
 				AA03000000000000000003B1 /* SidebarOverlay.swift in Sources */,
 				AA04000000000000000004B1 /* SidebarView.swift in Sources */,

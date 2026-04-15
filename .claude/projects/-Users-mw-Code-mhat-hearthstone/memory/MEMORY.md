@@ -1,1 +1,1 @@
-- [Design decisions](project_design_decisions.md) — Auth architecture (passkey), guest access, doc picker scope, visual direction
+- [Design decisions](project_design_decisions.md) — Auth via PIN redeem (no passkey/magic-link), Drive as doc source only, doc picker scope, visual direction

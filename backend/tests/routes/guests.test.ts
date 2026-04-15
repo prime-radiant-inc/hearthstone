@@ -31,7 +31,7 @@ describe("guest routes", () => {
       expect(result.status).toBe(200);
       expect(result.body.guest.name).toBe("Maria");
       expect(result.body.guest.status).toBe("pending");
-      expect(result.body.pin).toMatch(/^\d{6}$/);
+      expect(result.body.pin).toMatch(/^[0-9A-HJKMNP-TV-Z]{6}$/);
       expect(result.body.expires_at).toBeTruthy();
     });
 

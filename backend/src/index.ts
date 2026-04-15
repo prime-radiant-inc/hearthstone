@@ -3,16 +3,6 @@ import { getDb } from "./db/connection";
 import { config } from "./config";
 import { authenticateOwner } from "./middleware/owner-auth";
 import { authenticateGuest } from "./middleware/guest-auth";
-import {
-  handleRegister,
-  handleRegisterVerify,
-  handleRegisterPasskey,
-  handleLoginPasskeyChallenge,
-  handleLoginPasskeyVerify,
-  handleLoginEmail,
-  handleLoginEmailVerify,
-  handleInviteRedeem,
-} from "./routes/auth";
 import { handleUpdateHousehold } from "./routes/household";
 import { handleCreateHousehold } from "./routes/household-create";
 import { handleListGuests, handleCreateGuest, handleRevokeGuest, handleReinviteGuest, handleDeleteGuest } from "./routes/guests";
@@ -112,14 +102,6 @@ function matchRoute(method: string, pathname: string): string {
     "GET /",
     "GET /tos",
     "GET /privacy",
-    "POST /auth/register",
-    "POST /auth/register/verify",
-    "POST /auth/register/passkey",
-    "POST /auth/login/passkey/challenge",
-    "POST /auth/login/passkey/verify",
-    "POST /auth/login/email",
-    "POST /auth/login/email/verify",
-    "POST /auth/invite/redeem",
     "POST /auth/pin/redeem",
     "GET /me",
     "POST /household",
@@ -319,54 +301,6 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       }
 
       // --- Auth routes (no auth required) ---
-      if (method === "POST" && pathname === "/auth/register") {
-        const body = await req.json();
-        const result = await handleRegister(getDb(), body);
-        return json(result.body, result.status);
-      }
-
-      if (method === "POST" && pathname === "/auth/register/verify") {
-        const body = await req.json();
-        const result = await handleRegisterVerify(getDb(), body);
-        return json(result.body, result.status);
-      }
-
-      if (method === "POST" && pathname === "/auth/register/passkey") {
-        const body = await req.json();
-        const result = await handleRegisterPasskey(getDb(), body);
-        return json(result.body, result.status);
-      }
-
-      if (method === "POST" && pathname === "/auth/login/passkey/challenge") {
-        const body = await req.json();
-        const result = await handleLoginPasskeyChallenge(getDb(), body);
-        return json(result.body, result.status);
-      }
-
-      if (method === "POST" && pathname === "/auth/login/passkey/verify") {
-        const body = await req.json();
-        const result = await handleLoginPasskeyVerify(getDb(), body);
-        return json(result.body, result.status);
-      }
-
-      if (method === "POST" && pathname === "/auth/login/email") {
-        const body = await req.json();
-        const result = await handleLoginEmail(getDb(), body);
-        return json(result.body, result.status);
-      }
-
-      if (method === "POST" && pathname === "/auth/login/email/verify") {
-        const body = await req.json();
-        const result = await handleLoginEmailVerify(getDb(), body);
-        return json(result.body, result.status);
-      }
-
-      if (method === "POST" && pathname === "/auth/invite/redeem") {
-        const body = await req.json();
-        const result = await handleInviteRedeem(getDb(), body);
-        return json(result.body, result.status);
-      }
-
       if (method === "POST" && pathname === "/auth/pin/redeem") {
         const body = await req.json();
         const result = await handlePinRedeem(getDb(), body, config.jwtSecret);

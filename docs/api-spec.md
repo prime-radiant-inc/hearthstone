@@ -26,75 +26,14 @@ Base URL: `https://api.hearthstone.app` (production) / `http://localhost:3000` (
 
 ## Auth
 
-### `POST /auth/google`
-Initiate Google OAuth flow. Redirects to Google consent screen requesting Drive read + profile scopes.
-
-**Response:** 302 redirect to Google OAuth
-
----
-
-### `GET /auth/google/callback`
-Google OAuth callback. Creates or retrieves Person + Household records.
-
-**Query params:**
-- `code` — OAuth authorization code
-- `state` — CSRF state token
-
-**Response:**
-```json
-{
-  "token": "owner_session_token",
-  "household": {
-    "id": "uuid",
-    "name": "The Anderson Home",
-    "created_at": "2024-01-01T00:00:00Z"
-  },
-  "is_new": true
-}
-```
-
-**Errors:**
-- `400` — missing or invalid code/state
-- `500` — Google API error
-
----
-
-### `POST /auth/invite/redeem`
-Exchange a single-use `hsi_` invite token for a long-lived `hss_` session token.
-
-**Request:**
-```json
-{
-  "invite_token": "hsi_abc123..."
-}
-```
-
-**Response:**
-```json
-{
-  "session_token": "hss_xyz789...",
-  "guest": {
-    "id": "uuid",
-    "name": "Maria",
-    "household_id": "uuid"
-  },
-  "household_name": "The Anderson Home"
-}
-```
-
-**Errors:**
-- `410` — token already used (`"message": "This invite has already been used"`)
-- `410` — token expired (`"message": "This invite has expired"`)
-- `404` — token not found
-
----
+Owner and guest sessions are both minted by redeeming a short-lived PIN. PINs are six characters drawn from the Crockford base32 alphabet (digits plus A–Z excluding I, L, O, U), case-insensitive on input and uppercased by the server. They're created by the admin flow (first owner), the owner flow (co-owner or guest invites), and delivered to the client as a `join_url` of the form `${HEARTHSTONE_PUBLIC_URL}/join/${pin}`. There is no email/password login and no WebAuthn path.
 
 ### `POST /auth/pin/redeem`
 Exchange a short-lived PIN for a session.
 
 **Request:**
 ```json
-{ "pin": "123456" }
+{ "pin": "HJ3K7X" }
 ```
 
 **Response (owner role):**
@@ -154,8 +93,8 @@ Generate a new PIN for an existing guest. For revoked guests, reactivates them t
 **Response:**
 ```json
 {
-  "pin": "123456",
-  "join_url": "https://hearthstone-mhat.fly.dev/join/123456",
+  "pin": "HJ3K7X",
+  "join_url": "https://hearthstone.example.com/join/HJ3K7X",
   "expires_at": "2024-01-08T00:00:00Z"
 }
 ```
@@ -193,7 +132,7 @@ Guest `status` values: `pending` | `active` | `revoked`
 ---
 
 ### `POST /guests`
-Invite a new guest. Generates `hsi_` token and sends magic link via email or SMS.
+Create a guest record and mint a one-shot guest PIN. The owner is expected to share the resulting `join_url` with the guest out-of-band (QR code shown in-app, or pasted into whatever messenger they already use).
 
 **Auth:** Owner session
 
@@ -201,12 +140,11 @@ Invite a new guest. Generates `hsi_` token and sends magic link via email or SMS
 ```json
 {
   "name": "Maria",
-  "email": "maria@example.com",
-  "phone": null
+  "email": "maria@example.com"
 }
 ```
 
-Either `email` or `phone` must be present. If both provided, email is used for delivery.
+`name` is required. `email` is stored as a label on the guest row for the owner's own reference — the server does not send mail.
 
 **Response:**
 ```json
@@ -216,15 +154,14 @@ Either `email` or `phone` must be present. If both provided, email is used for d
     "name": "Maria",
     "status": "pending"
   },
-  "pin": "123456",
-  "join_url": "https://hearthstone-mhat.fly.dev/join/123456",
+  "pin": "HJ3K7X",
+  "join_url": "https://hearthstone.example.com/join/HJ3K7X",
   "expires_at": "2024-01-08T00:00:00Z"
 }
 ```
 
 **Errors:**
 - `422` — name missing
-- `422` — neither email nor phone provided
 
 ---
 
@@ -244,8 +181,8 @@ Invite a co-owner to the household. Mints an owner PIN.
 **Response:**
 ```json
 {
-  "pin": "123456",
-  "join_url": "https://hearthstone-mhat.fly.dev/join/123456",
+  "pin": "HJ3K7X",
+  "join_url": "https://hearthstone.example.com/join/HJ3K7X",
   "expires_at": "2024-01-08T00:00:00Z"
 }
 ```
@@ -465,7 +402,7 @@ title: Hearthstone — Technical Design
 
 ## Overview
 
-Hearthstone is a mobile iOS app (SwiftUI) that gives guests conversational access to a household's Google Docs. A TypeScript/Bun backend manages auth, fetches and indexes docs, and proxies AI requests. Guests access via magic link which deep-links into the iOS app via Universal Links.
+Hearthstone is a mobile iOS app (SwiftUI) that gives guests conversational access to a household's Google Docs. A TypeScript/Bun backend manages auth, fetches and indexes docs, and proxies AI requests. Guests access via a short numeric PIN, delivered inside a `join_url` the owner shares out-of-band. The link deep-links into the iOS app via a custom URL scheme.
 
 ---
 
@@ -485,31 +422,15 @@ Hearthstone is a mobile iOS app (SwiftUI) that gives guests conversational acces
 ## Auth & Identity
 
 ### Owner auth
-Owner authenticates via Google OAuth (doubles as Google Drive consent). Library choice deferred until stack is finalized.
+Owners sign in by redeeming a PIN minted out-of-band — either by the admin (first owner for a house) or by an existing owner inviting a co-owner. PINs are 6-character Crockford base32 strings. Redemption at `POST /auth/pin/redeem` returns a JWT that the iOS app stores in the Keychain. Google OAuth is only used as a _document source_ (`/connections/google-drive/*`), not for identity.
 
-### Guest auth — two-token pattern
+### Guest auth
 
-Two token types with distinct prefixes for debuggability:
+Guests also redeem a PIN at `POST /auth/pin/redeem`, which returns a long-lived `hss_` session token. The token is stored in iOS Keychain and sent as a bearer token on every subsequent request. Owners can revoke a guest's session at any time via `POST /guests/:id/revoke`; the next request from that token 401s with a `session_expired` message.
 
-| Token | Prefix | Lifetime | Use |
-|-------|--------|----------|-----|
-| Invite token | `hsi_` | 7 days | Single-use, delivered in magic link URL |
-| Session token | `hss_` | Until revoked | Stored in iOS Keychain, sent as bearer token |
-
-**Exchange flow:**
-1. Owner invites guest → backend generates `hsi_` token
-2. Magic link delivered: `hearthstone.app/join/hsi_abc123`
-3. Guest taps link → Universal Link opens iOS app → app sends `hsi_` to backend
-4. Backend validates + burns `hsi_` → mints `hss_`
-5. App stores `hss_` in iOS Keychain
-6. Every subsequent request sends `hss_` as bearer token
-7. Owner revokes → backend sets `revoked_at` → next request 401s
-
-**Rationale:** Avoids long-lived tokens appearing in email/SMS/server logs. Single-use invite token means interception doesn't grant permanent access.
-
-### Guest token storage
-- `hsi_` tokens: stored in DB with `household_id`, `guest_id`, `created_at`, `expires_at`, `used_at`
-- `hss_` tokens: stored in DB with `household_id`, `guest_id`, `created_at`, `revoked_at`
+### Session token storage
+- `hss_` tokens: stored in DB (`session_tokens`) with `household_id`, `guest_id`, `created_at`, `revoked_at`.
+- Owner JWTs are not persisted server-side — they carry `personId` + `householdId` claims and expire after 30 days.
 
 ---
 
@@ -519,11 +440,11 @@ All records scoped to `household_id` from day one to support future multi-tenant
 
 ### Core entities
 
-- **Person** — owner account (email, OAuth token)
-- **Household** — owned by a Person; has name; scopes all data
-- **Guest** — name + contact (email or phone), linked to Household; no password, no Person link in v1
-- **InviteToken** (`hsi_`) — single-use invite, expires in 7 days
-- **SessionToken** (`hss_`) — long-lived session credential, revocable
+- **Person** — owner identity (email label)
+- **Household** — scopes all data; joined to Persons through `household_members`
+- **Guest** — name + optional email label, linked to Household; no password, no Person link in v1
+- **AuthPin** — short-lived 6-char Crockford base32 PIN, minted for owner or guest redemption
+- **SessionToken** (`hss_`) — long-lived guest session credential, revocable
 - **Document** — connected Google Doc (Drive file ID, title, last synced)
 - **Chunk** — text segment of a Document with sqlite-vec embedding
 
@@ -625,11 +546,11 @@ The homeowner connects their existing Google Docs once. Guests get a magic link 
 
 **Owners** — Homeowners (or household managers) who maintain documentation about their home and want to share it with temporary guests or recurring caregivers. They manage which docs are connected and who has access.
 
-**Guests** — Babysitters, house-sitters, family members, or anyone temporarily responsible for the home. They need quick answers on a phone, not a document-reading session. They have no account, no password, no profile — just a token delivered via magic link or QR code.
+**Guests** — Babysitters, house-sitters, family members, or anyone temporarily responsible for the home. They need quick answers on a phone, not a document-reading session. They have no account, no password, no profile — just a token redeemed from a short-lived PIN delivered via a `join_url` or scanned QR code.
 
 ## Core Experience
 
-A guest receives a magic link or scans a QR code. They open a mobile-optimized web app and see a chat interface. They ask "how do I turn on the guest WiFi?" or "what's the bedtime routine?" and get a direct, conversational answer synthesized from the household's docs. If they want more context, they can view the full source document.
+A guest receives a join link or scans a QR code. They open a mobile-optimized web app and see a chat interface. They ask "how do I turn on the guest WiFi?" or "what's the bedtime routine?" and get a direct, conversational answer synthesized from the household's docs. If they want more context, they can view the full source document.
 
 ## Identity Model
 
@@ -657,7 +578,7 @@ This keeps the guest experience frictionless. If a future version wants to link 
 
 - Owner account (single household)
 - Google Drive OAuth — owner selects which docs to connect
-- Guest management — add guests by name + contact info, send magic link or show QR code, revoke access
+- Guest management — add guests by name, share join link or show QR code, revoke access
 - Chat interface — AI answers grounded in connected docs, with source doc links
 - Mobile-optimized PWA
 
@@ -728,8 +649,8 @@ Create a house and mint the first owner PIN.
 ```json
 {
   "house": { "id": "uuid", "name": "The Anderson Home", "created_at": "2024-01-01T00:00:00Z" },
-  "pin": "123456",
-  "join_url": "https://hearthstone-mhat.fly.dev/join/123456"
+  "pin": "HJ3K7X",
+  "join_url": "https://hearthstone.example.com/join/HJ3K7X"
 }
 ```
 
@@ -741,7 +662,7 @@ Server diagnostics.
 **Response:**
 ```json
 {
-  "public_url": "https://hearthstone-mhat.fly.dev",
+  "public_url": "https://hearthstone.example.com",
   "db_file_size_bytes": 123456,
   "version": "0.2.0"
 }
