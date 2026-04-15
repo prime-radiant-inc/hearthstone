@@ -188,15 +188,21 @@ The backend runs on a single [Fly.io](https://fly.io) machine with a persistent 
 From the `backend/` directory:
 
 ```bash
+cp fly.toml.example fly.toml
+```
+
+Edit `fly.toml` and set `app` to something unique and `primary_region` to the Fly region closest to your users. `fly.toml` is gitignored so your app name and region stay local.
+
+Then:
+
+```bash
 fly launch --no-deploy
 ```
 
-Accept the defaults. This creates the app from the existing `fly.toml`.
-
-Create a 1GB persistent volume for the database:
+Create a 1GB persistent volume for the database in the same region as your app:
 
 ```bash
-fly volumes create hearthstone_data --size 1 --region sjc
+fly volumes create hearthstone_data --size 1 --region <region>
 ```
 
 Set your secrets:
@@ -207,8 +213,10 @@ fly secrets set \
   JWT_SECRET="$(openssl rand -base64 32)" \
   GOOGLE_CLIENT_ID="your-client-id" \
   GOOGLE_CLIENT_SECRET="your-client-secret" \
-  APP_BASE_URL="https://your-app-name.fly.dev"
+  HEARTHSTONE_PUBLIC_URL="https://your-app-name.fly.dev"
 ```
+
+`HEARTHSTONE_PUBLIC_URL` is required at boot — the server fails loudly if it's missing or doesn't include a scheme. Every `join_url` the server hands out is built from it.
 
 Deploy:
 
@@ -267,9 +275,12 @@ Apple's UI for this changes regularly. Search "TestFlight internal testing" for 
 
 - **SQLite + sqlite-vec** for vector search. Embeddings are stored alongside the data in a single file. On macOS, Homebrew's SQLite is loaded automatically for extension support.
 - **Chunk storage separates concerns.** Document text is stored clean; embedding decorations (title prefix, section breadcrumb) are constructed at embed time, not baked into the stored text.
-- **The API spec is the contract.** Both the backend and iOS app conform to the shapes defined in `.brainstorm/spec.md`. Contract tests in `tests/api-contract.test.ts` enforce this.
-- **PIN auth is the default.** Email-based auth exists in the codebase but is dormant. A commercial fork could re-enable it without structural changes.
+- **The API spec is the contract.** Both the backend and iOS app conform to the shapes defined in `docs/api-spec.md`. Contract tests in `tests/api-contract.test.ts` enforce this.
+- **PIN auth, nothing else.** Owners and guests both sign in by redeeming a short Crockford base32 PIN. No email, no passkeys, no magic links. See `docs/decisions/decisions-tech.md` for the flow.
 
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE).
+
+Copyright 2026 Prime Radiant  
+[https://primeradiant.com](https://primeradiant.com)
