@@ -280,7 +280,7 @@ Apple's UI for this changes regularly. Search "TestFlight internal testing" for 
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+Apache License 2.0 — see [LICENSE](LICENSE).
 
 Copyright 2026 Prime Radiant  
 [https://primeradiant.com](https://primeradiant.com)
