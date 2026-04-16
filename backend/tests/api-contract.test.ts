@@ -42,7 +42,7 @@ function hasExactKeys(obj: any, keys: string[]) {
 function seedOwner(db: Database): string {
   const now = new Date().toISOString();
   db.prepare("INSERT INTO persons (id, email, created_at) VALUES (?, ?, ?)").run("p1", "owner@test.com", now);
-  db.prepare("INSERT INTO households (id, owner_id, name, created_at) VALUES (?, ?, ?, ?)").run("h1", "p1", "Test Home", now);
+  db.prepare("INSERT INTO households (id, name, created_at) VALUES (?, ?, ?)").run("h1", "Test Home", now);
   db.prepare("INSERT INTO household_members (id, household_id, person_id, role, created_at) VALUES (?, ?, ?, 'owner', ?)").run("hm1", "h1", "p1", now);
   return "h1";
 }

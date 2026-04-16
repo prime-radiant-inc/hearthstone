@@ -14,8 +14,8 @@ export function handleCreateHousehold(
   const id = generateId();
   const now = new Date().toISOString();
 
-  db.prepare("INSERT INTO households (id, owner_id, name, created_at) VALUES (?, ?, ?, ?)").run(
-    id, personId, body.name.trim(), now
+  db.prepare("INSERT INTO households (id, name, created_at) VALUES (?, ?, ?)").run(
+    id, body.name.trim(), now
   );
 
   db.prepare(

@@ -82,8 +82,8 @@ export async function handleAdminCreateHouse(
   db.prepare("INSERT INTO persons (id, email, name, created_at) VALUES (?, ?, ?, ?)")
     .run(personId, placeholderEmail, ownerName, now);
 
-  db.prepare("INSERT INTO households (id, owner_id, name, created_at) VALUES (?, ?, ?, ?)")
-    .run(houseId, personId, name, now);
+  db.prepare("INSERT INTO households (id, name, created_at) VALUES (?, ?, ?)")
+    .run(houseId, name, now);
   db.prepare("INSERT INTO household_members (id, household_id, person_id, role, created_at) VALUES (?, ?, ?, 'owner', ?)")
     .run(generateId(), houseId, personId, now);
 

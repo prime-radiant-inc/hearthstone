@@ -39,17 +39,21 @@ export function runMigrations(db: Database): void {
     );
   `);
 
-  // Migrate existing owner_id data into household_members
-  const households = db.prepare("SELECT id, owner_id, created_at FROM households").all() as any[];
-  for (const h of households) {
-    const exists = db.prepare(
-      "SELECT id FROM household_members WHERE household_id = ? AND person_id = ?"
-    ).get(h.id, h.owner_id);
-    if (!exists) {
-      db.prepare(
-        "INSERT INTO household_members (id, household_id, person_id, role, created_at) VALUES (?, ?, ?, 'owner', ?)"
-      ).run(crypto.randomUUID(), h.id, h.owner_id, h.created_at);
+  // Migrate owner_id → household_members, then drop the column
+  const householdCols = db.prepare("PRAGMA table_info(households)").all() as any[];
+  if (householdCols.some((c: any) => c.name === "owner_id")) {
+    const households = db.prepare("SELECT id, owner_id, created_at FROM households").all() as any[];
+    for (const h of households) {
+      const exists = db.prepare(
+        "SELECT id FROM household_members WHERE household_id = ? AND person_id = ?"
+      ).get(h.id, h.owner_id);
+      if (!exists) {
+        db.prepare(
+          "INSERT INTO household_members (id, household_id, person_id, role, created_at) VALUES (?, ?, ?, 'owner', ?)"
+        ).run(crypto.randomUUID(), h.id, h.owner_id, h.created_at);
+      }
     }
+    db.run("ALTER TABLE households DROP COLUMN owner_id");
   }
 
   // Add name column to persons if not present

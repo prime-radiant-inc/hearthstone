@@ -38,8 +38,8 @@ async function main() {
   db.prepare("INSERT INTO persons (id, email, created_at) VALUES (?, ?, ?)").run(
     personId, email.trim().toLowerCase(), now
   );
-  db.prepare("INSERT INTO households (id, owner_id, name, created_at) VALUES (?, ?, ?, ?)").run(
-    householdId, personId, name.trim(), now
+  db.prepare("INSERT INTO households (id, name, created_at) VALUES (?, ?, ?)").run(
+    householdId, name.trim(), now
   );
 
   const { pin, expiresAt } = createAuthPin(db, {

@@ -7,7 +7,6 @@ export const SCHEMA_SQL = `
 
   CREATE TABLE IF NOT EXISTS households (
     id TEXT PRIMARY KEY,
-    owner_id TEXT NOT NULL REFERENCES persons(id),
     name TEXT NOT NULL,
     created_at TEXT NOT NULL
   );

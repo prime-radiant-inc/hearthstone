@@ -16,8 +16,8 @@ describe("connection routes", () => {
     db.prepare("INSERT INTO persons (id, email, created_at) VALUES (?, ?, ?)").run(
       "p1", "owner@test.com", new Date().toISOString()
     );
-    db.prepare("INSERT INTO households (id, owner_id, name, created_at) VALUES (?, ?, ?, ?)").run(
-      "h1", "p1", "Test Home", new Date().toISOString()
+    db.prepare("INSERT INTO households (id, name, created_at) VALUES (?, ?, ?)").run(
+      "h1", "Test Home", new Date().toISOString()
     );
   });
 
@@ -51,8 +51,8 @@ describe("connection routes", () => {
       db.prepare("INSERT INTO persons (id, email, created_at) VALUES (?, ?, ?)").run(
         "p2", "other@test.com", now
       );
-      db.prepare("INSERT INTO households (id, owner_id, name, created_at) VALUES (?, ?, ?, ?)").run(
-        "h2", "p2", "Other Home", now
+      db.prepare("INSERT INTO households (id, name, created_at) VALUES (?, ?, ?)").run(
+        "h2", "Other Home", now
       );
       db.prepare(
         "INSERT INTO connections (id, household_id, provider, refresh_token, email, created_at) VALUES (?, ?, ?, ?, ?, ?)"
@@ -88,8 +88,8 @@ describe("connection routes", () => {
       db.prepare("INSERT INTO persons (id, email, created_at) VALUES (?, ?, ?)").run(
         "p2", "other@test.com", now
       );
-      db.prepare("INSERT INTO households (id, owner_id, name, created_at) VALUES (?, ?, ?, ?)").run(
-        "h2", "p2", "Other Home", now
+      db.prepare("INSERT INTO households (id, name, created_at) VALUES (?, ?, ?)").run(
+        "h2", "Other Home", now
       );
       db.prepare(
         "INSERT INTO connections (id, household_id, provider, refresh_token, email, created_at) VALUES (?, ?, ?, ?, ?, ?)"
