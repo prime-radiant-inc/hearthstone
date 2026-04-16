@@ -53,16 +53,25 @@ describe("rate limiter — token bucket", () => {
     let now = 1_000_000;
     const rl = createRateLimiter({ now: () => now });
 
-    // Tier 1 hour cap = 60. Burn 60 over the hour, refilling minute bucket in between.
+    // Tier 1: 10/min + 60/hr. To exhaust the hour bucket while keeping
+    // the minute bucket non-binding, do 6 batches of 10 separated by 60s
+    // (refills minute fully; hour accrues +1 per gap), then start a 7th
+    // batch. After 6 batches, hour bucket is at 5; the 60s refill before
+    // batch 7 brings it to 6. 6 successful calls into batch 7 exhaust
+    // hour. Minute bucket has 4 tokens left — still non-binding.
     for (let batch = 0; batch < 6; batch++) {
       for (let i = 0; i < 10; i++) {
         expect(rl.check("k", "1").allowed).toBe(true);
       }
-      now += 60_000; // 1 min, refills minute bucket fully
+      now += 60_000;
     }
-    // Minute bucket has room, hour bucket does not.
+    // Batch 7: 6 allowed, then denied while minute still has room.
+    for (let i = 0; i < 6; i++) {
+      expect(rl.check("k", "1").allowed).toBe(true);
+    }
     const denied = rl.check("k", "1");
     expect(denied.allowed).toBe(false);
+    expect(denied.retryAfterSec).toBeGreaterThan(0);
   });
 
   it("isolates keys", () => {
