@@ -16,11 +16,7 @@ struct HearthstoneApp: App {
                 case .active(let session):
                     SidebarOverlay(router: router) {
                         if session.role == .owner {
-                            DashboardView(
-                                sessionId: session.id,
-                                householdName: session.householdName,
-                                ownerName: session.personName ?? ""
-                            )
+                            DashboardView(sessionId: session.id)
                         } else {
                             ChatView(
                                 viewModel: ChatViewModel(householdId: session.householdId),
@@ -28,6 +24,7 @@ struct HearthstoneApp: App {
                             )
                         }
                     }
+                    .id(session.id)
                 }
             }
             .sheet(item: $router.showAccessRevoked) { name in
@@ -100,6 +97,17 @@ final class AppRouter: ObservableObject {
                     if self.store.sessions.isEmpty {
                         self.showAccessRevoked = name
                     }
+                    self.syncState()
+                }
+            }
+        }
+        NotificationCenter.default.addObserver(forName: .houseDeleted, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in
+                guard let self else { return }
+                if let active = self.store.activeSession {
+                    let name = active.householdName
+                    self.store.remove(id: active.id)
+                    self.showAccessRevoked = name
                     self.syncState()
                 }
             }
