@@ -4,9 +4,8 @@ import SwiftUI
 
 struct DashboardView: View {
     let sessionId: String
-    @State var householdName: String
-    @State var ownerName: String
 
+    @ObservedObject private var store = SessionStore.shared
     @Environment(\.colorScheme) private var colorScheme
     private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
 
@@ -18,15 +17,28 @@ struct DashboardView: View {
     @State private var isEditingName = false
     @State private var editedName = ""
     @State private var isSavingName = false
+    @State private var saveError: String?
     @State private var showNamePrompt = false
     @State private var promptedName = ""
+    @State private var showDeleteConfirmation = false
+    @State private var deleteConfirmationText = ""
+    @State private var isDeleting = false
+    @State private var deleteError: String?
 
-    init(sessionId: String, householdName: String, ownerName: String) {
+    init(sessionId: String) {
         self.sessionId = sessionId
-        _householdName = State(initialValue: householdName)
-        _ownerName = State(initialValue: ownerName)
         _viewModel = StateObject(wrappedValue: DashboardViewModel(sessionId: sessionId))
     }
+
+    /// Live view of this dashboard's session. Returns `nil` only during the
+    /// brief window after the session is removed and before the router
+    /// switches away — callers fall back to empty strings.
+    private var session: HouseSession? {
+        store.sessions.first(where: { $0.id == sessionId })
+    }
+
+    private var householdName: String { session?.householdName ?? "" }
+    private var ownerName: String { session?.personName ?? "" }
 
     var body: some View {
         GeometryReader { geo in
@@ -39,25 +51,7 @@ struct DashboardView: View {
                         editedName: $editedName,
                         isSaving: isSavingName,
                         safeAreaTop: geo.safeAreaInsets.top,
-                        onSave: {
-                            let newName = editedName.trimmingCharacters(in: .whitespacesAndNewlines)
-                            guard !newName.isEmpty, newName != householdName else {
-                                isEditingName = false
-                                return
-                            }
-                            isSavingName = true
-                            Task {
-                                if let session = SessionStore.shared.sessions.first(where: { $0.id == sessionId }),
-                                   let client = session.apiClient() {
-                                    do {
-                                        let updated = try await client.updateHousehold(name: newName)
-                                        householdName = updated.name
-                                    } catch {}
-                                }
-                                isSavingName = false
-                                isEditingName = false
-                            }
-                        }
+                        onSave: saveHouseholdName
                     )
 
                     StatRow(
@@ -86,7 +80,11 @@ struct DashboardView: View {
                         onDocumentsTap: { showDocuments = true },
                         onGuestsTap: { showGuestList = true },
                         onPreviewTap: { showOwnerPreview = true },
-                        onInviteOwnerTap: { showInviteOwner = true }
+                        onInviteOwnerTap: { showInviteOwner = true },
+                        onDeleteHouseTap: {
+                            deleteConfirmationText = ""
+                            showDeleteConfirmation = true
+                        }
                     )
                     .padding(.top, 24)
                 }
@@ -119,12 +117,10 @@ struct DashboardView: View {
                 let name = promptedName.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !name.isEmpty else { return }
                 Task {
-                    if let session = SessionStore.shared.sessions.first(where: { $0.id == sessionId }),
-                       let client = session.apiClient() {
+                    if let session, let client = session.apiClient() {
                         do {
                             _ = try await client.updateMe(name: name)
-                            ownerName = name
-                            SessionStore.shared.updateSession(id: sessionId, personName: name)
+                            store.updateSession(id: sessionId, personName: name)
                         } catch { }
                     }
                 }
@@ -133,9 +129,76 @@ struct DashboardView: View {
         } message: {
             Text("This shows on your dashboard instead of your email.")
         }
+        .alert(
+            "Couldn't rename household",
+            isPresented: Binding(
+                get: { saveError != nil },
+                set: { if !$0 { saveError = nil } }
+            ),
+            presenting: saveError
+        ) { _ in
+            Button("OK") { saveError = nil }
+        } message: { message in
+            Text(message)
+        }
+        .sheet(isPresented: $showDeleteConfirmation) {
+            DeleteHouseConfirmationView(
+                householdName: householdName,
+                confirmationText: $deleteConfirmationText,
+                isDeleting: isDeleting,
+                error: deleteError,
+                onConfirm: deleteHousehold,
+                onCancel: {
+                    showDeleteConfirmation = false
+                    deleteError = nil
+                }
+            )
+            .presentationDetents([.medium])
+        }
         .onAppear {
             if ownerName.isEmpty || ownerName.contains("@") {
                 showNamePrompt = true
+            }
+        }
+    }
+
+    private func deleteHousehold() {
+        guard let session, let client = session.apiClient() else { return }
+        isDeleting = true
+        deleteError = nil
+        Task {
+            do {
+                try await client.deleteHousehold()
+                store.remove(id: sessionId)
+                showDeleteConfirmation = false
+                isDeleting = false
+            } catch {
+                isDeleting = false
+                deleteError = error.localizedDescription
+            }
+        }
+    }
+
+    private func saveHouseholdName() {
+        let newName = editedName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !newName.isEmpty, newName != householdName else {
+            isEditingName = false
+            return
+        }
+        guard let session, let client = session.apiClient() else {
+            isEditingName = false
+            return
+        }
+        isSavingName = true
+        Task {
+            do {
+                let updated = try await client.updateHousehold(name: newName)
+                store.updateSession(id: sessionId, householdName: updated.name)
+                isSavingName = false
+                isEditingName = false
+            } catch {
+                isSavingName = false
+                saveError = error.localizedDescription
             }
         }
     }
@@ -384,6 +447,7 @@ private struct ManageSection: View {
     let onGuestsTap: () -> Void
     let onPreviewTap: () -> Void
     let onInviteOwnerTap: () -> Void
+    let onDeleteHouseTap: () -> Void
 
     @Environment(\.colorScheme) private var colorScheme
     private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
@@ -426,6 +490,20 @@ private struct ManageSection: View {
                 title: "Preview as Guest",
                 subtitle: "See what your guests see",
                 onTap: onPreviewTap
+            )
+
+            // Danger zone
+            Text("DANGER ZONE")
+                .font(.system(size: 11, weight: .bold))
+                .kerning(1.2)
+                .foregroundColor(theme.rose)
+                .padding(.top, 24)
+                .padding(.bottom, 12)
+
+            DangerRow(
+                title: "Delete this house\u{2026}",
+                subtitle: "Permanently remove this household and all its data",
+                onTap: onDeleteHouseTap
             )
         }
         .padding(.horizontal, 24)
@@ -476,5 +554,149 @@ private struct ManageRow: View {
             .shadow(color: theme.shadowLight, radius: 2, x: 0, y: 1)
         }
         .padding(.bottom, 10)
+    }
+}
+
+private struct DangerRow: View {
+    let title: String
+    let subtitle: String
+    let onTap: () -> Void
+
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
+
+    var body: some View {
+        Button(action: onTap) {
+            HStack(spacing: 14) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(theme.roseLight)
+                        .frame(width: 42, height: 42)
+                    Image(systemName: "trash")
+                        .font(.system(size: 18))
+                        .foregroundColor(theme.rose)
+                }
+
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(title)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(theme.rose)
+                    Text(subtitle)
+                        .font(.system(size: 13))
+                        .foregroundColor(theme.stone)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(theme.creamDeep)
+            }
+            .padding(.horizontal, 18)
+            .padding(.vertical, 16)
+            .background(theme.roseLight)
+            .clipShape(RoundedRectangle(cornerRadius: Theme.radiusMedium))
+            .overlay(
+                RoundedRectangle(cornerRadius: Theme.radiusMedium)
+                    .stroke(theme.rose.opacity(0.3), lineWidth: 1)
+            )
+        }
+    }
+}
+
+// MARK: - Delete House Confirmation
+
+private struct DeleteHouseConfirmationView: View {
+    let householdName: String
+    @Binding var confirmationText: String
+    let isDeleting: Bool
+    let error: String?
+    let onConfirm: () -> Void
+    let onCancel: () -> Void
+
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: ResolvedTheme { Theme.resolved(for: colorScheme) }
+
+    private var nameMatches: Bool {
+        confirmationText.trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased() == householdName.lowercased()
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Header
+            HStack {
+                Button("Cancel") { onCancel() }
+                    .foregroundColor(theme.charcoalSoft)
+                Spacer()
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 16)
+            .padding(.bottom, 8)
+
+            VStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(theme.roseLight)
+                        .frame(width: 56, height: 56)
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 24))
+                        .foregroundColor(theme.rose)
+                }
+
+                Text("Delete \u{201C}\(householdName)\u{201D}?")
+                    .font(Theme.heading(20))
+                    .foregroundColor(theme.charcoal)
+                    .multilineTextAlignment(.center)
+
+                Text("This permanently removes the household, all of its guests, owners, connected documents, and chat history.")
+                    .font(.system(size: 14))
+                    .foregroundColor(theme.charcoalSoft)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(4)
+                    .padding(.horizontal, 24)
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Type the house name to confirm:")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(theme.stone)
+
+                    TextField(householdName, text: $confirmationText)
+                        .textFieldStyle(.roundedBorder)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
+                }
+                .padding(.horizontal, 24)
+
+                if let error {
+                    Text(error)
+                        .font(.system(size: 13))
+                        .foregroundColor(theme.rose)
+                        .padding(.horizontal, 24)
+                }
+
+                Button(action: onConfirm) {
+                    HStack(spacing: 8) {
+                        if isDeleting {
+                            ProgressView()
+                                .tint(.white)
+                        }
+                        Text("Delete house")
+                            .font(.system(size: 16, weight: .semibold))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(nameMatches && !isDeleting ? theme.rose : theme.rose.opacity(0.4))
+                    .foregroundColor(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: Theme.radiusMedium))
+                }
+                .disabled(!nameMatches || isDeleting)
+                .padding(.horizontal, 24)
+            }
+            .padding(.bottom, 24)
+
+            Spacer()
+        }
+        .background(theme.cream)
     }
 }

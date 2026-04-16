@@ -89,4 +89,10 @@ final class SessionStore: ObservableObject {
         sessions[idx].personName = personName
         persist()
     }
+
+    func updateSession(id: String, householdName: String) {
+        guard let idx = sessions.firstIndex(where: { $0.id == id }) else { return }
+        sessions[idx].householdName = householdName
+        persist()
+    }
 }

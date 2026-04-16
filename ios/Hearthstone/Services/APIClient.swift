@@ -298,6 +298,16 @@ final class APIClient {
                               body: Body(name: name, email: email))
     }
 
+    // MARK: - Household deletion
+
+    func deleteHousehold() async throws {
+        try await callVoid(method: "DELETE", path: "/household")
+    }
+
+    func removeOwner(personId: String) async throws {
+        try await callVoid(method: "DELETE", path: "/household/owners/\(personId)")
+    }
+
     // MARK: - Chat endpoints
 
     func getSuggestions() async throws -> SuggestionsResponse {
