@@ -22,6 +22,10 @@ All API endpoints are served from the Bun backend. All requests and responses ar
 
 Base URL: `https://api.hearthstone.app` (production) / `http://localhost:3000` (local)
 
+### Cross-cutting error responses
+
+**`410 Gone`** — Any authenticated endpoint may return `410 Gone` with body `{ "message": "house_deleted" }` if the household has been deleted since the client's last request. Clients should remove the session and stop retrying.
+
 ---
 
 ## Auth
@@ -540,7 +544,7 @@ title: Home Knowledge Hub — Vision
 
 Hearthstone gives guests and caregivers instant, conversational access to a household's institutional knowledge — WiFi passwords, home automation quirks, childcare routines, emergency contacts — without forcing them to navigate a pile of Google Docs on a phone.
 
-The homeowner connects their existing Google Docs once. Guests get a magic link or QR code and can immediately ask questions in plain language and get direct answers, with the option to read the full source document.
+The homeowner connects their existing Google Docs once. Guests get a PIN or QR code and can immediately ask questions in plain language and get direct answers, with the option to read the full source document.
 
 ## Target Users
 
@@ -653,6 +657,17 @@ Create a house and mint the first owner PIN.
   "join_url": "https://hearthstone.example.com/join/HJ3K7X"
 }
 ```
+
+### `DELETE /admin/houses/:id`
+Delete a household and all associated data (owners, guests, documents, chunks, embeddings, connections, tokens).
+
+**Auth:** admin
+
+**Response:** `204 No Content`
+
+**Errors:** `404` house not found · `401` unauthorized
+
+---
 
 ### `GET /admin/info`
 Server diagnostics.
