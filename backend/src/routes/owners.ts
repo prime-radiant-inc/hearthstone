@@ -94,7 +94,8 @@ export function handleRemoveOwner(
   ).get(householdId) as any;
 
   if (count.count <= 1) {
-    return { status: 422, body: { message: "Cannot remove the last owner" } };
+    const house = db.prepare("SELECT name FROM households WHERE id = ?").get(householdId) as { name: string };
+    return { status: 409, body: { message: "last_owner", household_name: house.name } };
   }
 
   db.prepare(

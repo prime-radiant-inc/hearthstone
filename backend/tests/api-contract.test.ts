@@ -16,7 +16,7 @@ import { Database } from "bun:sqlite";
 import { handleCreateHousehold } from "../src/routes/household-create";
 import { handleUpdateHousehold } from "../src/routes/household";
 import { handleListGuests, handleCreateGuest, handleRevokeGuest, handleReinviteGuest, handleDeleteGuest } from "../src/routes/guests";
-import { handleInviteOwner, handleListOwners } from "../src/routes/owners";
+import { handleInviteOwner, handleListOwners, handleRemoveOwner } from "../src/routes/owners";
 import { handleJoinPage } from "../src/routes/join";
 import {
   handleAdminHouses,
@@ -622,5 +622,33 @@ describe("410 Gone after household deletion", () => {
     db.prepare("INSERT INTO persons (id, email, created_at) VALUES (?, ?, ?)").run("p1", "a@b.com", now);
     db.prepare("INSERT INTO households (id, name, created_at) VALUES (?, ?, ?)").run("h1", "Home", now);
     expect(() => assertHouseholdExists(db, "h1")).not.toThrow();
+  });
+});
+
+// ============================================================
+// LAST-OWNER GUARD
+// ============================================================
+
+describe("API Contract: DELETE /household/owners/:id — last-owner guard", () => {
+  let db: Database;
+  beforeEach(() => { db = createTestDb(); });
+
+  it("returns 409 with last_owner and household_name when removing the only owner", () => {
+    const hid = seedOwner(db);
+    const result = handleRemoveOwner(db, hid, "p1");
+    expect(result.status).toBe(409);
+    hasExactKeys(result.body, ["message", "household_name"]);
+    expect(result.body.message).toBe("last_owner");
+    expect(result.body.household_name).toBe("Test Home");
+  });
+
+  it("returns 204 when removing a non-last owner", () => {
+    const hid = seedOwner(db);
+    const now = new Date().toISOString();
+    db.prepare("INSERT INTO persons (id, email, created_at) VALUES (?, ?, ?)").run("p2", "other@test.com", now);
+    db.prepare("INSERT INTO household_members (id, household_id, person_id, role, created_at) VALUES (?, ?, ?, 'owner', ?)").run("hm2", hid, "p2", now);
+
+    const result = handleRemoveOwner(db, hid, "p1");
+    expect(result.status).toBe(204);
   });
 });
