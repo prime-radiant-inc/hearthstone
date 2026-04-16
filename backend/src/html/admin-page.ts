@@ -140,6 +140,34 @@ export function renderAdminPage(): string {
     <div class="card info-grid" id="info-grid">Loading…</div>
   </section>
 
+  <section>
+    <h2>Rate limits</h2>
+    <div class="card">
+      <div class="toolbar">
+        <strong>Currently throttled</strong>
+        <span id="rl-updated" style="color:#9b9488;font-size:0.82rem;"></span>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Tier</th><th>Key</th><th>Tokens</th><th>Retry in</th><th class="row-actions-col"></th></tr>
+        </thead>
+        <tbody id="rl-throttled"></tbody>
+      </table>
+      <p id="rl-throttled-empty" style="color:#9b9488;padding:0.75rem 0.5rem;display:none;">No active throttles.</p>
+    </div>
+
+    <div class="card" style="margin-top:1rem;">
+      <div class="toolbar"><strong>Recent rejections</strong></div>
+      <table>
+        <thead>
+          <tr><th>Time</th><th>Route</th><th>Tier</th><th>Key</th><th>Retry</th></tr>
+        </thead>
+        <tbody id="rl-rejections"></tbody>
+      </table>
+      <p id="rl-rejections-empty" style="color:#9b9488;padding:0.75rem 0.5rem;display:none;">No recent rejections.</p>
+    </div>
+  </section>
+
   <div class="modal-backdrop" id="modal">
     <div class="modal" id="modal-body"></div>
   </div>
@@ -341,6 +369,64 @@ export function renderAdminPage(): string {
         btn.textContent = 'Delete house';
       }
     }
+
+    async function loadRateLimits() {
+      let data;
+      try { data = await fetchJSON("/admin/rate-limits"); }
+      catch (e) { return; }
+
+      const throttled = data.throttled || [];
+      const rejections = data.rejections || [];
+
+      const tBody = document.getElementById("rl-throttled");
+      const tEmpty = document.getElementById("rl-throttled-empty");
+      tBody.innerHTML = throttled.map(t => \`
+        <tr>
+          <td>\${t.tier}</td>
+          <td>\${escapeHTML(t.key)}</td>
+          <td>\${t.tokens} / \${t.capacity}</td>
+          <td>\${t.retry_after_seconds}s</td>
+          <td class="row-actions-col"><button class="row-action" data-rl-clear="\${escapeHTML(t.key)}">Clear</button></td>
+        </tr>
+      \`).join("");
+      tEmpty.style.display = throttled.length === 0 ? "block" : "none";
+
+      const rBody = document.getElementById("rl-rejections");
+      const rEmpty = document.getElementById("rl-rejections-empty");
+      rBody.innerHTML = rejections.map(e => \`
+        <tr>
+          <td>\${new Date(e.ts).toLocaleTimeString()}</td>
+          <td>\${escapeHTML(e.route)}</td>
+          <td>\${e.tier}</td>
+          <td>\${escapeHTML(e.key)}</td>
+          <td>\${e.retry_after_seconds}s</td>
+        </tr>
+      \`).join("");
+      rEmpty.style.display = rejections.length === 0 ? "block" : "none";
+
+      document.getElementById("rl-updated").textContent = "updated " + new Date().toLocaleTimeString();
+    }
+
+    document.getElementById("rl-throttled").addEventListener("click", async (ev) => {
+      const btn = ev.target.closest("button[data-rl-clear]");
+      if (!btn) return;
+      const key = btn.getAttribute("data-rl-clear");
+      btn.disabled = true;
+      try {
+        await fetch("/admin/rate-limits/clear", {
+          method: "POST",
+          credentials: "include",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ key }),
+        });
+        loadRateLimits();
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    loadRateLimits();
+    setInterval(loadRateLimits, 5000);
 
     loadHouses();
     loadInfo();
