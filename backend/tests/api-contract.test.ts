@@ -10,7 +10,7 @@
  */
 
 import { describe, it, expect, beforeEach } from "bun:test";
-import { createTestDb } from "./helpers";
+import { createTestDb, createTestDbWithVec } from "./helpers";
 import { Database } from "bun:sqlite";
 
 import { handleCreateHousehold } from "../src/routes/household-create";
@@ -30,6 +30,7 @@ import { handleListConnections } from "../src/routes/connections";
 import { handleGetSuggestions } from "../src/routes/chat";
 import { handlePinRedeem } from "../src/routes/pin-auth";
 import { createAuthPin } from "../src/services/pins";
+import { deleteHouseholdCascade } from "../src/services/household-deletion";
 
 // --- Helpers ---
 
@@ -514,5 +515,92 @@ describe("Admin auth flow", () => {
     expect(result.headers["Set-Cookie"]).toContain("Secure");
     expect(result.headers["Set-Cookie"]).toContain("SameSite=Strict");
     expect(result.headers.Location).toBe("/admin");
+  });
+});
+
+// ============================================================
+// HOUSEHOLD DELETION CASCADE
+// ============================================================
+
+describe("deleteHouseholdCascade", () => {
+  let db: Database;
+  beforeEach(() => { db = createTestDbWithVec(); });
+
+  function seedFullHousehold(db: Database): string {
+    const now = new Date().toISOString();
+    // Person + household + member
+    db.prepare("INSERT INTO persons (id, email, name, created_at) VALUES (?, ?, ?, ?)").run("p1", "owner@test.com", "Owner", now);
+    db.prepare("INSERT INTO households (id, name, created_at) VALUES (?, ?, ?)").run("h1", "Test Home", now);
+    db.prepare("INSERT INTO household_members (id, household_id, person_id, role, created_at) VALUES (?, ?, ?, 'owner', ?)").run("hm1", "h1", "p1", now);
+
+    // Placeholder person (should be deleted)
+    db.prepare("INSERT INTO persons (id, email, name, created_at) VALUES (?, ?, ?, ?)").run("p-ph", "__placeholder__-h1@local", "", now);
+    db.prepare("INSERT INTO household_members (id, household_id, person_id, role, created_at) VALUES (?, ?, ?, 'owner', ?)").run("hm-ph", "h1", "p-ph", now);
+
+    // Guest + session token
+    db.prepare("INSERT INTO guests (id, household_id, name, contact, contact_type, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)").run("g1", "h1", "Maria", "maria@test.com", "email", "active", now);
+    db.prepare("INSERT INTO session_tokens (id, token, household_id, guest_id, created_at) VALUES (?, ?, ?, ?, ?)").run("st1", "tok1", "h1", "g1", now);
+
+    // Auth pin
+    db.prepare("INSERT INTO auth_pins (id, pin, role, person_id, household_id, expires_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)").run("ap1", "TESTPIN1", "owner", "p1", "h1", now, now);
+
+    // Connection + document + chunk + embedding
+    db.prepare("INSERT INTO connections (id, household_id, provider, refresh_token, email, created_at) VALUES (?, ?, ?, ?, ?, ?)").run("c1", "h1", "google_drive", "refresh1", "owner@test.com", now);
+    db.prepare("INSERT INTO documents (id, household_id, connection_id, drive_file_id, title, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)").run("d1", "h1", "c1", "drive1", "House Ops", "ready", now);
+    db.prepare("INSERT INTO chunks (id, document_id, household_id, chunk_index, heading, text, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)").run("ch1", "d1", "h1", 0, "Ops", "Content here", now);
+
+    // Embedding (vec0 virtual table)
+    const zeros = new Float32Array(1536);
+    db.prepare("INSERT INTO chunk_embeddings (chunk_id, embedding) VALUES (?, ?)").run("ch1", Buffer.from(zeros.buffer));
+
+    // Suggestion
+    db.prepare("INSERT INTO suggestions (id, household_id, chips, created_at) VALUES (?, ?, ?, ?)").run("s1", "h1", '["What time is bedtime?"]', now);
+
+    return "h1";
+  }
+
+  it("removes all referencing rows for the household", () => {
+    seedFullHousehold(db);
+    deleteHouseholdCascade(db, "h1");
+
+    expect(db.prepare("SELECT COUNT(*) as c FROM households WHERE id = 'h1'").get()).toEqual({ c: 0 });
+    expect(db.prepare("SELECT COUNT(*) as c FROM household_members WHERE household_id = 'h1'").get()).toEqual({ c: 0 });
+    expect(db.prepare("SELECT COUNT(*) as c FROM guests WHERE household_id = 'h1'").get()).toEqual({ c: 0 });
+    expect(db.prepare("SELECT COUNT(*) as c FROM session_tokens WHERE household_id = 'h1'").get()).toEqual({ c: 0 });
+    expect(db.prepare("SELECT COUNT(*) as c FROM auth_pins WHERE household_id = 'h1'").get()).toEqual({ c: 0 });
+    expect(db.prepare("SELECT COUNT(*) as c FROM connections WHERE household_id = 'h1'").get()).toEqual({ c: 0 });
+    expect(db.prepare("SELECT COUNT(*) as c FROM documents WHERE household_id = 'h1'").get()).toEqual({ c: 0 });
+    expect(db.prepare("SELECT COUNT(*) as c FROM chunks WHERE household_id = 'h1'").get()).toEqual({ c: 0 });
+    expect(db.prepare("SELECT COUNT(*) as c FROM suggestions WHERE household_id = 'h1'").get()).toEqual({ c: 0 });
+    expect(db.prepare("SELECT COUNT(*) as c FROM chunk_embeddings WHERE chunk_id = 'ch1'").get()).toEqual({ c: 0 });
+  });
+
+  it("preserves non-placeholder person rows", () => {
+    seedFullHousehold(db);
+    deleteHouseholdCascade(db, "h1");
+
+    const real = db.prepare("SELECT id FROM persons WHERE id = 'p1'").get();
+    expect(real).toBeTruthy();
+  });
+
+  it("deletes placeholder person rows", () => {
+    seedFullHousehold(db);
+    deleteHouseholdCascade(db, "h1");
+
+    const placeholder = db.prepare("SELECT id FROM persons WHERE id = 'p-ph'").get();
+    expect(placeholder).toBeNull();
+  });
+
+  it("does not affect other households", () => {
+    seedFullHousehold(db);
+    const now = new Date().toISOString();
+    db.prepare("INSERT INTO persons (id, email, created_at) VALUES (?, ?, ?)").run("p2", "other@test.com", now);
+    db.prepare("INSERT INTO households (id, name, created_at) VALUES (?, ?, ?)").run("h2", "Other Home", now);
+    db.prepare("INSERT INTO household_members (id, household_id, person_id, role, created_at) VALUES (?, ?, ?, 'owner', ?)").run("hm2", "h2", "p2", now);
+
+    deleteHouseholdCascade(db, "h1");
+
+    expect(db.prepare("SELECT COUNT(*) as c FROM households WHERE id = 'h2'").get()).toEqual({ c: 1 });
+    expect(db.prepare("SELECT COUNT(*) as c FROM household_members WHERE household_id = 'h2'").get()).toEqual({ c: 1 });
   });
 });

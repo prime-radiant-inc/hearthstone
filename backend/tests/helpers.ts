@@ -21,6 +21,12 @@ export function createTestDbWithVec(): Database {
   const db = new Database(":memory:");
   sqliteVec.load(db);
   runMigrations(db);
+  db.run(`
+    CREATE VIRTUAL TABLE IF NOT EXISTS chunk_embeddings USING vec0(
+      chunk_id TEXT PRIMARY KEY,
+      embedding float[1536]
+    );
+  `);
   return db;
 }
 
