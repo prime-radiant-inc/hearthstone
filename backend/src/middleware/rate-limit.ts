@@ -177,3 +177,19 @@ export function createRateLimiter(opts: { now?: () => number } = {}): RateLimite
 
   return { check, recordRejection, clear, sweep, admin };
 }
+
+export function resolveClientIp(req: Request): string {
+  const fly = req.headers.get("fly-client-ip");
+  if (fly) return fly.trim();
+
+  const xff = req.headers.get("x-forwarded-for");
+  if (xff) {
+    const parts = xff.split(",").map(s => s.trim()).filter(Boolean);
+    if (parts.length > 0) return parts[parts.length - 1];
+  }
+
+  const xri = req.headers.get("x-real-ip");
+  if (xri) return xri.trim();
+
+  return "unknown";
+}

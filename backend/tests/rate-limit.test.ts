@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { createRateLimiter, LIMITS } from "../src/middleware/rate-limit";
+import { createRateLimiter, LIMITS, resolveClientIp } from "../src/middleware/rate-limit";
 
 describe("rate limiter — token bucket", () => {
   it("allows up to capacity then rejects", () => {
@@ -115,5 +115,39 @@ describe("rate limiter — token bucket", () => {
     expect(LIMITS["3"]).toEqual([
       { capacity: 300, refillPerSec: 300 / 60 },
     ]);
+  });
+});
+
+describe("resolveClientIp", () => {
+  function mkReq(headers: Record<string, string>): Request {
+    return new Request("http://test/x", { headers });
+  }
+
+  it("prefers Fly-Client-IP", () => {
+    expect(resolveClientIp(mkReq({
+      "fly-client-ip": "9.9.9.9",
+      "x-forwarded-for": "1.1.1.1, 2.2.2.2",
+      "x-real-ip": "3.3.3.3",
+    }))).toBe("9.9.9.9");
+  });
+
+  it("falls back to rightmost X-Forwarded-For", () => {
+    expect(resolveClientIp(mkReq({
+      "x-forwarded-for": "1.1.1.1, 2.2.2.2, 3.3.3.3",
+    }))).toBe("3.3.3.3");
+  });
+
+  it("trims X-Forwarded-For whitespace", () => {
+    expect(resolveClientIp(mkReq({
+      "x-forwarded-for": "1.1.1.1,   2.2.2.2  ",
+    }))).toBe("2.2.2.2");
+  });
+
+  it("falls back to X-Real-IP", () => {
+    expect(resolveClientIp(mkReq({ "x-real-ip": "3.3.3.3" }))).toBe("3.3.3.3");
+  });
+
+  it("falls back to 'unknown' when no header is present", () => {
+    expect(resolveClientIp(mkReq({}))).toBe("unknown");
   });
 });
