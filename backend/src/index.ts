@@ -28,6 +28,7 @@ import { handleJoinPage } from "./routes/join";
 import { mintAdminToken, getAdminToken } from "./services/admin-token";
 import { handleAdminAuth, handleAdminPage, handleAdminHouses, handleAdminCreateHouse, handleAdminInviteOwner, handleAdminInfo } from "./routes/admin";
 import { requireAdmin } from "./middleware/admin-auth";
+import { assertHouseholdExists, HouseholdGoneError } from "./services/household-deletion";
 import { publicEmail } from "./utils";
 import pkg from "../package.json" with { type: "json" };
 
@@ -310,6 +311,7 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       // --- Me endpoint ---
       if (method === "GET" && pathname === "/me") {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        assertHouseholdExists(getDb(), owner.householdId);
         const person = getDb().prepare("SELECT id, email, name FROM persons WHERE id = ?").get(owner.personId) as any;
         const household = getDb().prepare(
           "SELECT h.id, h.name, h.created_at FROM households h JOIN household_members hm ON hm.household_id = h.id WHERE hm.person_id = ? AND hm.role = 'owner' LIMIT 1"
@@ -319,6 +321,7 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
 
       if (method === "PATCH" && pathname === "/me") {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        assertHouseholdExists(getDb(), owner.householdId);
         const body = await req.json() as { name?: string };
         const name = body.name?.trim();
         if (!name) {
@@ -332,6 +335,7 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       // --- Owner routes ---
       if (method === "POST" && pathname === "/household") {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        assertHouseholdExists(getDb(), owner.householdId);
         const body = await req.json();
         const result = handleCreateHousehold(getDb(), owner.personId, body);
         return json(result.body, result.status);
@@ -339,6 +343,7 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
 
       if (method === "PATCH" && pathname === "/household") {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        assertHouseholdExists(getDb(), owner.householdId);
         const body = await req.json();
         const result = handleUpdateHousehold(getDb(), owner.householdId, body);
         return json(result.body, result.status);
@@ -346,12 +351,14 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
 
       if (method === "GET" && pathname === "/guests") {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        assertHouseholdExists(getDb(), owner.householdId);
         const result = handleListGuests(getDb(), owner.householdId);
         return json(result.body, result.status);
       }
 
       if (method === "POST" && pathname === "/guests") {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        assertHouseholdExists(getDb(), owner.householdId);
         const body = await req.json();
         const result = await handleCreateGuest(getDb(), owner.householdId, owner.personId, body, config.hearthstonePublicUrl);
         return json(result.body, result.status);
@@ -360,6 +367,7 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       const reinviteParams = parsePathParams("/guests/:id/reinvite", pathname);
       if (method === "POST" && reinviteParams) {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        assertHouseholdExists(getDb(), owner.householdId);
         const result = handleReinviteGuest(getDb(), owner.householdId, owner.personId, reinviteParams.id, config.hearthstonePublicUrl);
         return json(result.body, result.status);
       }
@@ -367,6 +375,7 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       const revokeParams = parsePathParams("/guests/:id/revoke", pathname);
       if (method === "POST" && revokeParams) {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        assertHouseholdExists(getDb(), owner.householdId);
         const result = handleRevokeGuest(getDb(), owner.householdId, revokeParams.id);
         return json(result.body, result.status);
       }
@@ -374,6 +383,7 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       const deleteGuestParams = parsePathParams("/guests/:id", pathname);
       if (method === "DELETE" && deleteGuestParams) {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        assertHouseholdExists(getDb(), owner.householdId);
         const result = handleDeleteGuest(getDb(), owner.householdId, deleteGuestParams.id);
         return json(result.body, result.status);
       }
@@ -381,12 +391,14 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       // --- Owner management routes ---
       if (method === "GET" && pathname === "/household/owners") {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        assertHouseholdExists(getDb(), owner.householdId);
         const result = handleListOwners(getDb(), owner.householdId);
         return json(result.body, result.status);
       }
 
       if (method === "POST" && pathname === "/household/owners") {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        assertHouseholdExists(getDb(), owner.householdId);
         const body = await req.json();
         const result = handleInviteOwner(getDb(), owner.householdId, owner.personId, body, config.hearthstonePublicUrl);
         return json(result.body, result.status);
@@ -395,6 +407,7 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       const removeOwnerParams = parsePathParams("/household/owners/:id", pathname);
       if (method === "DELETE" && removeOwnerParams) {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        assertHouseholdExists(getDb(), owner.householdId);
         const result = handleRemoveOwner(getDb(), owner.householdId, removeOwnerParams.id);
         return json(result.body, result.status);
       }
@@ -402,12 +415,14 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       // --- Connection routes ---
       if (method === "GET" && pathname === "/connections") {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        assertHouseholdExists(getDb(), owner.householdId);
         const result = handleListConnections(getDb(), owner.householdId);
         return json(result.body, result.status);
       }
 
       if (method === "POST" && pathname === "/connections/google-drive") {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        assertHouseholdExists(getDb(), owner.householdId);
         const result = handleConnectGoogleDrive(getDb(), owner.householdId);
         return json(result.body, result.status);
       }
@@ -428,6 +443,7 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       const connFilesParams = parsePathParams("/connections/:id/files", pathname);
       if (method === "GET" && connFilesParams) {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        assertHouseholdExists(getDb(), owner.householdId);
         const result = await handleListDriveFiles(ctx, getDb(), owner.householdId, connFilesParams.id);
         return json(result.body, result.status);
       }
@@ -435,6 +451,7 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       const deleteConnParams = parsePathParams("/connections/:id", pathname);
       if (method === "DELETE" && deleteConnParams) {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        assertHouseholdExists(getDb(), owner.householdId);
         const result = handleDeleteConnection(getDb(), owner.householdId, deleteConnParams.id);
         return json(result.body, result.status);
       }
@@ -442,6 +459,7 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       // --- Document routes ---
       if (method === "POST" && pathname === "/documents/upload") {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        assertHouseholdExists(getDb(), owner.householdId);
 
         const contentType = req.headers.get("content-type") || "";
         const boundary = contentType.split("boundary=")[1];
@@ -456,12 +474,14 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
 
       if (method === "GET" && pathname === "/documents") {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        assertHouseholdExists(getDb(), owner.householdId);
         const result = handleListDocuments(getDb(), owner.householdId);
         return json(result.body, result.status);
       }
 
       if (method === "POST" && pathname === "/documents") {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        assertHouseholdExists(getDb(), owner.householdId);
         const body = await req.json();
         const result = await handleConnectDocument(ctx, getDb(), owner.householdId, body);
         return json(result.body, result.status);
@@ -470,6 +490,7 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       const refreshDocParams = parsePathParams("/documents/:id/refresh", pathname);
       if (method === "POST" && refreshDocParams) {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        assertHouseholdExists(getDb(), owner.householdId);
         const result = await handleRefreshDocument(ctx, getDb(), owner.householdId, refreshDocParams.id);
         return json(result.body, result.status);
       }
@@ -481,7 +502,8 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
         try {
           const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
           householdId = owner.householdId;
-        } catch {
+        } catch (authErr) {
+          if (authErr instanceof HouseholdGoneError) throw authErr;
           try {
             const guest = authenticateGuest(getDb(), req.headers.get("authorization"));
             householdId = guest.householdId;
@@ -489,6 +511,7 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
             return json({ message: "Unauthorized" }, 401);
           }
         }
+        assertHouseholdExists(getDb(), householdId);
         const result = handleGetContent(getDb(), householdId, docContentParams.id);
         return json(result.body, result.status);
       }
@@ -496,6 +519,7 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       const deleteDocParams = parsePathParams("/documents/:id", pathname);
       if (method === "DELETE" && deleteDocParams) {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        assertHouseholdExists(getDb(), owner.householdId);
         const result = handleDeleteDocument(getDb(), owner.householdId, deleteDocParams.id);
         return json(result.body, result.status);
       }
@@ -503,6 +527,7 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       // --- Chat routes ---
       if (method === "POST" && pathname === "/chat") {
         const guest = authenticateGuest(getDb(), req.headers.get("authorization"));
+        assertHouseholdExists(getDb(), guest.householdId);
         const body = await req.json();
         return handleChat(ctx, getDb(), guest.householdId, body);
       }
@@ -512,7 +537,8 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
         try {
           const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
           householdId = owner.householdId;
-        } catch {
+        } catch (authErr) {
+          if (authErr instanceof HouseholdGoneError) throw authErr;
           try {
             const guest = authenticateGuest(getDb(), req.headers.get("authorization"));
             householdId = guest.householdId;
@@ -520,12 +546,14 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
             return json({ message: "Unauthorized" }, 401);
           }
         }
+        assertHouseholdExists(getDb(), householdId);
         const result = handleGetSuggestions(getDb(), householdId);
         return json(result.body, result.status);
       }
 
       if (method === "POST" && pathname === "/chat/preview") {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        assertHouseholdExists(getDb(), owner.householdId);
         const body = await req.json();
         return handleChatPreview(ctx, getDb(), owner.householdId, body);
       }
@@ -533,12 +561,16 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       // --- Guest document list ---
       if (method === "GET" && pathname === "/guest/documents") {
         const guest = authenticateGuest(getDb(), req.headers.get("authorization"));
+        assertHouseholdExists(getDb(), guest.householdId);
         const result = handleListDocuments(getDb(), guest.householdId);
         return json(result.body, result.status);
       }
 
       return json({ message: "Not found" }, 404);
     } catch (err: any) {
+      if (err instanceof HouseholdGoneError) {
+        return json({ message: "house_deleted" }, 410);
+      }
       if (err.message === "unauthorized") {
         return json({ message: "Unauthorized" }, 401);
       }

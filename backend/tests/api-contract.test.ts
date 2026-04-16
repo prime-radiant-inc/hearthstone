@@ -30,7 +30,7 @@ import { handleListConnections } from "../src/routes/connections";
 import { handleGetSuggestions } from "../src/routes/chat";
 import { handlePinRedeem } from "../src/routes/pin-auth";
 import { createAuthPin } from "../src/services/pins";
-import { deleteHouseholdCascade } from "../src/services/household-deletion";
+import { deleteHouseholdCascade, assertHouseholdExists, HouseholdGoneError } from "../src/services/household-deletion";
 
 // --- Helpers ---
 
@@ -602,5 +602,25 @@ describe("deleteHouseholdCascade", () => {
 
     expect(db.prepare("SELECT COUNT(*) as c FROM households WHERE id = 'h2'").get()).toEqual({ c: 1 });
     expect(db.prepare("SELECT COUNT(*) as c FROM household_members WHERE household_id = 'h2'").get()).toEqual({ c: 1 });
+  });
+});
+
+// ============================================================
+// 410 GONE — HOUSEHOLD DELETED
+// ============================================================
+
+describe("410 Gone after household deletion", () => {
+  let db: Database;
+  beforeEach(() => { db = createTestDbWithVec(); });
+
+  it("assertHouseholdExists throws HouseholdGoneError when household is missing", () => {
+    expect(() => assertHouseholdExists(db, "nonexistent")).toThrow();
+  });
+
+  it("assertHouseholdExists succeeds when household exists", () => {
+    const now = new Date().toISOString();
+    db.prepare("INSERT INTO persons (id, email, created_at) VALUES (?, ?, ?)").run("p1", "a@b.com", now);
+    db.prepare("INSERT INTO households (id, name, created_at) VALUES (?, ?, ?)").run("h1", "Home", now);
+    expect(() => assertHouseholdExists(db, "h1")).not.toThrow();
   });
 });

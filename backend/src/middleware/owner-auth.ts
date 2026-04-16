@@ -1,5 +1,6 @@
 import type { Database } from "bun:sqlite";
 import { jwtVerify } from "jose";
+import { HouseholdGoneError } from "../services/household-deletion";
 
 export interface OwnerContext {
   personId: string;
@@ -34,6 +35,11 @@ export async function authenticateOwner(
         "SELECT id FROM household_members WHERE person_id = ? AND household_id = ? AND role = 'owner'"
       ).get(personId, householdId);
       if (member) return { personId, householdId };
+
+      // Membership check failed — distinguish deleted household from removed owner
+      const houseExists = db.prepare("SELECT id FROM households WHERE id = ?").get(householdId);
+      if (!houseExists) throw new HouseholdGoneError();
+      throw new Error("unauthorized");
     }
 
     // Fallback: find any household this person owns (for legacy JWTs without householdId)
@@ -42,7 +48,8 @@ export async function authenticateOwner(
     ).get(personId) as any;
 
     return { personId, householdId: member?.household_id ?? "" };
-  } catch {
+  } catch (err) {
+    if (err instanceof HouseholdGoneError) throw err;
     throw new Error("unauthorized");
   }
 }

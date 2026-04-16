@@ -30,3 +30,15 @@ export function deleteHouseholdCascade(db: Database, houseId: string): void {
     }
   })();
 }
+
+export class HouseholdGoneError extends Error {
+  constructor() {
+    super("house_deleted");
+    this.name = "HouseholdGoneError";
+  }
+}
+
+export function assertHouseholdExists(db: Database, householdId: string): void {
+  const row = db.prepare("SELECT id FROM households WHERE id = ?").get(householdId);
+  if (!row) throw new HouseholdGoneError();
+}
