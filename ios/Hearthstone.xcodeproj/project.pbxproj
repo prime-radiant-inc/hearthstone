@@ -16,7 +16,7 @@
 		2BCB642D1B334674ABD76405 /* Guest.swift in Sources */ = {isa = PBXBuildFile; fileRef = C13A6D4C6E55200DD77A249E /* Guest.swift */; };
 		34DCE9B015F5FCCF51E170EB /* Suggestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 270789DC8776F9F1F8983D00 /* Suggestion.swift */; };
 		34ED59C4E0B7AF817BB55A52 /* AccessRevokedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D3DA8695C636234B1C9F517 /* AccessRevokedView.swift */; };
-		A1B2C3D4E5F6A7B8C9D0E1F3 /* MissingHouseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F2 /* MissingHouseView.swift */; };
+		F1E2D3C4B5A6978869706152 /* MissingHouseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1E2D3C4B5A697886970AABB /* MissingHouseView.swift */; };
 		3A0811009ACF47A3F8B97C80 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE4EE6D15E820ECB1A26F3A3 /* APIClient.swift */; };
 		4565B3C4B04CCF46099501B9 /* Connection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2EE14D81019E0E37D8489D8 /* Connection.swift */; };
 		478389D01867D92F82315E53 /* ProgressDots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70C443F691027605AC072729 /* ProgressDots.swift */; };
@@ -69,7 +69,7 @@
 		344516F0243473D20A7D8C8C /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
 		35B54811E9568D04E41E1D40 /* MessageBubble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessageBubble.swift; sourceTree = "<group>"; };
 		3D3DA8695C636234B1C9F517 /* AccessRevokedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessRevokedView.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F6A7B8C9D0E1F2 /* MissingHouseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissingHouseView.swift; sourceTree = "<group>"; };
+		F1E2D3C4B5A697886970AABB /* MissingHouseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissingHouseView.swift; sourceTree = "<group>"; };
 		51984069D3ED00CEDEA26B78 /* DocumentsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentsViewModel.swift; sourceTree = "<group>"; };
 		5D13E91C8F48290878E5C386 /* HearthButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HearthButton.swift; sourceTree = "<group>"; };
 		6281E5FF7DCC0E72163CE472 /* Household.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Household.swift; sourceTree = "<group>"; };
@@ -213,7 +213,7 @@
 			children = (
 				3D3DA8695C636234B1C9F517 /* AccessRevokedView.swift */,
 				1CFFD695DB89CD17DF3B96C1 /* InviteErrorView.swift */,
-				A1B2C3D4E5F6A7B8C9D0E1F2 /* MissingHouseView.swift */,
+				F1E2D3C4B5A697886970AABB /* MissingHouseView.swift */,
 			);
 			path = Error;
 			sourceTree = "<group>";
@@ -329,6 +329,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F1E2D3C4B5A6978869706152 /* MissingHouseView.swift in Sources */,
 				3A0811009ACF47A3F8B97C80 /* APIClient.swift in Sources */,
 				34ED59C4E0B7AF817BB55A52 /* AccessRevokedView.swift in Sources */,
 				8A5DA70B1A534E9699E50363 /* AddGuestView.swift in Sources */,

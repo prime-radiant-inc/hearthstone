@@ -20,8 +20,8 @@ struct MissingHouseView: View {
 
     private var explanation: String {
         status == .gone
-            ? ""\(householdName)" has been deleted from Hearthstone. All of its documents, guests, and chat history are gone."
-            : "Your access to "\(householdName)" has been removed. If this is a mistake, contact the homeowner to request a new invite."
+            ? "\u{201C}\(householdName)\u{201D} has been deleted from Hearthstone. All of its documents, guests, and chat history are gone."
+            : "Your access to \u{201C}\(householdName)\u{201D} has been removed. If this is a mistake, contact the homeowner to request a new invite."
     }
 
     var body: some View {
