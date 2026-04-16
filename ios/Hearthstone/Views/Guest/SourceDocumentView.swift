@@ -54,7 +54,7 @@ struct SourceDocumentView: View {
     private func loadContent() async {
         isLoading = true
         error = nil
-        guard let client = await SessionStore.shared.activeSession?.apiClient() else {
+        guard let client = SessionStore.shared.activeSession?.apiClient() else {
             self.error = "No active session."
             isLoading = false
             return
