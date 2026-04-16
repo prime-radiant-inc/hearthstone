@@ -89,6 +89,17 @@ Update household name.
 
 ---
 
+### `DELETE /household`
+Delete the household and all associated data (owners, guests, documents, chunks, embeddings, connections, tokens). The person row survives deletion.
+
+**Auth:** Owner session
+
+**Response:** `204 No Content`
+
+**Errors:** `410` house already deleted (auth middleware detects the gone household)
+
+---
+
 ### `POST /guests/:id/reinvite`
 Generate a new PIN for an existing guest. For revoked guests, reactivates them to pending.
 

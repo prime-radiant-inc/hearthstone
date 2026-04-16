@@ -14,7 +14,7 @@ import { createTestDb, createTestDbWithVec } from "./helpers";
 import { Database } from "bun:sqlite";
 
 import { handleCreateHousehold } from "../src/routes/household-create";
-import { handleUpdateHousehold } from "../src/routes/household";
+import { handleUpdateHousehold, handleDeleteHousehold } from "../src/routes/household";
 import { handleListGuests, handleCreateGuest, handleRevokeGuest, handleReinviteGuest, handleDeleteGuest } from "../src/routes/guests";
 import { handleInviteOwner, handleListOwners, handleRemoveOwner } from "../src/routes/owners";
 import { handleJoinPage } from "../src/routes/join";
@@ -690,6 +690,52 @@ describe("API Contract: DELETE /admin/houses/:id", () => {
     db.prepare("INSERT INTO household_members (id, household_id, person_id, role, created_at) VALUES (?, ?, ?, 'owner', ?)").run("hm1", "h1", "p1", now);
 
     handleAdminDeleteHouse(db, "h1");
+    expect(db.prepare("SELECT id FROM persons WHERE id = 'p1'").get()).toBeTruthy();
+  });
+});
+
+// ============================================================
+// OWNER DELETE HOUSEHOLD
+// ============================================================
+
+describe("API Contract: DELETE /household", () => {
+  let db: Database;
+  beforeEach(() => { db = createTestDbWithVec(); });
+
+  it("returns 204 and removes all household data", () => {
+    const now = new Date().toISOString();
+    db.prepare("INSERT INTO persons (id, email, created_at) VALUES (?, ?, ?)").run("p1", "owner@test.com", now);
+    db.prepare("INSERT INTO households (id, name, created_at) VALUES (?, ?, ?)").run("h1", "Test Home", now);
+    db.prepare("INSERT INTO household_members (id, household_id, person_id, role, created_at) VALUES (?, ?, ?, 'owner', ?)").run("hm1", "h1", "p1", now);
+    db.prepare("INSERT INTO guests (id, household_id, name, contact, contact_type, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)").run("g1", "h1", "Maria", "m@t.com", "email", "active", now);
+
+    const result = handleDeleteHousehold(db, "h1");
+    expect(result.status).toBe(204);
+    expect(result.body).toBeNull();
+    expect(db.prepare("SELECT COUNT(*) as c FROM households").get()).toEqual({ c: 0 });
+    expect(db.prepare("SELECT COUNT(*) as c FROM guests").get()).toEqual({ c: 0 });
+    expect(db.prepare("SELECT COUNT(*) as c FROM household_members").get()).toEqual({ c: 0 });
+  });
+
+  it("second delete triggers HouseholdGoneError from assertHouseholdExists", () => {
+    const now = new Date().toISOString();
+    db.prepare("INSERT INTO persons (id, email, created_at) VALUES (?, ?, ?)").run("p1", "owner@test.com", now);
+    db.prepare("INSERT INTO households (id, name, created_at) VALUES (?, ?, ?)").run("h1", "Test Home", now);
+    db.prepare("INSERT INTO household_members (id, household_id, person_id, role, created_at) VALUES (?, ?, ?, 'owner', ?)").run("hm1", "h1", "p1", now);
+
+    handleDeleteHousehold(db, "h1");
+    // After deletion, authenticateOwner would throw HouseholdGoneError (410).
+    // We verify by calling assertHouseholdExists directly.
+    expect(() => assertHouseholdExists(db, "h1")).toThrow(HouseholdGoneError);
+  });
+
+  it("preserves non-placeholder person rows after deletion", () => {
+    const now = new Date().toISOString();
+    db.prepare("INSERT INTO persons (id, email, created_at) VALUES (?, ?, ?)").run("p1", "owner@test.com", now);
+    db.prepare("INSERT INTO households (id, name, created_at) VALUES (?, ?, ?)").run("h1", "Test Home", now);
+    db.prepare("INSERT INTO household_members (id, household_id, person_id, role, created_at) VALUES (?, ?, ?, 'owner', ?)").run("hm1", "h1", "p1", now);
+
+    handleDeleteHousehold(db, "h1");
     expect(db.prepare("SELECT id FROM persons WHERE id = 'p1'").get()).toBeTruthy();
   });
 });

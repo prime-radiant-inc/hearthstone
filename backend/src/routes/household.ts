@@ -1,5 +1,14 @@
 // src/routes/household.ts
 import type { Database } from "bun:sqlite";
+import { deleteHouseholdCascade } from "../services/household-deletion";
+
+export function handleDeleteHousehold(
+  db: Database,
+  householdId: string
+): { status: number; body: any } {
+  deleteHouseholdCascade(db, householdId);
+  return { status: 204, body: null };
+}
 
 export function handleUpdateHousehold(
   db: Database,

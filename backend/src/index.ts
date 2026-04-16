@@ -3,7 +3,7 @@ import { getDb } from "./db/connection";
 import { config } from "./config";
 import { authenticateOwner } from "./middleware/owner-auth";
 import { authenticateGuest } from "./middleware/guest-auth";
-import { handleUpdateHousehold } from "./routes/household";
+import { handleUpdateHousehold, handleDeleteHousehold } from "./routes/household";
 import { handleCreateHousehold } from "./routes/household-create";
 import { handleListGuests, handleCreateGuest, handleRevokeGuest, handleReinviteGuest, handleDeleteGuest } from "./routes/guests";
 import {
@@ -107,6 +107,7 @@ function matchRoute(method: string, pathname: string): string {
     "GET /me",
     "POST /household",
     "PATCH /household",
+    "DELETE /household",
     "GET /guests",
     "POST /guests",
     "GET /connections",
@@ -356,6 +357,13 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
         assertHouseholdExists(getDb(), owner.householdId);
         const body = await req.json();
         const result = handleUpdateHousehold(getDb(), owner.householdId, body);
+        return json(result.body, result.status);
+      }
+
+      if (method === "DELETE" && pathname === "/household") {
+        const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
+        assertHouseholdExists(getDb(), owner.householdId);
+        const result = handleDeleteHousehold(getDb(), owner.householdId);
         return json(result.body, result.status);
       }
 
