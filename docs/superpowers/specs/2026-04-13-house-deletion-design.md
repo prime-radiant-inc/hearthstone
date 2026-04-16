@@ -279,25 +279,57 @@ caller.
 
 ## Client-side: discovering a dead house
 
-When `deleteHouseholdCascade` runs while a client holds an active session
-for that house, the next authenticated request will hit
-`assertHouseholdExists` and receive a 410.
+Owner and guest paths discover a deleted house differently:
+
+- **Owners:** `authenticateOwner` detects the missing membership, checks
+  whether the household row still exists, and throws `HouseholdGoneError`
+  → the error mapper returns 410 Gone.
+- **Guests:** The cascade deletes `session_tokens`, so
+  `validateSessionToken` returns null and `authenticateGuest` throws a 401
+  (session expired). The existing `.guestSessionRevoked` handler removes
+  the dead session and shows the revocation dialog. The message says
+  "access revoked" rather than "house deleted" — acceptable for v1; a
+  parameterized dialog is a follow-up.
+
+### Hardening authenticateOwner
+
+`middleware/owner-auth.ts` has a legacy fallback: when the JWT names a
+`householdId` and the membership check fails, it falls through and picks
+ANY household the person owns. After house deletion, this silently
+misroutes the owner to the wrong household's data.
+
+Fix: when the JWT contains a `householdId` and membership check fails,
+check whether the household row still exists:
+
+```ts
+if (householdId) {
+  const member = db.prepare(
+    "SELECT id FROM household_members WHERE person_id = ? AND household_id = ? AND role = 'owner'"
+  ).get(personId, householdId);
+  if (member) return { personId, householdId };
+
+  const houseExists = db.prepare("SELECT id FROM households WHERE id = ?").get(householdId);
+  if (!houseExists) throw new HouseholdGoneError();
+  throw new Error("unauthorized");
+}
+```
+
+The legacy fallback (find any household) only fires when the JWT has no
+`householdId` at all — a migration-era case that will phase out
+naturally.
 
 ### 410 Gone with `{ "message": "house_deleted" }`
 
-Every owner-scoped and guest-scoped route gains a pre-check: after
-authentication, verify the household row still exists. If not, return
-`410 Gone` with body `{ "message": "house_deleted" }`.
+A `HouseholdGoneError` thrown from auth or from `assertHouseholdExists`
+is caught by the fetch handler's error mapper and returned as `410 Gone`
+with body `{ "message": "house_deleted" }`.
+
+`assertHouseholdExists` is kept as defense-in-depth on owner-scoped
+routes (after auth), though the primary detection now lives in
+`authenticateOwner` itself.
 
 410 (not 401, not 404) is the right status: "this resource was here and is
-deliberately gone, stop retrying." 401 would cause the client's existing
-`.guestSessionRevoked` notification to fire for the wrong reason. 404 is
-ambiguous — it could mean "bad path."
-
-Implementation: a tiny helper `assertHouseholdExists(db, householdId)` that
-throws a typed error when the row is missing. The fetch handler's error
-mapper converts that typed error into the 410 response. One line added
-after each authentication call.
+deliberately gone, stop retrying."
 
 Chat SSE streams are request-response (each `POST /chat` opens a
 connection, streams the response, and closes) — there is no persistent
@@ -308,8 +340,13 @@ user-initiated action.
 
 New `Notification.Name.houseDeleted` alongside the existing
 `guestSessionRevoked`. `APIClient.request()` posts it when it sees a 410
-with body `house_deleted`, carrying the active session id in
-`userInfo["sessionId"]`.
+**and** the decoded body message is `"house_deleted"` — checking the body
+prevents false positives from any other 410 usage (e.g., expired PINs via
+`UnauthenticatedClient`).
+
+`APIClient.uploadDocument` bypasses `request()` and has its own HTTP
+handling. It must also check for 410 + `house_deleted` and post the
+notification.
 
 `AppRouter.init` subscribes to it and:
 
@@ -396,15 +433,17 @@ plumbing is what v2 piggybacks on when owner-delete lands.
 1. Schema migration: drop `households.owner_id`, update INSERT statements.
 2. Add `deleteHouseholdCascade` helper + contract tests. Pure DB logic,
    independently verifiable.
-3. Add `assertHouseholdExists` and thread it into owner-scoped and
-   guest-scoped handlers. Contract tests asserting 410 after the household
-   is deleted out from under the request.
+3. Harden `authenticateOwner`: throw `HouseholdGoneError` when JWT names
+   a deleted household instead of falling through to the legacy path.
+   Add `assertHouseholdExists` as defense-in-depth on owner routes.
+   Wire 410 error mapper in the fetch handler. Contract tests.
 4. Add last-owner guard to `DELETE /household/owners/:id` (409
    `last_owner`). Contract test.
 5. Add `DELETE /admin/houses/:id` route and contract test.
 6. Add admin UI (delete button, confirmation modal, error surface).
-7. Add iOS: `.houseDeleted` notification, `APIClient` 410 detection,
-   `AppRouter` subscriber, reuse `AccessRevokedView` for the dialog.
+7. Add iOS: `.houseDeleted` notification, `APIClient` + `uploadDocument`
+   410 detection (check body for `house_deleted`), `AppRouter` subscriber,
+   reuse `AccessRevokedView` pattern for the dialog.
 8. Deploy backend + ship iOS via `deploy.sh`.
 9. v2 (separate PR): `DELETE /household` endpoint + last-owner 409 →
    "delete house?" client flow + iOS "delete this house" surface.
