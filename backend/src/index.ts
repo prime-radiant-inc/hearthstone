@@ -26,7 +26,8 @@ import { handlePinRedeem } from "./routes/pin-auth";
 import { handleListOwners, handleInviteOwner, handleRemoveOwner } from "./routes/owners";
 import { handleJoinPage } from "./routes/join";
 import { mintAdminToken, getAdminToken } from "./services/admin-token";
-import { handleAdminAuth, handleAdminPage, handleAdminHouses, handleAdminCreateHouse, handleAdminInviteOwner, handleAdminDeleteHouse, handleAdminInfo } from "./routes/admin";
+import { handleAdminAuth, handleAdminPage, handleAdminHouses, handleAdminCreateHouse, handleAdminInviteOwner, handleAdminDeleteHouse, handleAdminInfo, handleAdminRateLimits, handleAdminClearRateLimit } from "./routes/admin";
+import { createRateLimiter, resolveClientIp, rateLimited, type Tier } from "./middleware/rate-limit";
 import { requireAdmin } from "./middleware/admin-auth";
 import { assertHouseholdExists, HouseholdGoneError } from "./services/household-deletion";
 import { publicEmail } from "./utils";
@@ -119,6 +120,8 @@ function matchRoute(method: string, pathname: string): string {
     "POST /chat",
     "GET /chat/suggestions",
     "POST /chat/preview",
+    "GET /admin/rate-limits",
+    "POST /admin/rate-limits/clear",
   ];
   const key = `${method} ${pathname}`;
   if (staticRoutes.includes(key)) return pathname;
@@ -239,6 +242,9 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
     const url = new URL(req.url);
     const { pathname } = url;
     const method = req.method;
+    const clientIp = resolveClientIp(req);
+    const guard = (tier: Tier, key: string, routeLabel: string): Response | null =>
+      rateLimited(rateLimiter, req, tier, key, routeLabel, ctx);
 
     try {
       // --- Static pages ---
@@ -249,6 +255,8 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       // --- Join landing page ---
       const joinParams = parsePathParams("/join/:pin", pathname);
       if (method === "GET" && joinParams) {
+        const limited = guard("3", clientIp, "GET /join/:pin");
+        if (limited) return limited;
         const result = handleJoinPage(joinParams.pin, config.hearthstonePublicUrl);
         return new Response(result.body, {
           status: result.status,
@@ -312,8 +320,24 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
         return json(result.body, result.status);
       }
 
+      if (method === "GET" && pathname === "/admin/rate-limits") {
+        if (!requireAdmin(req)) return json({ message: "Unauthorized" }, 401);
+        const result = handleAdminRateLimits(rateLimiter);
+        return json(result.body, result.status);
+      }
+
+      if (method === "POST" && pathname === "/admin/rate-limits/clear") {
+        if (!requireAdmin(req)) return json({ message: "Unauthorized" }, 401);
+        const body = await req.json().catch(() => null);
+        const result = handleAdminClearRateLimit(rateLimiter, body);
+        if (result.body === null) return new Response(null, { status: 204 });
+        return json(result.body, result.status);
+      }
+
       // --- Auth routes (no auth required) ---
       if (method === "POST" && pathname === "/auth/pin/redeem") {
+        const limited = guard("1", clientIp, "POST /auth/pin/redeem");
+        if (limited) return limited;
         const body = await req.json();
         const result = await handlePinRedeem(getDb(), body, config.jwtSecret);
         return json(result.body, result.status);
@@ -321,6 +345,8 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
 
       // --- Me endpoint ---
       if (method === "GET" && pathname === "/me") {
+        const limited = guard("3", clientIp, "GET /me");
+        if (limited) return limited;
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         assertHouseholdExists(getDb(), owner.householdId);
         const person = getDb().prepare("SELECT id, email, name FROM persons WHERE id = ?").get(owner.personId) as any;
@@ -331,6 +357,8 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       }
 
       if (method === "PATCH" && pathname === "/me") {
+        const limited = guard("3", clientIp, "PATCH /me");
+        if (limited) return limited;
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         assertHouseholdExists(getDb(), owner.householdId);
         const body = await req.json() as { name?: string };
@@ -345,6 +373,8 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
 
       // --- Owner routes ---
       if (method === "POST" && pathname === "/household") {
+        const limited = guard("3", clientIp, "POST /household");
+        if (limited) return limited;
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         assertHouseholdExists(getDb(), owner.householdId);
         const body = await req.json();
@@ -353,6 +383,8 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       }
 
       if (method === "PATCH" && pathname === "/household") {
+        const limited = guard("3", clientIp, "PATCH /household");
+        if (limited) return limited;
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         assertHouseholdExists(getDb(), owner.householdId);
         const body = await req.json();
@@ -361,6 +393,8 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       }
 
       if (method === "DELETE" && pathname === "/household") {
+        const limited = guard("3", clientIp, "DELETE /household");
+        if (limited) return limited;
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         assertHouseholdExists(getDb(), owner.householdId);
         const result = handleDeleteHousehold(getDb(), owner.householdId);
@@ -368,6 +402,8 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       }
 
       if (method === "GET" && pathname === "/guests") {
+        const limited = guard("3", clientIp, "GET /guests");
+        if (limited) return limited;
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         assertHouseholdExists(getDb(), owner.householdId);
         const result = handleListGuests(getDb(), owner.householdId);
@@ -375,6 +411,8 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       }
 
       if (method === "POST" && pathname === "/guests") {
+        const limited = guard("3", clientIp, "POST /guests");
+        if (limited) return limited;
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         assertHouseholdExists(getDb(), owner.householdId);
         const body = await req.json();
@@ -384,6 +422,8 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
 
       const reinviteParams = parsePathParams("/guests/:id/reinvite", pathname);
       if (method === "POST" && reinviteParams) {
+        const limited = guard("3", clientIp, "POST /guests/:id/reinvite");
+        if (limited) return limited;
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         assertHouseholdExists(getDb(), owner.householdId);
         const result = handleReinviteGuest(getDb(), owner.householdId, owner.personId, reinviteParams.id, config.hearthstonePublicUrl);
@@ -392,6 +432,8 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
 
       const revokeParams = parsePathParams("/guests/:id/revoke", pathname);
       if (method === "POST" && revokeParams) {
+        const limited = guard("3", clientIp, "POST /guests/:id/revoke");
+        if (limited) return limited;
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         assertHouseholdExists(getDb(), owner.householdId);
         const result = handleRevokeGuest(getDb(), owner.householdId, revokeParams.id);
@@ -400,6 +442,8 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
 
       const deleteGuestParams = parsePathParams("/guests/:id", pathname);
       if (method === "DELETE" && deleteGuestParams) {
+        const limited = guard("3", clientIp, "DELETE /guests/:id");
+        if (limited) return limited;
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         assertHouseholdExists(getDb(), owner.householdId);
         const result = handleDeleteGuest(getDb(), owner.householdId, deleteGuestParams.id);
@@ -408,6 +452,8 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
 
       // --- Owner management routes ---
       if (method === "GET" && pathname === "/household/owners") {
+        const limited = guard("3", clientIp, "GET /household/owners");
+        if (limited) return limited;
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         assertHouseholdExists(getDb(), owner.householdId);
         const result = handleListOwners(getDb(), owner.householdId);
@@ -415,6 +461,8 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       }
 
       if (method === "POST" && pathname === "/household/owners") {
+        const limited = guard("3", clientIp, "POST /household/owners");
+        if (limited) return limited;
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         assertHouseholdExists(getDb(), owner.householdId);
         const body = await req.json();
@@ -424,6 +472,8 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
 
       const removeOwnerParams = parsePathParams("/household/owners/:id", pathname);
       if (method === "DELETE" && removeOwnerParams) {
+        const limited = guard("3", clientIp, "DELETE /household/owners/:id");
+        if (limited) return limited;
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         assertHouseholdExists(getDb(), owner.householdId);
         const result = handleRemoveOwner(getDb(), owner.householdId, removeOwnerParams.id);
@@ -432,6 +482,8 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
 
       // --- Connection routes ---
       if (method === "GET" && pathname === "/connections") {
+        const limited = guard("3", clientIp, "GET /connections");
+        if (limited) return limited;
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         assertHouseholdExists(getDb(), owner.householdId);
         const result = handleListConnections(getDb(), owner.householdId);
@@ -441,6 +493,8 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       if (method === "POST" && pathname === "/connections/google-drive") {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         assertHouseholdExists(getDb(), owner.householdId);
+        const limited = guard("2", owner.householdId, "POST /connections/google-drive");
+        if (limited) return limited;
         const result = handleConnectGoogleDrive(getDb(), owner.householdId);
         return json(result.body, result.status);
       }
@@ -460,6 +514,8 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
 
       const connFilesParams = parsePathParams("/connections/:id/files", pathname);
       if (method === "GET" && connFilesParams) {
+        const limited = guard("3", clientIp, "GET /connections/:id/files");
+        if (limited) return limited;
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         assertHouseholdExists(getDb(), owner.householdId);
         const result = await handleListDriveFiles(ctx, getDb(), owner.householdId, connFilesParams.id);
@@ -468,6 +524,8 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
 
       const deleteConnParams = parsePathParams("/connections/:id", pathname);
       if (method === "DELETE" && deleteConnParams) {
+        const limited = guard("3", clientIp, "DELETE /connections/:id");
+        if (limited) return limited;
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         assertHouseholdExists(getDb(), owner.householdId);
         const result = handleDeleteConnection(getDb(), owner.householdId, deleteConnParams.id);
@@ -478,6 +536,8 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       if (method === "POST" && pathname === "/documents/upload") {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         assertHouseholdExists(getDb(), owner.householdId);
+        const limited = guard("2", owner.householdId, "POST /documents/upload");
+        if (limited) return limited;
 
         const contentType = req.headers.get("content-type") || "";
         const boundary = contentType.split("boundary=")[1];
@@ -491,6 +551,8 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       }
 
       if (method === "GET" && pathname === "/documents") {
+        const limited = guard("3", clientIp, "GET /documents");
+        if (limited) return limited;
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         assertHouseholdExists(getDb(), owner.householdId);
         const result = handleListDocuments(getDb(), owner.householdId);
@@ -498,6 +560,8 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       }
 
       if (method === "POST" && pathname === "/documents") {
+        const limited = guard("3", clientIp, "POST /documents");
+        if (limited) return limited;
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         assertHouseholdExists(getDb(), owner.householdId);
         const body = await req.json();
@@ -509,12 +573,16 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       if (method === "POST" && refreshDocParams) {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         assertHouseholdExists(getDb(), owner.householdId);
+        const limited = guard("2", owner.householdId, "POST /documents/:id/refresh");
+        if (limited) return limited;
         const result = await handleRefreshDocument(ctx, getDb(), owner.householdId, refreshDocParams.id);
         return json(result.body, result.status);
       }
 
       const docContentParams = parsePathParams("/documents/:id/content", pathname);
       if (method === "GET" && docContentParams) {
+        const limited = guard("3", clientIp, "GET /documents/:id/content");
+        if (limited) return limited;
         // Accepts BOTH owner and guest auth
         let householdId: string;
         try {
@@ -536,6 +604,8 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
 
       const deleteDocParams = parsePathParams("/documents/:id", pathname);
       if (method === "DELETE" && deleteDocParams) {
+        const limited = guard("3", clientIp, "DELETE /documents/:id");
+        if (limited) return limited;
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         assertHouseholdExists(getDb(), owner.householdId);
         const result = handleDeleteDocument(getDb(), owner.householdId, deleteDocParams.id);
@@ -546,11 +616,15 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       if (method === "POST" && pathname === "/chat") {
         const guest = authenticateGuest(getDb(), req.headers.get("authorization"));
         assertHouseholdExists(getDb(), guest.householdId);
+        const limited = guard("2", guest.householdId, "POST /chat");
+        if (limited) return limited;
         const body = await req.json();
         return handleChat(ctx, getDb(), guest.householdId, body);
       }
 
       if (method === "GET" && pathname === "/chat/suggestions") {
+        const limited = guard("3", clientIp, "GET /chat/suggestions");
+        if (limited) return limited;
         let householdId: string;
         try {
           const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
@@ -572,12 +646,16 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
       if (method === "POST" && pathname === "/chat/preview") {
         const owner = await authenticateOwner(getDb(), req.headers.get("authorization"), config.jwtSecret);
         assertHouseholdExists(getDb(), owner.householdId);
+        const limited = guard("2", owner.householdId, "POST /chat/preview");
+        if (limited) return limited;
         const body = await req.json();
         return handleChatPreview(ctx, getDb(), owner.householdId, body);
       }
 
       // --- Guest document list ---
       if (method === "GET" && pathname === "/guest/documents") {
+        const limited = guard("3", clientIp, "GET /guest/documents");
+        if (limited) return limited;
         const guest = authenticateGuest(getDb(), req.headers.get("authorization"));
         assertHouseholdExists(getDb(), guest.householdId);
         const result = handleListDocuments(getDb(), guest.householdId);
@@ -638,6 +716,13 @@ const _adminToken = mintAdminToken();
 console.log("=== Hearthstone admin ===");
 console.log(`URL: ${config.hearthstonePublicUrl}/admin/auth?t=${_adminToken}`);
 console.log("Valid until process restart.");
+
+const rateLimiter = createRateLimiter();
+
+// Guard against hot-reload stacking intervals in dev.
+if (!(globalThis as any).__rateLimitSweep && process.env.NODE_ENV !== "test") {
+  (globalThis as any).__rateLimitSweep = setInterval(() => rateLimiter.sweep(), 5 * 60 * 1000);
+}
 
 Bun.serve({ port: config.port, fetch: tracedFetch });
 console.log(`Hearthstone backend running on http://localhost:${config.port}`);
