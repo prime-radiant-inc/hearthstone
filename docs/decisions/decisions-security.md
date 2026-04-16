@@ -9,7 +9,7 @@ Hearthstone is a hobby-scale household app shipped to people the operator knows 
 - **A guest's invite link gets forwarded to someone who shouldn't have it.** Mitigation: short-lived single-use PINs, owner can revoke any guest at any time, revocation is enforced on every request.
 - **A guest device is lost or stolen.** Mitigation: owner revokes the guest from the dashboard; the next request from that token returns `401 session_expired`, the iOS client sees it and removes the session. There's no "remember device" or long-lived refresh — the session token itself is the credential.
 - **A discarded admin token is found in `fly logs` history.** Mitigation: the admin token is rotated on every server start and has no persistence — a process restart invalidates every old token.
-- **An attacker tries to brute-force the PIN redeem endpoint.** Mitigation today: 30 bits of PIN entropy + 7-day TTL. Mitigation tomorrow: rate limiting on `/auth/pin/redeem` (deferred — see `BACKLOG.md`).
+- **An attacker tries to brute-force the PIN redeem endpoint.** Mitigation: 30 bits of PIN entropy, 7-day TTL, and per-IP rate limiting (Tier 1: 10/min + 60/hr) on `POST /auth/pin/redeem`. See `backend/src/middleware/rate-limit.ts` and `docs/superpowers/specs/2026-04-16-rate-limiting-design.md`.
 - **Stale OAuth tokens for Google Drive.** Mitigation: refresh tokens are scoped to the household's `connections` row, never returned to the client, only used server-side when fetching documents the household has chosen to connect.
 
 The threats Hearthstone explicitly does *not* model:
@@ -43,7 +43,7 @@ PINs are the only path into any of the three identity surfaces (operator excepte
 - **Single-use:** redemption stamps `used_at`; replay returns `410 already_used`.
 - **Normalization:** `redeemPin()` runs `normalizePin()` (trim + uppercase) and validates against `PIN_REGEX` before the DB lookup. A malformed PIN never reaches the lookup, so the SQL surface is constant regardless of input.
 - **No oracle:** `not_found` and `expired` and `already_used` all return distinct status codes and messages, but they don't leak which PINs *exist* — the `not_found` path runs the same query as the others, so timing is comparable. (This is mostly accidental; if a real attacker showed up we'd want explicit constant-time handling.)
-- **No rate limiting yet.** This is the most important known gap. Without it, an attacker doing 50 req/s would chew through the whole space in ~7 months. That's safe-ish in absolute terms, especially with 7-day TTLs cycling out PINs underneath them, but it's defense-in-depth we should build before scaling.
+- **Rate limited.** `POST /auth/pin/redeem` is capped at 10 requests per minute and 60 per hour per client IP (resolved from `Fly-Client-IP` with `X-Forwarded-For` fallback). Over-budget requests get a `429` with `Retry-After` and `retry_after_seconds` in the JSON body. Rejections are logged to stderr and, if Honeycomb is configured, as span attributes. An admin panel at `/admin` shows currently-throttled keys with a Clear button.
 
 ## Owner JWT (`middleware/owner-auth.ts`)
 
