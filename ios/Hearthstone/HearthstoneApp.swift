@@ -101,17 +101,6 @@ final class AppRouter: ObservableObject {
                 }
             }
         }
-        NotificationCenter.default.addObserver(forName: .houseDeleted, object: nil, queue: .main) { [weak self] _ in
-            Task { @MainActor in
-                guard let self else { return }
-                if let active = self.store.activeSession {
-                    let name = active.householdName
-                    self.store.remove(id: active.id)
-                    self.showAccessRevoked = name
-                    self.syncState()
-                }
-            }
-        }
     }
 
     func syncState() {

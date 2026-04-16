@@ -41,6 +41,21 @@ struct DashboardView: View {
     private var ownerName: String { session?.personName ?? "" }
 
     var body: some View {
+        switch viewModel.houseStatus {
+        case .gone, .accessLost:
+            MissingHouseView(
+                householdName: householdName,
+                status: viewModel.houseStatus,
+                onRemove: {
+                    store.remove(id: sessionId)
+                }
+            )
+        case .loading, .ready:
+            dashboardContent
+        }
+    }
+
+    private var dashboardContent: some View {
         GeometryReader { geo in
             ScrollView {
                 VStack(spacing: 0) {

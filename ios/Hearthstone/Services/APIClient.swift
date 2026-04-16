@@ -2,7 +2,6 @@ import Foundation
 
 extension Notification.Name {
     static let guestSessionRevoked = Notification.Name("guestSessionRevoked")
-    static let houseDeleted = Notification.Name("houseDeleted")
 }
 
 // MARK: - Response wrappers
@@ -51,12 +50,8 @@ final class APIClient {
             if http.statusCode == 401 {
                 NotificationCenter.default.post(name: .guestSessionRevoked, object: nil)
             }
-            if http.statusCode == 410 {
-                if let serverErr = try? decoder.decode(ServerError.self, from: data),
-                   serverErr.message == "house_deleted" {
-                    NotificationCenter.default.post(name: .houseDeleted, object: nil)
-                }
-            }
+            // 410 "house_deleted" propagates as APIError.server(410, "house_deleted")
+            // — handled by the calling ViewModel, not via notification.
             if let serverErr = try? decoder.decode(ServerError.self, from: data) {
                 throw APIError.server(http.statusCode, serverErr.message)
             }
@@ -261,12 +256,6 @@ final class APIClient {
         let (data, response) = try await session.data(for: req)
         let httpResponse = response as! HTTPURLResponse
         guard (200...299).contains(httpResponse.statusCode) else {
-            if httpResponse.statusCode == 410 {
-                if let err = try? decoder.decode(ServerError.self, from: data),
-                   err.message == "house_deleted" {
-                    NotificationCenter.default.post(name: .houseDeleted, object: nil)
-                }
-            }
             if let err = try? decoder.decode(ServerError.self, from: data) {
                 throw APIError.server(httpResponse.statusCode, err.message)
             }

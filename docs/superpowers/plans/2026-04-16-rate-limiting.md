@@ -284,7 +284,6 @@ export function createRateLimiter(opts: { now?: () => number } = {}): RateLimite
         const ratioMin = entry.buckets[minIdx].tokens / cfgs[minIdx].capacity;
         if (ratioI < ratioMin) minIdx = i;
       }
-      maybePrune(ek, entry);
       return {
         allowed: true, retryAfterSec: 0, tier,
         tokens: entry.buckets[minIdx].tokens,
@@ -301,16 +300,6 @@ export function createRateLimiter(opts: { now?: () => number } = {}): RateLimite
       allowed: false, retryAfterSec, tier,
       tokens: b.tokens, capacity: cfg.capacity,
     };
-  }
-
-  function maybePrune(ek: string, entry: Entry): void {
-    const cfgs = LIMITS[entry.tier];
-    const allFull = entry.buckets.every((b, i) => b.tokens >= cfgs[i].capacity);
-    if (!allFull) return;
-    const t = now();
-    if (t - entry.lastAccess > maxWindowSec(entry.tier) * 2 * 1000) {
-      entries.delete(ek);
-    }
   }
 
   function clear(key: string): void {
