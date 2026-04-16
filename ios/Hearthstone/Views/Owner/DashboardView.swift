@@ -92,7 +92,7 @@ struct DashboardView: View {
             .ignoresSafeArea(edges: .top)
             .background(theme.cream)
         }
-        .task { await viewModel.load() }
+        .task(id: store.activeSessionId) { await viewModel.load() }
         .sheet(isPresented: $showDocuments) {
             ConnectDocsView(sessionId: sessionId)
         }
