@@ -1,6 +1,8 @@
 // In-memory, single-process token-bucket rate limiter.
 // Spec: docs/superpowers/specs/2026-04-16-rate-limiting-design.md
 
+import { trace, type Context } from "@opentelemetry/api";
+
 export type Tier = "1" | "2" | "3";
 
 export interface BucketConfig {
@@ -192,4 +194,61 @@ export function resolveClientIp(req: Request): string {
   if (xri) return xri.trim();
 
   return "unknown";
+}
+
+export function rateLimited(
+  rl: RateLimiter,
+  _req: Request,
+  tier: Tier,
+  key: string,
+  route: string,
+  ctx?: Context,
+): Response | null {
+  let decision: Decision;
+  try {
+    decision = rl.check(key, tier);
+  } catch (err) {
+    console.error(JSON.stringify({
+      event: "rate_limit_check_failed",
+      ts: new Date().toISOString(),
+      route, tier, key,
+      error: (err as Error).message,
+    }));
+    return null; // fail open
+  }
+
+  // OTel span attributes — no-op if tracing isn't configured.
+  const span = ctx ? trace.getSpan(ctx) : undefined;
+  if (span) {
+    span.setAttribute("ratelimit.tier", tier);
+    span.setAttribute("ratelimit.key", key);
+    span.setAttribute("ratelimit.allowed", decision.allowed);
+    if (!decision.allowed) {
+      span.setAttribute("ratelimit.retry_after_seconds", decision.retryAfterSec);
+    }
+  }
+
+  if (decision.allowed) return null;
+
+  const retry = decision.retryAfterSec;
+  const body = {
+    message: `Too many requests. Try again in ${retry} seconds.`,
+    retry_after_seconds: retry,
+  };
+  const event = {
+    ts: new Date().toISOString(),
+    route, tier, key, retry_after_seconds: retry,
+  };
+
+  try { rl.recordRejection(event); } catch {/* ignore */}
+
+  console.warn(JSON.stringify({ event: "rate_limit_rejected", ...event }));
+
+  return new Response(JSON.stringify(body), {
+    status: 429,
+    headers: {
+      "Content-Type": "application/json",
+      "Retry-After": String(retry),
+    },
+  });
 }

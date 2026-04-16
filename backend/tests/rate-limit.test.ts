@@ -1,5 +1,7 @@
 import { describe, it, expect } from "bun:test";
 import { createRateLimiter, LIMITS, resolveClientIp } from "../src/middleware/rate-limit";
+import { rateLimited } from "../src/middleware/rate-limit";
+import { handleAdminRateLimits, handleAdminClearRateLimit } from "../src/routes/admin";
 
 describe("rate limiter — token bucket", () => {
   it("allows up to capacity then rejects", () => {
@@ -149,5 +151,103 @@ describe("resolveClientIp", () => {
 
   it("falls back to 'unknown' when no header is present", () => {
     expect(resolveClientIp(mkReq({}))).toBe("unknown");
+  });
+});
+
+describe("rateLimited helper", () => {
+  function mkReq(ip = "1.2.3.4"): Request {
+    return new Request("http://test/x", { headers: { "fly-client-ip": ip } });
+  }
+
+  it("returns null when allowed", async () => {
+    let now = 1_000_000;
+    const rl = createRateLimiter({ now: () => now });
+    const res = rateLimited(rl, mkReq(), "1", "1.2.3.4", "POST /auth/pin/redeem");
+    expect(res).toBeNull();
+  });
+
+  it("returns a 429 Response with Retry-After + retry_after_seconds", async () => {
+    let now = 1_000_000;
+    const rl = createRateLimiter({ now: () => now });
+    for (let i = 0; i < 10; i++) rateLimited(rl, mkReq(), "1", "1.2.3.4", "POST /auth/pin/redeem");
+    const res = rateLimited(rl, mkReq(), "1", "1.2.3.4", "POST /auth/pin/redeem")!;
+    expect(res).not.toBeNull();
+    expect(res.status).toBe(429);
+    expect(res.headers.get("retry-after")).toBeTruthy();
+    const body = await res.json();
+    expect(typeof body.message).toBe("string");
+    expect(body.message).toMatch(/\d+ second/);
+    expect(typeof body.retry_after_seconds).toBe("number");
+    expect(body.retry_after_seconds).toBeGreaterThan(0);
+    expect(Object.keys(body).sort()).toEqual(["message", "retry_after_seconds"]);
+  });
+
+  it("records rejections into admin().rejections", () => {
+    let now = 1_000_000;
+    const rl = createRateLimiter({ now: () => now });
+    for (let i = 0; i < 11; i++) rateLimited(rl, mkReq(), "1", "1.2.3.4", "POST /auth/pin/redeem");
+    const r = rl.admin().rejections;
+    expect(r.length).toBe(1);
+    expect(r[0]).toMatchObject({
+      route: "POST /auth/pin/redeem",
+      tier: "1",
+      key: "1.2.3.4",
+    });
+    expect(typeof r[0].ts).toBe("string");
+    expect(r[0].retry_after_seconds).toBeGreaterThan(0);
+  });
+
+  it("fails open if limiter throws", () => {
+    const broken = {
+      check() { throw new Error("boom"); },
+      recordRejection() {},
+      clear() {},
+      sweep() {},
+      admin() { return { throttled: [], rejections: [] }; },
+    };
+    const res = rateLimited(broken as any, mkReq(), "1", "1.2.3.4", "POST /x");
+    expect(res).toBeNull();
+  });
+});
+
+describe("admin rate-limit handlers", () => {
+  it("GET /admin/rate-limits returns throttled + rejections arrays", () => {
+    let now = 1_000_000;
+    const rl = createRateLimiter({ now: () => now });
+    for (let i = 0; i < 11; i++) rl.check("1.2.3.4", "1");
+    rl.recordRejection({
+      ts: new Date(now).toISOString(),
+      route: "POST /auth/pin/redeem",
+      tier: "1",
+      key: "1.2.3.4",
+      retry_after_seconds: 6,
+    });
+
+    const res = handleAdminRateLimits(rl);
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body.throttled)).toBe(true);
+    expect(Array.isArray(res.body.rejections)).toBe(true);
+    expect(res.body.throttled.length).toBe(1);
+    expect(res.body.throttled[0]).toMatchObject({
+      tier: "1", key: "1.2.3.4",
+    });
+    expect(res.body.throttled[0].retry_after_seconds).toBeGreaterThan(0);
+  });
+
+  it("POST /admin/rate-limits/clear nukes the key and returns 204", () => {
+    let now = 1_000_000;
+    const rl = createRateLimiter({ now: () => now });
+    for (let i = 0; i < 11; i++) rl.check("1.2.3.4", "1");
+    const res = handleAdminClearRateLimit(rl, { key: "1.2.3.4" });
+    expect(res.status).toBe(204);
+    expect(res.body).toBeNull();
+    expect(rl.check("1.2.3.4", "1").allowed).toBe(true);
+  });
+
+  it("POST /admin/rate-limits/clear returns 422 if key missing", () => {
+    const rl = createRateLimiter();
+    const res = handleAdminClearRateLimit(rl, {} as any);
+    expect(res.status).toBe(422);
+    expect(res.body).toEqual({ message: "key is required" });
   });
 });

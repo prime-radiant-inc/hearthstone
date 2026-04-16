@@ -5,6 +5,7 @@ import { generateId } from "../utils";
 import { createAuthPin } from "../services/pins";
 import { deleteHouseholdCascade } from "../services/household-deletion";
 import { renderAdminPage } from "../html/admin-page";
+import type { RateLimiter } from "../middleware/rate-limit";
 
 export function handleAdminAuth(
   tokenFromQuery: string | null,
@@ -168,5 +169,21 @@ export function handleAdminDeleteHouse(
   const house = db.prepare("SELECT id FROM households WHERE id = ?").get(houseId);
   if (!house) return { status: 404, body: { message: "House not found" } };
   deleteHouseholdCascade(db, houseId);
+  return { status: 204, body: null };
+}
+
+export function handleAdminRateLimits(
+  rl: RateLimiter,
+): { status: number; body: any } {
+  return { status: 200, body: rl.admin() };
+}
+
+export function handleAdminClearRateLimit(
+  rl: RateLimiter,
+  body: { key?: string } | null,
+): { status: number; body: any } {
+  const key = body?.key?.trim();
+  if (!key) return { status: 422, body: { message: "key is required" } };
+  rl.clear(key);
   return { status: 204, body: null };
 }
