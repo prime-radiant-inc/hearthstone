@@ -22,6 +22,7 @@ import {
   handleAdminHouses,
   handleAdminCreateHouse,
   handleAdminInviteOwner,
+  handleAdminDeleteHouse,
   handleAdminInfo,
   handleAdminAuth,
 } from "../src/routes/admin";
@@ -650,5 +651,43 @@ describe("API Contract: DELETE /household/owners/:id — last-owner guard", () =
 
     const result = handleRemoveOwner(db, hid, "p1");
     expect(result.status).toBe(204);
+  });
+});
+
+// ============================================================
+// ADMIN DELETE HOUSE
+// ============================================================
+
+describe("API Contract: DELETE /admin/houses/:id", () => {
+  let db: Database;
+  beforeEach(() => { db = createTestDbWithVec(); });
+
+  it("returns 204 and removes all household data", () => {
+    const now = new Date().toISOString();
+    db.prepare("INSERT INTO persons (id, email, created_at) VALUES (?, ?, ?)").run("p1", "owner@test.com", now);
+    db.prepare("INSERT INTO households (id, name, created_at) VALUES (?, ?, ?)").run("h1", "Test Home", now);
+    db.prepare("INSERT INTO household_members (id, household_id, person_id, role, created_at) VALUES (?, ?, ?, 'owner', ?)").run("hm1", "h1", "p1", now);
+    db.prepare("INSERT INTO guests (id, household_id, name, contact, contact_type, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)").run("g1", "h1", "Maria", "m@t.com", "email", "active", now);
+
+    const result = handleAdminDeleteHouse(db, "h1");
+    expect(result.status).toBe(204);
+    expect(db.prepare("SELECT COUNT(*) as c FROM households").get()).toEqual({ c: 0 });
+    expect(db.prepare("SELECT COUNT(*) as c FROM guests").get()).toEqual({ c: 0 });
+  });
+
+  it("returns 404 for nonexistent house", () => {
+    const result = handleAdminDeleteHouse(db, "nonexistent");
+    expect(result.status).toBe(404);
+    expect(result.body.message).toBe("House not found");
+  });
+
+  it("preserves non-placeholder person rows", () => {
+    const now = new Date().toISOString();
+    db.prepare("INSERT INTO persons (id, email, created_at) VALUES (?, ?, ?)").run("p1", "owner@test.com", now);
+    db.prepare("INSERT INTO households (id, name, created_at) VALUES (?, ?, ?)").run("h1", "Test Home", now);
+    db.prepare("INSERT INTO household_members (id, household_id, person_id, role, created_at) VALUES (?, ?, ?, 'owner', ?)").run("hm1", "h1", "p1", now);
+
+    handleAdminDeleteHouse(db, "h1");
+    expect(db.prepare("SELECT id FROM persons WHERE id = 'p1'").get()).toBeTruthy();
   });
 });

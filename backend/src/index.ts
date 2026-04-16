@@ -26,7 +26,7 @@ import { handlePinRedeem } from "./routes/pin-auth";
 import { handleListOwners, handleInviteOwner, handleRemoveOwner } from "./routes/owners";
 import { handleJoinPage } from "./routes/join";
 import { mintAdminToken, getAdminToken } from "./services/admin-token";
-import { handleAdminAuth, handleAdminPage, handleAdminHouses, handleAdminCreateHouse, handleAdminInviteOwner, handleAdminInfo } from "./routes/admin";
+import { handleAdminAuth, handleAdminPage, handleAdminHouses, handleAdminCreateHouse, handleAdminInviteOwner, handleAdminDeleteHouse, handleAdminInfo } from "./routes/admin";
 import { requireAdmin } from "./middleware/admin-auth";
 import { assertHouseholdExists, HouseholdGoneError } from "./services/household-deletion";
 import { publicEmail } from "./utils";
@@ -291,6 +291,16 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
           if (!requireAdmin(req)) return json({ message: "Unauthorized" }, 401);
           const body = await req.json().catch(() => null);
           const result = await handleAdminInviteOwner(getDb(), params.id, body, config.hearthstonePublicUrl);
+          return json(result.body, result.status);
+        }
+      }
+
+      {
+        const params = parsePathParams("/admin/houses/:id", pathname);
+        if (method === "DELETE" && params) {
+          if (!requireAdmin(req)) return json({ message: "Unauthorized" }, 401);
+          const result = handleAdminDeleteHouse(getDb(), params.id);
+          if (result.body === null) return new Response(null, { status: 204 });
           return json(result.body, result.status);
         }
       }

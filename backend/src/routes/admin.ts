@@ -3,6 +3,7 @@ import { statSync } from "fs";
 import QRCode from "qrcode";
 import { generateId } from "../utils";
 import { createAuthPin } from "../services/pins";
+import { deleteHouseholdCascade } from "../services/household-deletion";
 import { renderAdminPage } from "../html/admin-page";
 
 export function handleAdminAuth(
@@ -158,4 +159,14 @@ export function handleAdminInfo(
       version,
     },
   };
+}
+
+export function handleAdminDeleteHouse(
+  db: Database,
+  houseId: string,
+): { status: number; body: any } {
+  const house = db.prepare("SELECT id FROM households WHERE id = ?").get(houseId);
+  if (!house) return { status: 404, body: { message: "House not found" } };
+  deleteHouseholdCascade(db, houseId);
+  return { status: 204, body: null };
 }
