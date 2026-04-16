@@ -91,6 +91,26 @@ export function renderAdminPage(): string {
     .pin-label { font-size: 0.78rem; color: #9b9488; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.5rem; }
     .pin-display { text-align: center; font-family: ui-monospace, Menlo, monospace; font-size: 1.4rem; letter-spacing: 0.3rem; color: #6b6358; margin: 0.25rem 0 0.75rem; }
     .hint { font-size: 0.85rem; color: #6b6358; line-height: 1.5; }
+    button.danger {
+      background: white; color: #a23a2a; border: 1.5px solid #a23a2a;
+      padding: 0.35rem 0.75rem; border-radius: 8px; font-size: 0.82rem;
+      cursor: pointer; font-weight: 500;
+    }
+    button.danger:hover { background: #a23a2a; color: white; }
+    button.danger:disabled { opacity: 0.4; cursor: not-allowed; }
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+      display: flex; align-items: center; justify-content: center; z-index: 100;
+    }
+    .modal-overlay .modal { background: white; border-radius: 14px; padding: 1.5rem 2rem; max-width: 420px; width: 90%; box-shadow: 0 8px 32px rgba(0,0,0,0.15); }
+    .modal-overlay .modal h3 { margin-bottom: 0.75rem; }
+    .modal-overlay .modal p { font-size: 0.9rem; color: #6b6358; margin-bottom: 1rem; line-height: 1.5; }
+    .modal-overlay .modal input {
+      width: 100%; padding: 0.6rem; border: 1.5px solid #e0dbd3; border-radius: 8px;
+      font-size: 0.95rem; margin-bottom: 1rem;
+    }
+    .modal-overlay .modal .actions { display: flex; justify-content: flex-end; gap: 0.75rem; }
+    .modal-overlay .modal .error { color: #a23a2a; font-size: 0.85rem; margin-bottom: 0.75rem; }
   </style>
 </head>
 <body>
@@ -146,7 +166,7 @@ export function renderAdminPage(): string {
           <td>\${h.owner_count}</td>
           <td>\${h.guest_count}</td>
           <td>\${h.document_count}</td>
-          <td class="row-actions-col"><button class="row-action" data-action="invite-owner" data-house-id="\${escapeHTML(h.id)}">New owner link</button></td>
+          <td class="row-actions-col"><button class="row-action" data-action="invite-owner" data-house-id="\${escapeHTML(h.id)}">New owner link</button> <button class="danger" onclick="openDeleteModal('\${escapeHTML(h.id)}', '\${h.name.replace(/'/g, "\\\\'")}')">Delete</button></td>
         </tr>
       \`).join("");
     }
@@ -265,6 +285,63 @@ export function renderAdminPage(): string {
       if (!btn) return;
       showInviteOwnerForm(btn.dataset.houseId);
     });
+
+    let deleteModal = null;
+
+    function openDeleteModal(houseId, houseName) {
+      if (deleteModal) deleteModal.remove();
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.innerHTML = \`
+        <div class="modal">
+          <h3>Delete house "\${escapeHTML(houseName)}"?</h3>
+          <p>This permanently removes the household, all of its guests, owners, connected documents, and chat history. Any connected iOS apps will be signed out of this house the next time they sync.</p>
+          <p style="font-weight:500;">Type the house name to confirm:</p>
+          <input id="deleteConfirmInput" placeholder="\${escapeHTML(houseName)}" oninput="checkDeleteConfirm(this, '\${houseName.replace(/'/g, "\\\\'")}')">
+          <div class="error" id="deleteError" style="display:none"></div>
+          <div class="actions">
+            <button class="secondary" onclick="closeDeleteModal()">Cancel</button>
+            <button class="danger" id="deleteConfirmBtn" disabled onclick="confirmDelete('\${houseId}')">Delete house</button>
+          </div>
+        </div>
+      \`;
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) closeDeleteModal(); });
+      document.body.appendChild(overlay);
+      deleteModal = overlay;
+      document.getElementById('deleteConfirmInput').focus();
+    }
+
+    function closeDeleteModal() {
+      if (deleteModal) { deleteModal.remove(); deleteModal = null; }
+    }
+
+    function checkDeleteConfirm(input, expected) {
+      const btn = document.getElementById('deleteConfirmBtn');
+      btn.disabled = input.value.trim().toLowerCase() !== expected.trim().toLowerCase();
+    }
+
+    async function confirmDelete(houseId) {
+      const btn = document.getElementById('deleteConfirmBtn');
+      const errEl = document.getElementById('deleteError');
+      btn.disabled = true;
+      btn.textContent = 'Deleting...';
+      errEl.style.display = 'none';
+      try {
+        const res = await fetch('/admin/houses/' + houseId, { method: 'DELETE', credentials: 'include' });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body.message || 'Delete failed');
+        }
+        closeDeleteModal();
+        loadHouses();
+      } catch (e) {
+        errEl.textContent = e.message;
+        errEl.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Delete house';
+      }
+    }
+
     loadHouses();
     loadInfo();
   </script>
