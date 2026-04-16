@@ -29,25 +29,17 @@ export async function authenticateOwner(
     const person = db.prepare("SELECT id FROM persons WHERE id = ?").get(personId);
     if (!person) throw new Error("unauthorized");
 
-    // Check membership in the specific household from the JWT
-    if (householdId) {
-      const member = db.prepare(
-        "SELECT id FROM household_members WHERE person_id = ? AND household_id = ? AND role = 'owner'"
-      ).get(personId, householdId);
-      if (member) return { personId, householdId };
+    if (!householdId) throw new Error("unauthorized");
 
-      // Membership check failed — distinguish deleted household from removed owner
-      const houseExists = db.prepare("SELECT id FROM households WHERE id = ?").get(householdId);
-      if (!houseExists) throw new HouseholdGoneError();
-      throw new Error("unauthorized");
-    }
-
-    // Fallback: find any household this person owns (for legacy JWTs without householdId)
     const member = db.prepare(
-      "SELECT household_id FROM household_members WHERE person_id = ? AND role = 'owner' LIMIT 1"
-    ).get(personId) as any;
+      "SELECT id FROM household_members WHERE person_id = ? AND household_id = ? AND role = 'owner'"
+    ).get(personId, householdId);
+    if (member) return { personId, householdId };
 
-    return { personId, householdId: member?.household_id ?? "" };
+    // Membership check failed — distinguish deleted household from removed owner
+    const houseExists = db.prepare("SELECT id FROM households WHERE id = ?").get(householdId);
+    if (!houseExists) throw new HouseholdGoneError();
+    throw new Error("unauthorized");
   } catch (err) {
     if (err instanceof HouseholdGoneError) throw err;
     throw new Error("unauthorized");
