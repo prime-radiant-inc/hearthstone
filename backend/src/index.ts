@@ -266,12 +266,12 @@ async function handleRequest(ctx: Context | undefined, req: Request): Promise<Re
 
       // --- Admin routes ---
       if (method === "POST" && pathname === "/admin/auth") {
-        const result = handleAdminAuth(url.searchParams.get("t"), getAdminToken());
+        const result = handleAdminAuth(url.searchParams.get("t"), getAdminToken(), config.hearthstonePublicUrl.startsWith("https://"));
         return new Response(null, { status: result.status, headers: result.headers });
       }
       // Allow GET on /admin/auth too — clicking a link from a terminal is a GET.
       if (method === "GET" && pathname === "/admin/auth") {
-        const result = handleAdminAuth(url.searchParams.get("t"), getAdminToken());
+        const result = handleAdminAuth(url.searchParams.get("t"), getAdminToken(), config.hearthstonePublicUrl.startsWith("https://"));
         return new Response(null, { status: result.status, headers: result.headers });
       }
 

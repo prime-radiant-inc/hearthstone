@@ -486,17 +486,17 @@ describe("API Contract: GET /admin/info", () => {
 
 describe("Admin auth flow", () => {
   it("handleAdminAuth rejects missing token", () => {
-    const result = handleAdminAuth(null, "hadm_valid");
+    const result = handleAdminAuth(null, "hadm_valid", true);
     expect(result.status).toBe(401);
   });
 
   it("handleAdminAuth rejects wrong token", () => {
-    const result = handleAdminAuth("hadm_wrong", "hadm_valid");
+    const result = handleAdminAuth("hadm_wrong", "hadm_valid", true);
     expect(result.status).toBe(401);
   });
 
   it("accepts both GET and POST on /admin/auth (routing contract)", () => {
-    // The handler itself is a pure function of (queryToken, validToken) — it
+    // The handler itself is a pure function of (queryToken, validToken, secure) — it
     // doesn't look at the HTTP verb. The route dispatch in src/index.ts
     // registers the same handler for `GET /admin/auth` and
     // `POST /admin/auth` on purpose: operators click the admin URL from
@@ -510,14 +510,22 @@ describe("Admin auth flow", () => {
     expect(indexSource).toContain('method === "GET" && pathname === "/admin/auth"');
   });
 
-  it("handleAdminAuth 302s and sets cookie on match", () => {
-    const result = handleAdminAuth("hadm_valid", "hadm_valid");
+  it("handleAdminAuth 302s with Secure cookie when secure=true", () => {
+    const result = handleAdminAuth("hadm_valid", "hadm_valid", true);
     expect(result.status).toBe(302);
     expect(result.headers["Set-Cookie"]).toContain("hadm=hadm_valid");
     expect(result.headers["Set-Cookie"]).toContain("HttpOnly");
     expect(result.headers["Set-Cookie"]).toContain("Secure");
     expect(result.headers["Set-Cookie"]).toContain("SameSite=Strict");
     expect(result.headers.Location).toBe("/admin");
+  });
+
+  it("handleAdminAuth omits Secure when secure=false (local http dev)", () => {
+    const result = handleAdminAuth("hadm_valid", "hadm_valid", false);
+    expect(result.status).toBe(302);
+    expect(result.headers["Set-Cookie"]).not.toContain("Secure");
+    expect(result.headers["Set-Cookie"]).toContain("HttpOnly");
+    expect(result.headers["Set-Cookie"]).toContain("SameSite=Strict");
   });
 });
 

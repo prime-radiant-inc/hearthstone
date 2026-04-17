@@ -9,15 +9,21 @@ import type { RateLimiter } from "../middleware/rate-limit";
 
 export function handleAdminAuth(
   tokenFromQuery: string | null,
-  validToken: string | null
+  validToken: string | null,
+  secure: boolean,
 ): { status: number; headers: Record<string, string> } {
   if (!tokenFromQuery || !validToken || tokenFromQuery !== validToken) {
     return { status: 401, headers: {} };
   }
+  // `Secure` is only honored over HTTPS — on plain HTTP (localhost dev) the
+  // browser silently drops any Secure cookie, leaving the admin redirect
+  // unauthenticated. Callers pass `true` in production (public URL is https)
+  // and `false` for local http dev.
+  const secureFlag = secure ? " Secure;" : "";
   return {
     status: 302,
     headers: {
-      "Set-Cookie": `hadm=${validToken}; HttpOnly; Secure; SameSite=Strict; Path=/`,
+      "Set-Cookie": `hadm=${validToken}; HttpOnly;${secureFlag} SameSite=Strict; Path=/`,
       Location: "/admin",
     },
   };
