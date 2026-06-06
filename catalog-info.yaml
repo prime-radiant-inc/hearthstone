@@ -1,0 +1,14 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: hearthstone
+  description: "Household-knowledge RAG assistant for babysitters and family, grounded in your Google Docs with cited sources."
+  annotations:
+    backstage.io/techdocs-ref: dir:.
+    prime-radiant.com/repo-map-rev: "6117787e881a6034bc3f580dcfd3c99d1c217f78"
+  tags: [typescript, swift, rag, ios]
+spec:
+  type: service
+  lifecycle: production
+  owner: user:mhat
+  system: products
